@@ -1,0 +1,171 @@
+import { jwtDecode } from "jwt-decode";
+
+import * as actionTypes from "./actionTypes";
+import axios from "../../axios";
+
+export const authStart = () => {
+  return {
+    type: actionTypes.AUTH_START,
+  };
+};
+
+export const authSuccess = (authData) => {
+  return {
+    type: actionTypes.AUTH_SUCCESS,
+    authData: authData,
+  };
+};
+
+export const captchaAuthSuccess = (authData) => {
+  return {
+    type: actionTypes.CAPTCHA_AUTH_SUCCESS,
+    authData: authData,
+  };
+};
+
+export const captchaAuthFail = (error) => {
+  return {
+    type: actionTypes.CAPTCHA_AUTH_FAIL,
+    error: error,
+  };
+};
+
+export const captchaAuthExpired = () => {
+  return {
+    type: actionTypes.CAPTCHA_AUTH_EXPIRED,
+  };
+};
+
+export const resetCaptcha = () => {
+  return {
+    type: actionTypes.CAPTCHA_AUTH_RESET,
+  };
+};
+
+export const authFail = (error) => {
+  return {
+    type: actionTypes.AUTH_FAIL,
+    error: error,
+  };
+};
+
+export const checkAuthTimeout = (expirationTime) => {
+  return (dispatch) => {
+    setTimeout(() => {
+      dispatch(logout());
+    }, expirationTime * 1000);
+  };
+};
+
+export const logout = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("expirationDate");
+  localStorage.removeItem("userId");
+  localStorage.removeItem("user");
+  return {
+    type: actionTypes.AUTH_LOGOUT,
+  };
+};
+
+export const getAuthStorageSuccess = (authData) => {
+  return {
+    type: actionTypes.AUTH_GET_STORAGE,
+    authData: authData,
+  };
+};
+
+export const getAuthStorage = () => {
+  return (dispatch) => {
+    const localToken = localStorage.getItem("token");
+
+    if (!localToken) {
+      return; // Exit if no token is found
+    }
+
+    try {
+      const decodeToken = jwtDecode(localToken);
+      const expirationDate = localStorage.getItem("expirationDate");
+      const userId = decodeToken?.id;
+      const user = decodeToken;
+
+      dispatch(
+        getAuthStorageSuccess({
+          token: localToken,
+          expirationDate,
+          userId,
+          user,
+        })
+      );
+    } catch (error) {
+      console.error("Invalid token:", error);
+      // Optionally, handle token invalidation here
+    }
+  };
+};
+
+export const auth = (username, password) => {
+  return (dispatch) => {
+    dispatch(authStart());
+    axios({
+      method: "get",
+      url: "/api/token",
+      auth: {
+        username: username,
+        password: password,
+      },
+      withCredentials: false,
+    })
+      .then((response) => {
+        const user = jwtDecode(response.data.token);
+        console.log("USER  JWT", user);
+        const expirationDate = new Date(
+          new Date().getTime() + response.data.expires_in * 1000
+        ).getTime();
+
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("expirationDate", expirationDate);
+        localStorage.setItem("userId", response.data.user_id);
+        localStorage.setItem("user", user);
+        dispatch(
+          authSuccess({
+            token: response.data.token,
+            userId: user.id,
+            expirationDate: expirationDate,
+            user: user,
+          })
+        );
+        dispatch(checkAuthTimeout(response.data.expires_in));
+      })
+      .catch((err) => {
+        dispatch(authFail(err.response.data));
+      });
+  };
+};
+
+export const verifyCaptcha = (recaptchaValue) => {
+  return (dispatch) => {
+    // console.log('[recaptchaValue]: ', recaptchaValue);
+
+    let bodyFormData = new FormData();
+    bodyFormData.set("recaptchaValue", recaptchaValue);
+
+    axios({
+      method: "post",
+      url: "/api/verify-captcha",
+      data: bodyFormData,
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+      .then((response) => {
+        // console.info('[verifyCaptcha] response: ', response.data);
+        dispatch(
+          captchaAuthSuccess({
+            captchaValid: response.data.valid,
+          })
+        );
+      })
+      .catch((err) => {
+        // console.error(err);
+        dispatch(authFail(err?.response?.data?.error));
+      });
+  };
+};
