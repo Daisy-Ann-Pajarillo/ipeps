@@ -13,6 +13,8 @@ import Home from "./containers/Home/Home";
 import Logout from "./containers/Logout/Logout";
 
 import UserApplicationForm from "./containers/UserApplicationForm/UserApplicationForm";
+// import EmployerApplicationForm from "./containers/UserApplicationFormNew/EmployerApplicationForm";
+// import AcademeApplicationForm from "./containers/UserApplicationFormNew/AcademeApplicationForm";
 import { connect } from "react-redux";
 
 import HelloStudent from "./hello-student";
@@ -30,13 +32,11 @@ const App = (props) => {
   }, [props.auth.token]);
 
   let authRoutes = null;
-  if (props.auth) {
-    console.log("Auth: ", props.auth);
-  }
-
-  // console.log("Auth Date: ", props.auth.expirationDate);
-  // console.log("Current Date: ", new Date().getTime());
-  // console.log("Is Authenticated: ", props.auth.user);
+  let applicationRoutes = null;
+  console.log("Auth: ", props.auth);
+  console.log("Auth Date: ", props.auth.expirationDate);
+  console.log("Current Date: ", new Date().getTime());
+  console.log("Is Authenticated: ", props.auth.user);
 
   if (
     props.auth &&
@@ -55,6 +55,7 @@ const App = (props) => {
           }
         />
       );
+      
     } else if (props.auth.user.user_type === "EMPLOYER") {
       authRoutes = (
         <Route
@@ -74,6 +75,16 @@ const App = (props) => {
             <React.Suspense fallback={loading}>
               <HelloJobseeker />
               {/* <JobSeekerLayout /> */}
+            </React.Suspense>
+          }
+        />
+      );
+      applicationRoutes = (
+        <Route
+          path="/user-application-form"
+          element={
+            <React.Suspense fallback={loading}>
+              {/* <UserApplicationForm /> */}
             </React.Suspense>
           }
         />
@@ -136,8 +147,23 @@ const App = (props) => {
           <Route path="/logout" element={<Logout />} />
           <Route
             path="/user-application-form"
-            element={<UserApplicationForm />}
+            element={<UserApplicationForm 
+              //user_type = {props.auth.user.user_type}
+              user_type = "JOBSEEKER"
+              />}
           />
+           {/* <Route
+            path="/employer-application-form"
+            element={<EmployerApplicationForm />}
+          />
+           <Route
+            path="/academe-application-form"
+            element={<AcademeApplicationForm />}
+          /> */}
+          
+          {/* Application Routes */}
+          {applicationRoutes}
+
           {/* Protected Routes */}
           {authRoutes}
 

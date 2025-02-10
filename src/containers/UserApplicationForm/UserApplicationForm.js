@@ -7,7 +7,6 @@ import * as actions from "../../store/actions/index";
 // Material-UI Components
 import {
   Container,
-  // Grid2 as Grid,
   Card,
   CardHeader,
   CardContent,
@@ -16,6 +15,7 @@ import {
   StepLabel,
   Button,
   Modal,
+  Box,
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -29,192 +29,72 @@ import OtherTraining from "./Pages/OtherTraining";
 import EligibilityProfessionalLicense from "./Pages/EligibilityProfessionalLicense";
 import WorkExperience from "./Pages/WorkExperience";
 import OtherSkills from "./Pages/OtherSkills";
-//import SideBar from './SideBar';
+import ReviewApplication from "./Pages/ReviewApplication";
+
+const stepsForJobseekers = [
+  { label: "Personal Information", component: PersonalInfo },
+  { label: "Job Preference", component: JobPreference },
+  { label: "Language Proficiency", component: LanguageDialectProficiency },
+  { label: "Educational Background", component: EducationalBackground },
+  { label: "Other Training", component: OtherTraining },
+  { label: "Professional License", component: EligibilityProfessionalLicense },
+  { label: "Work Experience", component: WorkExperience },
+  { label: "Other Skills", component: OtherSkills },
+  { label: "Review", component: ReviewApplication }
+];
+const stepsForEmployer = [
+  { label: "Personal Information", component: PersonalInfo },
+  { label: "Review", component: ReviewApplication }
+];
+
+const StyledStepper = styled(Stepper)(({ theme }) => ({
+  background: "transparent",
+  "& .MuiStepLabel-root": {
+    cursor: "pointer",
+    color: theme.palette.text.secondary,
+    "&:hover": {
+      opacity: 0.8
+    }
+  },
+  "& .MuiStepLabel-active": {
+    color: theme.palette.primary.main,
+    "& .MuiStepIcon-root": {
+      color: theme.palette.primary.main,
+    }
+  },
+  "& .MuiStepConnector-line": {
+    borderColor: theme.palette.divider
+  },
+  "& .MuiStepIcon-root.Mui-completed": {
+    color: theme.palette.success.main
+  }
+}));
 
 const UserApplicationForm = (props) => {
-  const [selectedTab, setSelectedTab] = useState(1);
+
+  const [activeStep, setActiveStep] = useState(0);
   const [pageData, setPageData] = useState({});
-  const [userHasValidEmail, setUserHasValidEmail] = useState(false);
-  const [userRequestedEmailConfirmation, setUserRequestedEmailConfirmation] =
-    useState(false);
+  const [isValid, setIsValid] = useState(false);
+  //const [userHasValidEmail, setUserHasValidEmail] = useState(false);
+  const [userRequestedEmailConfirmation, setUserRequestedEmailConfirmation] = useState(false);
+
+  let steps = []
+
+  if(props.user_type === "JOBSEEKER" || props.user_type === "STUDENT"){
+    steps = stepsForJobseekers
+  }else if(props.user_type === "EMPLOYER"){
+    steps = stepsForEmployer
+  }
 
   useEffect(() => {
     onRefresh();
   }, []);
 
-  const BlueBorderStepper = styled(Stepper)(({ theme, activeStep }) => ({
-    background: "transparent",
-    borderRadius: "0px",
-    padding: "10px",
-    transition: "background 0.5s ease-in-out",
-    "& .MuiStepLabel-root": {
-      color: "white",
-      width: "100%",
-    },
-    "& .MuiStep-root": {
-      display: "flex",
-      alignItems: "center",
-      width: "100%",
-    },
-    zIndex: 1000,
-    "& .MuiStepConnector-root": {
-      display: "block",
-    },
-    "& .MuiStepConnector-line ": {
-      borderLeft: "2px solid #2c387e",
-      height: "100%",
-    },
-  }));
-
-  const NumberedStepLabel = styled(StepLabel)(
-    ({ theme, completed, active }) => ({
-      "& .MuiStepIcon-root": {
-        // backgroundColor: completed ? 'green' : active ? '#2c387e' : 'transparent',
-        borderRadius: "5px",
-        width: "100%",
-        height: "25px",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        position: "relative",
-
-        //  border: active ? '2px solid darkblue' : 'none',
-      },
-      "& .MuiStepIcon-text": {
-        fill: "white",
-        display: "none",
-      },
-      "& .MuiTypography-root": {
-        width: "100%",
-        border: "2px solid #2c387e",
-        borderRadius: "8px",
-        padding: "8px 16px",
-        backgroundColor: active ? "#2c387e" : "transparent",
-        color: active ? "white" : "#2c387e",
-        transition: "all 0.3s ease",
-        fontWeight: active ? "bold" : "normal",
-        cursor: "pointer",
-        "&:hover": {
-          backgroundColor: active ? "#2c387e" : "rgba(44, 56, 126, 0.1)",
-        },
-        boxShadow: active ? "0 2px 4px rgba(0,0,0,0.2)" : "none",
-        opacity: active ? "100%" : "50%",
-      },
-    })
-  );
-
-  const content = [
-    { label: "Personal Information", step: "Step 1" },
-    { label: "Job Preference", step: "Step 2" },
-    { label: "Language Proficiency", step: "Step 3" },
-    { label: "Educational Background", step: "Step 4" },
-    { label: "Other Training", step: "Step 5" },
-    { label: "Professional License", step: "Step 6" },
-    { label: "Work Experience", step: "Step 7" },
-    { label: "Other Skills", step: "Step 8" },
-    { label: "Review", step: "Step 9" },
-  ];
-
   const onRefresh = () => {
     props.onGetAuthStorage();
     getAllPageData(props.auth.token);
-    checkIfUserEmailVerified(props.auth.token);
+    //checkIfUserEmailVerified(props.auth.token);
   };
-
-  let selectedTabContent = null;
-
-  switch (selectedTab) {
-    case 1:
-      selectedTabContent = (
-        <PersonalInfo
-          pageData={pageData?.personal_info_page}
-          onRefresh={onRefresh}
-          selectedTab={selectedTab}
-          onClickNextPage={() => onClickNextPage()}
-          onClickPrevPage={() => onClickPrevPage()}
-        />
-      );
-      break;
-    case 2:
-      selectedTabContent = (
-        <JobPreference
-          pageData={pageData?.job_preference_page}
-          onRefresh={onRefresh}
-          selectedTab={selectedTab}
-          onClickNextPage={() => onClickNextPage()}
-          onClickPrevPage={() => onClickPrevPage()}
-        />
-      );
-      break;
-    case 3:
-      selectedTabContent = (
-        <LanguageDialectProficiency
-          pageData={pageData?.dialect_lang_prof_page}
-          onRefresh={onRefresh}
-          selectedTab={selectedTab}
-          onClickNextPage={() => onClickNextPage()}
-          onClickPrevPage={() => onClickPrevPage()}
-        />
-      );
-      break;
-    case 4:
-      selectedTabContent = (
-        <EducationalBackground
-          pageData={pageData?.edu_background_page}
-          onRefresh={onRefresh}
-          selectedTab={selectedTab}
-          onClickNextPage={() => onClickNextPage()}
-          onClickPrevPage={() => onClickPrevPage()}
-        />
-      );
-      break;
-    case 5:
-      selectedTabContent = (
-        <OtherTraining
-          pageData={pageData?.other_training_page}
-          onRefresh={onRefresh}
-          selectedTab={selectedTab}
-          onClickNextPage={() => onClickNextPage()}
-          onClickPrevPage={() => onClickPrevPage()}
-        />
-      );
-      break;
-    case 6:
-      selectedTabContent = (
-        <EligibilityProfessionalLicense
-          pageData={pageData?.eligibility_prof_license_page}
-          onRefresh={onRefresh}
-          selectedTab={selectedTab}
-          onClickNextPage={() => onClickNextPage()}
-          onClickPrevPage={() => onClickPrevPage()}
-        />
-      );
-      break;
-    case 7:
-      selectedTabContent = (
-        <WorkExperience
-          pageData={pageData?.work_experience_page}
-          onRefresh={onRefresh}
-          selectedTab={selectedTab}
-          onClickNextPage={() => onClickNextPage()}
-          onClickPrevPage={() => onClickPrevPage()}
-        />
-      );
-      break;
-    case 8:
-      selectedTabContent = (
-        <OtherSkills
-          pageData={pageData?.work_experience_page}
-          onRefresh={onRefresh}
-          selectedTab={selectedTab}
-          onClickNextPage={() => onClickNextPage()}
-          onClickPrevPage={() => onClickPrevPage()}
-        />
-      );
-      break;
-    default:
-      selectedTabContent = null;
-  }
 
   const getAllPageData = (token) => {
     const url = "/api/user/registration/jobseeker/get-all-pages";
@@ -234,53 +114,98 @@ const UserApplicationForm = (props) => {
       });
   };
 
-  const checkIfUserEmailVerified = (token) => {
-    const url = "/api/check-user-email-validated";
-    const authData = {
-      auth: {
-        username: token,
-      },
-    };
+  // const checkIfUserEmailVerified = (token) => {
+  //   const url = "/api/check-user-email-validated";
+  //   const authData = {
+  //     auth: {
+  //       username: token,
+  //     },
+  //   };
 
-    axios
-      .get(url, authData)
-      .then((response) => {
-        setUserHasValidEmail(response.data.user_validate_email);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  //   axios
+  //     .get(url, authData)
+  //     .then((response) => {
+  //       setUserHasValidEmail(response.data.user_validate_email);
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+  // };
+
+  // const resendEmailVerification = (token) => {
+  //   axios({
+  //     method: "post",
+  //     url: `/api/request-email-verification`,
+  //     headers: { "Content-Type": "multipart/form-data" },
+  //     auth: {
+  //       username: token,
+  //     },
+  //   })
+  //     .then((response) => {
+  //       setUserRequestedEmailConfirmation(response.data.sent);
+  //     })
+  //     .catch((err) => {
+  //       console.log("err", err);
+  //     });
+  // };
+
+  const handleNext = () => {
+    setActiveStep((prevStep) => Math.min(prevStep + 1, steps.length - 1));
+    onRefresh();
   };
 
-  const resendEmailVerification = (token) => {
-    axios({
-      method: "post",
-      url: `/api/request-email-verification`,
-      headers: { "Content-Type": "multipart/form-data" },
-      auth: {
-        username: token,
-      },
-    })
-      .then((response) => {
-        setUserRequestedEmailConfirmation(response.data.sent);
-      })
-      .catch((err) => {
-        console.log("err", err);
-      });
+  const handleBack = () => {
+    setActiveStep((prevStep) => Math.max(prevStep - 1, 0));
+    onRefresh();
   };
 
-  const onClickNextPage = () => {
-    if (selectedTab < 9) {
-      setSelectedTab(selectedTab + 1);
-      onRefresh();
+  const handleStepClick = (index) => {
+    setActiveStep(index);
+    onRefresh();
+  };
+
+  const getCurrentComponent = () => {
+    const StepComponent = steps[activeStep].component;
+    if (!StepComponent) return null;
+
+    return (
+      <StepComponent
+        pageData={pageData?.[getPageDataKey(activeStep)]}
+        onRefresh={onRefresh}
+        isValid={isValid} 
+        setIsValid={setIsValid}
+        activeStep={activeStep}
+        steps={steps}
+        handleBack={handleBack}
+        handleNext={handleNext}
+        review={steps}
+        user_type = {props.user_type}
+      />
+    );
+  };
+
+  const getPageDataKey = (stepIndex) => {
+    let pageDataKeys = {};
+
+    if(props.user_type === "JOBSEEKER"){
+       pageDataKeys = {
+        0: "personal_info_page",
+        1: "job_preference_page",
+        2: "dialect_lang_prof_page",
+        3: "edu_background_page",
+        4: "other_training_page",
+        5: "eligibility_prof_license_page",
+        6: "work_experience_page",
+        7: "work_experience_page", // For Other Skills
+      };
     }
-  };
-
-  const onClickPrevPage = () => {
-    if (selectedTab > 1) {
-      setSelectedTab(selectedTab - 1);
-      onRefresh();
-    }
+    if(props.user_type === "EMPLOYER"){
+      pageDataKeys = {
+       0: "personal_info_page",
+     };
+   }
+   
+    return pageDataKeys[stepIndex];
   };
 
   if (userRequestedEmailConfirmation) {
@@ -300,21 +225,9 @@ const UserApplicationForm = (props) => {
   }
 
   return (
-    <div className="flex justify-center gap-3 max-w-5xl m-auto my-5">
-      {/* Stepper container */}
-
-      {/* Main content area */}
-      <Container>
-        <Card className="px-3">
-          <CardHeader
-            title={`${content[selectedTab - 1].label} (${selectedTab}/9)`}
-            className="font-bold"
-          />
-          <CardContent>
-            <div>{selectedTabContent}</div>
-          </CardContent>
-        </Card>
-        <div style={{ marginTop: "1rem", textAlign: "right" }}>
+    <div className="fixed inset-0 flex justify-center items-center gap-2 px-3">
+      <Container className=" max-w-[700px] h-full overflow-y-auto py-5 mx-0 flex flex-col items-start justify-center">
+      <div className="mb-4 text-left">
           <Button
             variant="contained"
             color="primary"
@@ -324,23 +237,30 @@ const UserApplicationForm = (props) => {
             Log Out
           </Button>
         </div>
+        <Card className="overflow-y-scroll">
+          <CardHeader 
+            title={`${steps[activeStep].label} (${activeStep + 1}/${steps.length})`}
+             className="[&_.MuiCardHeader-title]:text-md" 
+          />
+
+          <CardContent>
+            {getCurrentComponent()}
+          </CardContent>
+        </Card>
       </Container>
-      <BlueBorderStepper
-        orientation="vertical"
-        activeStep={selectedTab - 1}
-        className="min-w-[250px]"
-      >
-        {content.map((item, index) => (
-          <Step key={item.step} onClick={() => setSelectedTab(index + 1)}>
-            <NumberedStepLabel
-              completed={index < selectedTab - 1}
-              active={index === selectedTab - 1}
-            >
-              <Typography className="text-xs">{item.label}</Typography>
-            </NumberedStepLabel>
-          </Step>
-        ))}
-      </BlueBorderStepper>
+      <Box className="max-w-64 flex-shrink-0 ">
+        <StyledStepper activeStep={activeStep} orientation="vertical">
+          {steps.map((step, index) => (
+            <Step key={step.label} completed={index < activeStep}>
+              <StepLabel 
+                onClick={() => handleStepClick(index)}
+              >
+                <span className="hidden sm:block">{step.label}</span>
+              </StepLabel>
+            </Step>
+          ))}
+        </StyledStepper>
+      </Box>
     </div>
   );
 };

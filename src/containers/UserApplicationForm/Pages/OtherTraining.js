@@ -1,102 +1,231 @@
-import React, { useState } from 'react';
-import { TextField, Button, Grid, Typography, Card, CardContent, IconButton } from '@mui/material';
-import { Add, Delete } from '@mui/icons-material';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import {
+  TextField,
+  Button,
+  Grid,
+  Box
+} from '@mui/material';
 
-const OtherTraining = () => {
-  const [trainingHistory, setTrainingHistory] = useState([]);
-  const [newEntry, setNewEntry] = useState({
-    courseName: '',
-    dateStart: '',
-    dateEnd: '',
-    trainingInstitution: '',
-    certificatesReceived: '',
-    hoursOfTraining: '',
-    skillsAcquired: '',
-    credentialID: '',
-    credentialURL: ''
+import BackNextButton from '../backnextButton';
+
+const schema = yup.object().shape({
+  trainingHistory: yup.array().of(
+    yup.object().shape({
+      courseName: yup.string().required('Course Name is required'),
+      dateStart: yup.date()
+        .required("Start date is required")
+        .max(new Date(), "Start date cannot be in the future"),
+      dateEnd: yup.date()
+        .nullable() // ✅ Allows null values
+        .notRequired() // ✅ Ensures it's not required in validation
+        .when('dateStart', (dateStart, schema) =>
+          dateStart
+            ? schema.min(yup.ref('dateStart'), "End date must be after start date").max(new Date(), "End date cannot be in the future")
+            : schema
+        )
+        .transform((value, originalValue) => originalValue === "" ? null : value),
+      trainingInstitution: yup.string().required('Training Institution is required'),
+      certificatesReceived: yup.string(),
+      hoursOfTraining: yup.number()
+        .required('Hours of Training is required')
+        .positive('Hours must be a positive number')
+        .integer('Hours must be a whole number'),
+      skillsAcquired: yup.string().nullable(),
+      credentialID: yup.string(),
+      credentialURL: yup.string().url('Must be a valid URL').nullable()
+    })
+  )
+});
+
+const OtherTraining = ({ activeStep, steps, handleBack, handleNext, isValid, setIsValid, user_type }) => {
+
+  const { register, setValue, getValues, watch, formState: { errors, isValid: formIsValid } } = useForm({
+    resolver: yupResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      trainingHistory: [{
+        courseName: '',
+        dateStart: '',
+        dateEnd: '',
+        trainingInstitution: '',
+        certificatesReceived: '',
+        hoursOfTraining: '',
+        skillsAcquired: '',
+        credentialID: '',
+        credentialURL: ''
+      }]
+    }
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewEntry((prev) => ({ ...prev, [name]: value }));
-  };
+  // Use watch to dynamically track changes in trainingHistory
+  const trainingHistory = watch("trainingHistory", getValues("trainingHistory"));
 
   const addTrainingHistory = () => {
-    if (newEntry.courseName && newEntry.dateStart) {
-      setTrainingHistory([...trainingHistory, { id: uuidv4(), ...newEntry }]);
-      setNewEntry({
-        courseName: '', dateStart: '', dateEnd: '', trainingInstitution: '',
-        certificatesReceived: '', hoursOfTraining: '', skillsAcquired: '', credentialID: '', credentialURL: ''
-      });
-    }
+    const newEntry = {
+      courseName: '',
+      dateStart: '',
+      dateEnd: '',
+      trainingInstitution: '',
+      certificatesReceived: '',
+      hoursOfTraining: '',
+      skillsAcquired: '',
+      credentialID: '',
+      credentialURL: ''
+    };
+
+    const updatedTrainingHistory = [...trainingHistory, newEntry];
+
+    // Update the form value and ensure validation is triggered
+    setValue("trainingHistory", updatedTrainingHistory, { shouldValidate: false });
   };
 
-  const removeTrainingHistory = (id) => {
-    setTrainingHistory(trainingHistory.filter((entry) => entry.id !== id));
+  const removeTrainingHistory = (index) => {
+    const updatedTrainingHistory = trainingHistory.filter((_, idx) => idx !== index);
+    setValue("trainingHistory", updatedTrainingHistory, { shouldValidate: true });
   };
+
+  useEffect(() => {
+    setIsValid(formIsValid && trainingHistory.length > 0);
+  }, [formIsValid, setIsValid, trainingHistory]);
+
 
   return (
-    <div>
-      <Typography variant='h5' gutterBottom>
-        Technical/Vocational Course & Other Training
-      </Typography>
-
-      {trainingHistory.map((entry) => (
-        <Card key={entry.id} sx={{ mb: 2 }}>
-          <CardContent>
-            <Typography><strong>Course:</strong> {entry.courseName}</Typography>
-            <Typography><strong>Start:</strong> {entry.dateStart}</Typography>
-            <Typography><strong>End:</strong> {entry.dateEnd}</Typography>
-            <Typography><strong>Institution:</strong> {entry.trainingInstitution}</Typography>
-            <Typography><strong>Certificate:</strong> {entry.certificatesReceived}</Typography>
-            <Typography><strong>Hours:</strong> {entry.hoursOfTraining}</Typography>
-            <Typography><strong>Skills:</strong> {entry.skillsAcquired}</Typography>
-            <Typography><strong>Credential ID:</strong> {entry.credentialID}</Typography>
-            <Typography><strong>Credential URL:</strong> {entry.credentialURL}</Typography>
-            <IconButton color='error' onClick={() => removeTrainingHistory(entry.id)}>
-              <Delete />
-            </IconButton>
-          </CardContent>
-        </Card>
+    <Box sx={{ p: 3 }}>
+      {trainingHistory.map((entry, index) => (
+        <Grid container spacing={2} key={index} sx={{ marginBottom: 5 }}>
+          <Grid item xs={12} sm={11}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  {...register(`trainingHistory.${index}.courseName`)}
+                  label='Course Name'
+                  fullWidth
+                  required
+                  error={!!errors.trainingHistory?.[index]?.courseName}
+                  helperText={errors.trainingHistory?.[index]?.courseName?.message}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  {...register(`trainingHistory.${index}.dateStart`)}
+                  type='date'
+                  label='Start Date'
+                  fullWidth
+                  required
+                  InputLabelProps={{ shrink: true }}
+                  error={!!errors.trainingHistory?.[index]?.dateStart}
+                  helperText={errors.trainingHistory?.[index]?.dateStart?.message}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  {...register(`trainingHistory.${index}.dateEnd`)}
+                  type='date'
+                  label='End Date'
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  error={!!errors.trainingHistory?.[index]?.dateEnd}
+                  helperText={errors.trainingHistory?.[index]?.dateEnd?.message}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  {...register(`trainingHistory.${index}.trainingInstitution`)}
+                  label='Training Institution'
+                  fullWidth
+                  required
+                  error={!!errors.trainingHistory?.[index]?.trainingInstitution}
+                  helperText={errors.trainingHistory?.[index]?.trainingInstitution?.message}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  {...register(`trainingHistory.${index}.certificatesReceived`)}
+                  label='Certificates Received'
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  {...register(`trainingHistory.${index}.hoursOfTraining`)}
+                  type='number'
+                  label='Hours of Training'
+                  fullWidth
+                  required
+                  error={!!errors.trainingHistory?.[index]?.hoursOfTraining}
+                  helperText={errors.trainingHistory?.[index]?.hoursOfTraining?.message}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  {...register(`trainingHistory.${index}.skillsAcquired`)}
+                  label='Skills Acquired'
+                  fullWidth
+                  error={!!errors.trainingHistory?.[index]?.skillsAcquired}
+                  helperText={errors.trainingHistory?.[index]?.skillsAcquired?.message}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  {...register(`trainingHistory.${index}.credentialID`)}
+                  label='Credential ID'
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  {...register(`trainingHistory.${index}.credentialURL`)}
+                  label='Credential URL'
+                  fullWidth
+                  error={!!errors.trainingHistory?.[index]?.credentialURL}
+                  helperText={errors.trainingHistory?.[index]?.credentialURL?.message}
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+          <Grid item xs={12}>
+            {trainingHistory.length > 1 && (
+              <Grid item xs={12}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => removeTrainingHistory(index)}
+                >
+                  Remove Entry
+                </Button>
+              </Grid>
+            )}
+          </Grid>
+        </Grid>
       ))}
-
-      <Typography variant='h6'>Add Entry</Typography>
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
-          <TextField label='Course Name' name='courseName' fullWidth value={newEntry.courseName} onChange={handleChange} />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField type='date' label='Start Date' name='dateStart' fullWidth InputLabelProps={{ shrink: true }} value={newEntry.dateStart} onChange={handleChange} />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField type='date' label='End Date' name='dateEnd' fullWidth InputLabelProps={{ shrink: true }} value={newEntry.dateEnd} onChange={handleChange} />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField label='Training Institution' name='trainingInstitution' fullWidth value={newEntry.trainingInstitution} onChange={handleChange} />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField label='Certificates Received' name='certificatesReceived' fullWidth value={newEntry.certificatesReceived} onChange={handleChange} />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField type='number' label='Hours of Training' name='hoursOfTraining' fullWidth value={newEntry.hoursOfTraining} onChange={handleChange} />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField label='Skills Acquired' name='skillsAcquired' fullWidth value={newEntry.skillsAcquired} onChange={handleChange} />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField label='Credential ID' name='credentialID' fullWidth value={newEntry.credentialID} onChange={handleChange} />
-        </Grid>
-        <Grid item xs={6}>
-          <TextField label='Credential URL' name='credentialURL' fullWidth value={newEntry.credentialURL} onChange={handleChange} />
-        </Grid>
-        <Grid item xs={12}>
-          <Button variant='contained' color='primary' startIcon={<Add />} onClick={addTrainingHistory}>
-            Add Entry
-          </Button>
-        </Grid>
-      </Grid>
-    </div>
+      <div className="mb-4 text-center">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={addTrainingHistory}
+          sx={{ marginBottom: 2 }}
+        >
+          Add Training
+        </Button>
+      </div>
+      <BackNextButton
+        activeStep={activeStep}
+        steps={steps}
+        handleBack={handleBack}
+        handleNext={handleNext}
+        isValid={isValid}
+        setIsValid={setIsValid}
+        canSkip={true}
+        schema={schema}
+        formData={trainingHistory}
+        user_type={user_type}
+        api={"/other-trainings"}
+      />
+    </Box>
   );
 };
 

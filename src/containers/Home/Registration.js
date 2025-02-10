@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 import bannerBg from "./images/banner-bg.png";
 import { Link, useNavigate } from "react-router-dom";
@@ -16,322 +16,387 @@ import {
   FormControl,
   Alert,
 } from "@mui/material";
+import * as yup from 'yup';
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+
+// Registration validation schema using Yup
+const registrationSchema = yup.object().shape({
+  userType: yup.string().required("Please select a role"),
+  username: yup
+    .string()
+    .trim()
+    .min(3, "Username must be at least 3 characters")
+    .max(20, "Username must not exceed 20 characters")
+    .required("Username is required"),
+  email: yup
+    .string()
+    .trim()
+    .email("Invalid email format")
+    .required("Email is required"),
+  password: yup
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      "Password must include uppercase, lowercase, number, and special character"
+    )
+    .required("Password is required"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref('password'), null], "Passwords must match")
+    .required("Confirm password is required"),
+});
+
+// Login validation schema using Yup
+const loginSchema = yup.object().shape({
+  loginUsername: yup.string().required("Username is required"),
+  loginPassword: yup.string().required("Password is required"),
+});
 
 function Registration(props) {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(1);
-  const [formData, setFormData] = useState({
-    userType: "",
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    loginUsername: "",
-    loginPassword: "",
-  });
   const [errors, setErrors] = useState({
-    login: { error: false, message: "" },
-    register: { error: false, message: "" },
+    login: { error: false, message: '' },
+    register: { error: false, message: '' },
   });
   const [success, setSuccess] = useState({
-    login: { success: false, message: "" },
-    register: { success: false, message: "" },
+    login: { success: false, message: '' },
+    register: { success: false, message: '' },
+  });
+
+  // useForm hook for registration
+  const {
+    control: registerControl,
+    handleSubmit: handleRegisterSubmit,
+    reset: resetRegisterForm,
+    formState: { errors: registerFormErrors },
+  } = useForm({
+    resolver: yupResolver(registrationSchema),
+    defaultValues: {
+      userType: '',
+      username: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  // useForm hook for login
+  const {
+    control: loginControl,
+    handleSubmit: handleLoginSubmit,
+    reset: resetLoginForm,
+    formState: { errors: loginFormErrors },
+  } = useForm({
+    resolver: yupResolver(loginSchema),
+    defaultValues: {
+      loginUsername: '',
+      loginPassword: '',
+    },
   });
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
-    // Reset errors and success messages
+    // Reset errors, success messages, and forms
     setErrors({
-      login: { error: false, message: "" },
-      register: { error: false, message: "" },
+      login: { error: false, message: '' },
+      register: { error: false, message: '' },
     });
     setSuccess({
-      login: { success: false, message: "" },
-      register: { success: false, message: "" },
+      login: { success: false, message: '' },
+      register: { success: false, message: '' },
     });
+    
+    // Reset forms when switching tabs
+    resetRegisterForm();
+    resetLoginForm();
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  const validateRegistration = () => {
-    if (
-      !formData.userType ||
-      !formData.username ||
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
-      setErrors((prev) => ({
-        ...prev,
-        register: { error: true, message: "Please fill in all fields" },
-      }));
-      return false;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setErrors((prev) => ({
-        ...prev,
-        register: { error: true, message: "Passwords do not match" },
-      }));
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setErrors((prev) => ({
-        ...prev,
-        register: {
-          error: true,
-          message: "Please enter a valid email address",
-        },
-      }));
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    setErrors((prev) => ({ ...prev, register: { error: false, message: "" } }));
-    setSuccess((prev) => ({
-      ...prev,
-      register: { success: false, message: "" },
-    }));
-
-    if (!validateRegistration()) return;
+  const handleRegisterFormSubmit = async (data) => {
+    // Reset previous errors and success messages
+    setErrors(prev => ({ ...prev, register: { error: false, message: '' } }));
+    setSuccess(prev => ({ ...prev, register: { success: false, message: '' } }));
 
     try {
       const registerData = new FormData();
-      registerData.append("user_type", formData.userType);
-      registerData.append("username", formData.username);
-      registerData.append("email", formData.email);
-      registerData.append("password", formData.password);
+      registerData.append('user_type', data.userType);
+      registerData.append('username', data.username);
+      registerData.append('email', data.email);
+      registerData.append('password', data.password);
 
-      const response = await axios({
-        method: "post",
-        url: "/api/user/create-v",
-        data: registerData,
-        headers: { "Content-Type": "multipart/form-data" },
+      const response = await axios.post('/api/user/create', registerData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-      console.log(response);
-      setSuccess((prev) => ({
+
+      // Success handling
+      setSuccess(prev => ({
         ...prev,
-        register: { success: true, message: "Registration successful!" },
+        register: { 
+          success: true, 
+          message: 'Registration successful! Please log in.' 
+        },
       }));
 
-      // Reset form
-      setFormData((prev) => ({
-        ...prev,
-        userType: "",
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      }));
+      // Reset form after successful registration
+      resetRegisterForm();
+      
+      // Optional: Automatically switch to login tab
+      setTabValue(1);
     } catch (error) {
-      setErrors((prev) => ({
+      // Error handling
+      setErrors(prev => ({
         ...prev,
         register: {
           error: true,
-          message: error.response?.data?.message || "Registration failed",
+          message: error.response?.data?.message || 'Registration failed. Please try again.',
         },
       }));
     }
   };
 
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    setErrors((prev) => ({ ...prev, login: { error: false, message: "" } }));
-    setSuccess((prev) => ({ ...prev, login: { success: false, message: "" } }));
+  const handleLoginFormSubmit = async (data) => {
+    // Reset previous errors and success messages
+    setErrors(prev => ({ ...prev, login: { error: false, message: '' } }));
+    setSuccess(prev => ({ ...prev, login: { success: false, message: '' } }));
 
-    if (!formData.loginUsername || !formData.loginPassword) {
-      setErrors((prev) => ({
+    try {
+      const response = await axios.get('/api/token', {
+        auth: {
+          username: data.loginUsername,
+          password: data.loginPassword,
+        },
+        withCredentials: false,
+      });
+
+      // Success handling
+      setSuccess(prev => ({
         ...prev,
-        login: { error: true, message: "Please fill in all fields" },
+        login: { success: true, message: 'Login successful!' },
       }));
-      return;
-    }
 
-    props.onAuth(formData.loginUsername, formData.loginPassword);
+      // Authentication and navigation
+      if (response.data) {
+        props.onAuth(response.data.username, response.data.password);
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      // Error handling
+      setErrors(prev => ({
+        ...prev,
+        login: {
+          error: true,
+          message: error.response?.data?.message || 'Login failed. Invalid credentials.',
+        },
+      }));
+    }
   };
 
-  useEffect(() => {
-    if (props.isAuthenticated) {
-      navigate("/dashboard");
-    }
-  }, [props.isAuthenticated, navigate]);
-
   return (
-    <Box
-      className="h-full flex justify-center items-center md:justify-start"
-      sx={{
-        backgroundImage: `url(${bannerBg})`,
-        backgroundSize: "",
-        backgroundPosition: "right center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <Box
-        className="rounded-md m-4 px-4 py-3 min-w-[250px] sm:min-w-[350px] max-w-[450px] bg-neutral-100
-                md:ml-16 lg:ml-36 xl:ml-48 transition duration-500"
-      >
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          centered
-          sx={{ marginBottom: "24px" }}
-        >
-          <Tab label="Register" sx={{ fontSize: "14px" }} />
-          <Tab label="Login" sx={{ fontSize: "14px" }} />
-        </Tabs>
 
-        {errors.register.error && tabValue === 0 && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errors.register.message}
-          </Alert>
-        )}
-        {success.register.success && tabValue === 0 && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {success.register.message}
-          </Alert>
-        )}
-        {errors.login.error && tabValue === 1 && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errors.login.message}
-          </Alert>
-        )}
-        {success.login.success && tabValue === 1 && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {success.login.message}
-          </Alert>
-        )}
+     <Box
+     className="rounded-md m-4 px-4 py-3 min-w-[250px] sm:min-w-[350px] max-w-[450px] bg-neutral-100"
+   >
+     <Tabs
+       value={tabValue}
+       onChange={handleTabChange}
+       centered
+       sx={{ marginBottom: "24px" }}
+     >
+       <Tab label="Register" sx={{ fontSize: "14px" }} />
+       <Tab label="Login" sx={{ fontSize: "14px" }} />
+     </Tabs>
 
-        {/* Register Form */}
-        {tabValue === 0 && (
-          <form
-            onSubmit={handleRegisterSubmit}
-            className="min-h-[450px] h-full w-full flex flex-col gap-3"
-          >
-            <FormControl variant="outlined" className="w-full">
-              <InputLabel htmlFor="userType" className="bg-neutral-100 px-2">
-                Select Role
-              </InputLabel>
-              <Select
-                native
-                name="userType"
-                value={formData.userType}
-                onChange={handleInputChange}
-                inputProps={{
-                  id: "userType",
-                }}
-              >
-                <option aria-label="None" value="" />
-                <option value="EMPLOYER">EMPLOYER</option>
-                <option value="JOBSEEKER">JOBSEEKER</option>
-                <option value="ACADEME">ACADEME</option>
-                <option value="STUDENT">STUDENT</option>
-              </Select>
-            </FormControl>
+     {/* Error and Success Messages */}
+     {tabValue === 0 && (
+       <>
+         {errors.register.error && (
+           <Alert severity="error" sx={{ mb: 2 }}>
+             {errors.register.message}
+           </Alert>
+         )}
+         {success.register.success && (
+           <Alert severity="success" sx={{ mb: 2 }}>
+             {success.register.message}
+           </Alert>
+         )}
+       </>
+     )}
+     {tabValue === 1 && (
+       <>
+         {errors.login.error && (
+           <Alert severity="error" sx={{ mb: 2 }}>
+             {errors.login.message}
+           </Alert>
+         )}
+         {success.login.success && (
+           <Alert severity="success" sx={{ mb: 2 }}>
+             {success.login.message}
+           </Alert>
+         )}
+       </>
+     )}
 
-            <TextField
-              name="username"
-              label="Username"
-              value={formData.username}
-              onChange={handleInputChange}
-            />
+     {/* Register Form */}
+     {tabValue === 0 && (
+       <form
+         onSubmit={handleRegisterSubmit(handleRegisterFormSubmit)}
+         className="min-h-[450px] h-full w-full flex flex-col gap-3"
+       >
+         <FormControl 
+           variant="outlined" 
+           className="w-full"
+           error={!!registerFormErrors.userType}
+         >
+           <InputLabel htmlFor="userType" className="bg-neutral-100 px-2">
+             Select Role
+           </InputLabel>
+           <Controller
+             name="userType"
+             control={registerControl}
+             render={({ field }) => (
+               <>
+                 <Select {...field} native>
+                   <option value="">Select a role</option>
+                   <option value="EMPLOYER">EMPLOYER</option>
+                   <option value="JOBSEEKER">JOBSEEKER</option>
+                   <option value="ACADEME">ACADEME</option>
+                   <option value="STUDENT">STUDENT</option>
+                 </Select>
+                 {registerFormErrors.userType && (
+                   <Typography variant="caption" color="error">
+                     {registerFormErrors.userType.message}
+                   </Typography>
+                 )}
+               </>
+             )}
+           />
+         </FormControl>
 
-            <TextField
-              name="email"
-              label="Email"
-              value={formData.email}
-              onChange={handleInputChange}
-            />
+         {/* Username Field */}
+         <Controller
+           name="username"
+           control={registerControl}
+           render={({ field }) => (
+             <TextField 
+               {...field} 
+               label="Username" 
+               fullWidth 
+               error={!!registerFormErrors.username}
+               helperText={registerFormErrors.username?.message}
+             />
+           )}
+         />
 
-            <TextField
-              name="password"
-              label="Password"
-              type="password"
-              value={formData.password}
-              onChange={handleInputChange}
-            />
+         {/* Email Field */}
+         <Controller
+           name="email"
+           control={registerControl}
+           render={({ field }) => (
+             <TextField 
+               {...field} 
+               label="Email" 
+               fullWidth 
+               error={!!registerFormErrors.email}
+               helperText={registerFormErrors.email?.message}
+             />
+           )}
+         />
 
-            <TextField
-              name="confirmPassword"
-              label="Confirm Password"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-            />
+         {/* Password Field */}
+         <Controller
+           name="password"
+           control={registerControl}
+           render={({ field }) => (
+             <TextField 
+               {...field} 
+               label="Password" 
+               type="password" 
+               fullWidth 
+               error={!!registerFormErrors.password}
+               helperText={registerFormErrors.password?.message}
+             />
+           )}
+         />
 
-            <Button variant="contained" type="submit">
-              Register
-            </Button>
+         {/* Confirm Password Field */}
+         <Controller
+           name="confirmPassword"
+           control={registerControl}
+           render={({ field }) => (
+             <TextField 
+               {...field} 
+               label="Confirm Password" 
+               type="password" 
+               fullWidth 
+               error={!!registerFormErrors.confirmPassword}
+               helperText={registerFormErrors.confirmPassword?.message}
+             />
+           )}
+         />
 
-            <Typography variant="body2">
-              Forget password?{" "}
-              <Link to="/forgot-password" style={{ color: "#008394" }}>
-                Click here
-              </Link>
-            </Typography>
-          </form>
-        )}
+         <Button variant="contained" type="submit">
+           Register
+         </Button>
 
-        {/* Login Form */}
-        {tabValue === 1 && (
-          <form
-            onSubmit={handleLoginSubmit}
-            className="min-h-[450px] h-full w-full flex flex-col gap-3"
-          >
-            <TextField
-              name="loginUsername"
-              className="m-0"
-              label="Username"
-              fullWidth
-              value={formData.loginUsername}
-              sx={{
-                marginBottom: "16px",
-                "& .MuiInputBase-input": { fontSize: "14px" },
-                "& .MuiInputLabel-root": { fontSize: "14px" },
-              }}
-              onChange={handleInputChange}
-            />
+         <Typography variant="body2">
+           Forgot password?{" "}
+           <Link to="/forgot-password" style={{ color: "#008394" }}>
+             Click here
+           </Link>
+         </Typography>
+       </form>
+     )}
 
-            <TextField
-              name="loginPassword"
-              className="m-0"
-              label="Password"
-              type="password"
-              fullWidth
-              value={formData.loginPassword}
-              sx={{
-                marginBottom: "16px",
-                "& .MuiInputBase-input": { fontSize: "14px" },
-                "& .MuiInputLabel-root": { fontSize: "14px" },
-              }}
-              onChange={handleInputChange}
-            />
+     {/* Login Form */}
+     {tabValue === 1 && (
+       <form
+         onSubmit={handleLoginSubmit(handleLoginFormSubmit)}
+         className="min-h-[450px] h-full w-full flex flex-col gap-3"
+       >
+         <Controller
+           name="loginUsername"
+           control={loginControl}
+           render={({ field }) => (
+             <TextField 
+               {...field} 
+               label="Username" 
+               fullWidth 
+               error={!!loginFormErrors.loginUsername}
+               helperText={loginFormErrors.loginUsername?.message}
+             />
+           )}
+         />
 
-            <Button variant="contained" type="submit">
-              Login
-            </Button>
+         <Controller
+           name="loginPassword"
+           control={loginControl}
+           render={({ field }) => (
+             <TextField 
+               {...field} 
+               label="Password" 
+               type="password" 
+               fullWidth 
+               error={!!loginFormErrors.loginPassword}
+               helperText={loginFormErrors.loginPassword?.message}
+             />
+           )}
+         />
 
-            <Typography variant="body2">
-              Forget password?{" "}
-              <Link to="/forgot-password" style={{ color: "#008394" }}>
-                Click here
-              </Link>
-            </Typography>
-          </form>
-        )}
-      </Box>
-    </Box>
+         <Button variant="contained" type="submit">
+           Login
+         </Button>
+
+         <Typography variant="body2">
+           Forgot password?{" "}
+           <Link to="/forgot-password" style={{ color: "#008394" }}>
+             Click here
+           </Link>
+         </Typography>
+       </form>
+     )}
+   </Box>
   );
 }
 
@@ -339,12 +404,11 @@ const mapStateToProps = (state) => ({
   auth: state.auth,
   loading: state.auth.loading,
   error: state.auth.error,
-  isAuthenticated: state.auth.token !== null ? true : false,
+  isAuthenticated: state.auth.token !== null,
 });
+
 const mapDispatchToProps = (dispatch) => ({
   onAuth: (username, password) => dispatch(actions.auth(username, password)),
-  onLogout: () => dispatch(actions.logout()),
-  // onVerifyCaptcha: (recaptchaValue) => dispatch(actions.verifyCaptcha(recaptchaValue)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Registration);

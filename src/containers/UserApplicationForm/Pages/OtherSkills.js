@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
@@ -8,246 +8,157 @@ import {
   TextField,
   Button,
   Chip,
-  Divider,
 } from '@mui/material';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import BackNextButton from "../backnextButton";
 
-const OtherSkills = () => {
-  // State for checkboxes
-  const [skills, setSkills] = useState({
-    autoMechanic: false,
-    beautician: false,
-    carpentry: false,
-    computerLiterate: false,
-    domesticChores: false,
-    driver: false,
-    electrician: false,
-    embroidery: false,
-    gardening: false,
-    masonry: false,
-    painterOrArtist: false,
-    paintingJobs: false,
-    photography: false,
-    plumbing: false,
-    sewingDresses: false,
-    stenography: false,
-    tailoring: false,
+// Yup Validation Schema
+const schema = yup.object().shape({
+  skills: yup
+    .array()
+    .of(yup.string())
+    .min(1, 'At least one skill must be selected'),
+  otherSkills: yup.array().of(yup.string()).max(50, 'Maximum 50 additional skills allowed'),
+});
+
+const OtherSkills = ({
+  activeStep,
+  steps,
+  handleBack,
+  handleNext,
+  isValid,
+  setIsValid,
+  user_type
+}) => {
+  // React Hook Form Setup
+  const {
+    register,
+    setValue,
+    watch,
+  } = useForm({
+    resolver: yupResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      skills: [],
+      otherSkills: [],
+    },
   });
 
-  // State for additional skills
-  const [otherSkills, setOtherSkills] = useState([]);
-  const [newSkill, setNewSkill] = useState('');
+  // Watch for changes in form values
+  const skills = watch('skills');
+  const otherSkills = watch('otherSkills');
 
   // Handle checkbox changes
   const handleSkillChange = (skill) => (event) => {
-    setSkills({ ...skills, [skill]: event.target.checked });
+    const isChecked = event.target.checked;
+
+    if (isChecked) {
+      // Add the skill to the array if checked
+      setValue('skills', [...skills, skill], { shouldValidate: true });
+    } else {
+      // Remove the skill from the array if unchecked
+      setValue(
+        'skills',
+        skills.filter((selectedSkill) => selectedSkill !== skill),
+        { shouldValidate: true }
+      );
+    }
   };
 
   // Add a new skill
   const handleAddSkill = () => {
-    if (newSkill.trim() !== '' && otherSkills.length < 50) {
-      setOtherSkills([...otherSkills, newSkill.trim()]);
-      setNewSkill('');
+    const newSkill = watch('newSkill'); // Get the value of the "newSkill" field
+    if (newSkill !== '' && otherSkills.length < 50) {
+      setValue('otherSkills', [...otherSkills, newSkill], { shouldValidate: true });
+      setValue('newSkill', ''); // Clear the input field
     }
   };
 
   // Remove a skill
   const handleRemoveSkill = (skillToRemove) => {
-    setOtherSkills(otherSkills.filter((skill) => skill !== skillToRemove));
+    setValue(
+      'otherSkills',
+      otherSkills.filter((skill) => skill !== skillToRemove),
+      { shouldValidate: true }
+    );
   };
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Other Skills Acquired Without Formal Training
+      {/* Skills Section */}
+      <Typography variant="h6" gutterBottom>
+        Select Your Skills
       </Typography>
-      <Divider sx={{ mb: 3 }} />
-
       <Grid container spacing={3}>
         {/* First Column */}
         <Grid item xs={12} md={4}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.autoMechanic}
-                onChange={handleSkillChange('autoMechanic')}
+          {['auto mechanic', 'beautician', 'carpentry', 'computer literate', 'domestic chores', 'driver'].map((skill) => {
+            const formattedLabel = skill
+              .split(' ')
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+
+            return (
+              <FormControlLabel
+                key={skill}
+                control={<Checkbox checked={skills.includes(skill)} onChange={handleSkillChange(skill)} />}
+                label={formattedLabel}
               />
-            }
-            label="Auto Mechanic"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.beautician}
-                onChange={handleSkillChange('beautician')}
-              />
-            }
-            label="Beautician"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.carpentry}
-                onChange={handleSkillChange('carpentry')}
-              />
-            }
-            label="Carpentry Work"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.computerLiterate}
-                onChange={handleSkillChange('computerLiterate')}
-              />
-            }
-            label="Computer Literate"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.domesticChores}
-                onChange={handleSkillChange('domesticChores')}
-              />
-            }
-            label="Domestic Chores"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.driver}
-                onChange={handleSkillChange('driver')}
-              />
-            }
-            label="Driver"
-          />
+            );
+          })}
         </Grid>
 
         {/* Second Column */}
         <Grid item xs={12} md={4}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.electrician}
-                onChange={handleSkillChange('electrician')}
-              />
-            }
-            label="Electrician"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.embroidery}
-                onChange={handleSkillChange('embroidery')}
-              />
-            }
-            label="Embroidery"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.gardening}
-                onChange={handleSkillChange('gardening')}
-              />
-            }
-            label="Gardening"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.masonry}
-                onChange={handleSkillChange('masonry')}
-              />
-            }
-            label="Masonry"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.painterOrArtist}
-                onChange={handleSkillChange('painterOrArtist')}
-              />
-            }
-            label="Painter/Artist"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.paintingJobs}
-                onChange={handleSkillChange('paintingJobs')}
-              />
-            }
-            label="Painting Jobs"
-          />
+          {['electrician', 'embroidery', 'gardening', 'masonry', 'digital artist', 'painting jobs'].map((skill) => {
+             const formattedLabel = skill
+             .split(' ')
+             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+             .join(' ');
+            return(
+              <FormControlLabel
+              key={skill}
+              control={<Checkbox checked={skills.includes(skill)} onChange={handleSkillChange(skill)} />}
+              label={formattedLabel}
+            />
+            )
+          })}
         </Grid>
 
-        {/* Third Column */}
         <Grid item xs={12} md={4}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.photography}
-                onChange={handleSkillChange('photography')}
-              />
-            }
-            label="Photography"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.plumbing}
-                onChange={handleSkillChange('plumbing')}
-              />
-            }
-            label="Plumbing"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.sewingDresses}
-                onChange={handleSkillChange('sewingDresses')}
-              />
-            }
-            label="Sewing Dresses"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.stenography}
-                onChange={handleSkillChange('stenography')}
-              />
-            }
-            label="Stenography"
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={skills.tailoring}
-                onChange={handleSkillChange('tailoring')}
-              />
-            }
-            label="Tailoring"
-          />
+          {['photography', 'plumbing', 'sewing dresses', 'stenography', 'tailoring'].map((skill) => {
+             const formattedLabel = skill
+             .split(' ')
+             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+             .join(' ');
+            return(
+              <FormControlLabel
+              key={skill}
+              control={<Checkbox checked={skills.includes(skill)} onChange={handleSkillChange(skill)} />}
+              label={formattedLabel}
+            />
+            )
+          })}
         </Grid>
       </Grid>
 
       {/* Additional Skills Section */}
-      <Box sx={{ mt: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Add Other Skills
-        </Typography>
+      <Box sx={{ mt: 3, mb:5   }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={8}>
             <TextField
               fullWidth
               label="Add other skills..."
-              value={newSkill}
-              onChange={(e) => setNewSkill(e.target.value)}
+              {...register('newSkill')}
             />
           </Grid>
           <Grid item xs={4}>
             <Button
               variant="contained"
               onClick={handleAddSkill}
-              disabled={newSkill.trim() === '' || otherSkills.length >= 50}
+              disabled={watch('newSkill') === '' || otherSkills.length >= 50}
             >
               Add
             </Button>
@@ -268,16 +179,20 @@ const OtherSkills = () => {
       </Box>
 
       {/* Navigation Buttons */}
-      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="contained" sx={{ mr: 2 }}>
-          Back
-        </Button>
-        <Button variant="contained" color="primary">
-          Next
-        </Button>
-      </Box>
+      <BackNextButton
+        activeStep={activeStep}
+        steps={steps}
+        handleBack={handleBack}
+        handleNext={handleNext}
+        isValid={isValid}
+        setIsValid={setIsValid}
+        schema={schema}
+        canSkip={true}
+        user_type={user_type}
+        formData={[...skills, ...otherSkills]} // Combine skills and otherSkills for submission
+      />
     </Box>
   );
 };
 
-export default OtherSkills;
+export default OtherSkills; 

@@ -1,218 +1,217 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import {
-  Box,
   Typography,
   Grid,
   TextField,
   Button,
   Divider,
   MenuItem,
-  Chip,
+  Box
 } from '@mui/material';
-import { v4 as uuidv4 } from 'uuid';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import BackNextButton from '../backnextButton';
 
-const WorkExperience = () => {
-  // State for Work Experience Entries
-  const [workExperienceEntries, setWorkExperienceEntries] = useState([]);
+// Yup Validation Schema
+const schema = yup.object().shape({
+  workExperience: yup
+    .array()
+    .of(
+      yup.object().shape({
+        companyName: yup.string().required('Company Name is required'),
+        companyAddress: yup.string().required('Company Address is required'),
+        position: yup.string().required('Position is required'),
+        employmentStatus: yup.string().required('Employment Status is required'),
+        dateStart: yup
+          .date()
+          .required('Start date is required')
+          .max(new Date(), 'Start date cannot be in the future'),
+        dateEnd: yup
+          .date()
+          .required('Date End is required')
+          .when('dateStart', (dateStart, schema) =>
+            dateStart
+              ? schema.test(
+                  'end-date-after-start',
+                  'End date must be after start date',
+                  (dateEnd) => !dateEnd || (dateStart && new Date(dateEnd) > new Date(dateStart))
+                ).max(new Date(), 'End date cannot be in the future')
+              : schema
+          )
+          .transform((value, originalValue) => (originalValue === '' ? null : value)),
+      })
+    )
+    .min(1, 'At least one work experience entry is required') // Ensure at least one entry exists
+    .required('Work Experience is required'), // Ensure the array itself is required
+});
 
-  // Form Values
-  const [companyName, setCompanyName] = useState('');
-  const [companyAddress, setCompanyAddress] = useState('');
-  const [position, setPosition] = useState('');
-  const [employmentStatus, setEmploymentStatus] = useState('');
-  const [dateStart, setDateStart] = useState('');
-  const [dateEnd, setDateEnd] = useState('');
-  const [numberOfMonths, setNumberOfMonths] = useState('');
+const WorkExperience = ({ activeStep, steps, handleBack, handleNext, isValid, setIsValid, user_type }) => {
+  // React Hook Form Setup
+  const {
+    register,
+    setValue,
+    watch,
+    formState: { errors, isValid: formIsValid },
+  } = useForm({
+    resolver: yupResolver(schema),
+    mode: 'onChange',
+    defaultValues: {
+      workExperience: [
+        {
+          companyName: '',
+          companyAddress: '',
+          position: '',
+          employmentStatus: '',
+          dateStart: '',
+          dateEnd: '',
+        },
+      ],
+    },
+  });
 
   // Employment Status Options
-  const employmentStatusOptions = [
-    { value: 'Full-Time', label: 'Full-Time' },
-    { value: 'Part-Time', label: 'Part-Time' },
-    { value: 'Contract', label: 'Contract' },
-    { value: 'Freelance', label: 'Freelance' },
-  ];
+  const employmentStatusOptions = ['Full-Time', 'Part-Time', 'Contract', 'Freelance'];
+
+  // Watch for changes in the workExperience field
+  const workExperience = watch('workExperience');
+
+  // Update Parent Component's Validity State
+  useEffect(() => {
+    setIsValid(formIsValid && workExperience.length > 0);
+  }, [formIsValid, setIsValid, workExperience]);
 
   // Add Work Experience Entry
-  const handleAddWorkExperience = () => {
-    if (
-      companyName &&
-      companyAddress &&
-      position &&
-      employmentStatus &&
-      dateStart &&
-      dateEnd &&
-      numberOfMonths
-    ) {
-      const newEntry = {
-        id: uuidv4(),
-        companyName,
-        companyAddress,
-        position,
-        employmentStatus,
-        dateStart,
-        dateEnd,
-        numberOfMonths,
-      };
-      setWorkExperienceEntries([...workExperienceEntries, newEntry]);
-
-      // Clear form fields
-      setCompanyName('');
-      setCompanyAddress('');
-      setPosition('');
-      setEmploymentStatus('');
-      setDateStart('');
-      setDateEnd('');
-      setNumberOfMonths('');
-    }
+  const addWorkExperience = () => {
+    const newEntry = {
+      companyName: '',
+      companyAddress: '',
+      position: '',
+      employmentStatus: '',
+      dateStart: '',
+      dateEnd: '',
+    };
+    const updatedWorkExperience = [...workExperience, newEntry];
+    setValue('workExperience', updatedWorkExperience, { shouldValidate: false });
   };
 
   // Remove Work Experience Entry
-  const handleRemoveWorkExperience = (id) => {
-    setWorkExperienceEntries(
-      workExperienceEntries.filter((entry) => entry.id !== id)
-    );
+  const removeWorkExperience = (index) => {
+    const updatedWorkExperience = workExperience.filter((_, idx) => idx !== index);
+    setValue('workExperience', updatedWorkExperience, { shouldValidate: true });
   };
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Work Experience
-      </Typography>
-      <Typography variant="body1" gutterBottom>
+      <Typography variant="body2" gutterBottom color="warning">
         Limit to 10-year period, starting with the most recent employment.
       </Typography>
       <Divider sx={{ mb: 3 }} />
 
       {/* Display Added Work Experience Entries */}
-      {workExperienceEntries.map((entry) => (
-        <Box
-          key={entry.id}
-          sx={{ mb: 3, p: 2, border: '1px solid #ddd', borderRadius: 1 }}
-        >
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Typography><strong>Company Name:</strong> {entry.companyName}</Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography><strong>Company Address:</strong> {entry.companyAddress}</Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography><strong>Position:</strong> {entry.position}</Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography><strong>Employment Status:</strong> {entry.employmentStatus}</Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography><strong>Date Start:</strong> {entry.dateStart}</Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography><strong>Date End:</strong> {entry.dateEnd}</Typography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography><strong>Number of Months:</strong> {entry.numberOfMonths}</Typography>
-            </Grid>
+      {workExperience.map((entry, index) => (
+        <Grid container spacing={2} key={index} sx={{ marginBottom: 5 }}>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Company Name"
+              error={!!errors?.workExperience?.[index]?.companyName}
+              helperText={errors?.workExperience?.[index]?.companyName?.message}
+              {...register(`workExperience.${index}.companyName`)}
+            />
           </Grid>
-          <Box sx={{ mt: 2, textAlign: 'right' }}>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => handleRemoveWorkExperience(entry.id)}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Company Address"
+              error={!!errors?.workExperience?.[index]?.companyAddress}
+              helperText={errors?.workExperience?.[index]?.companyAddress?.message}
+              {...register(`workExperience.${index}.companyAddress`)}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Position"
+              error={!!errors?.workExperience?.[index]?.position}
+              helperText={errors?.workExperience?.[index]?.position?.message}
+              {...register(`workExperience.${index}.position`)}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TextField
+              select
+              fullWidth
+              label="Employment Status"
+              error={!!errors?.workExperience?.[index]?.employmentStatus}
+              helperText={errors?.workExperience?.[index]?.employmentStatus?.message}
+              {...register(`workExperience.${index}.employmentStatus`)}
             >
-              Remove
-            </Button>
-          </Box>
-        </Box>
+              {employmentStatusOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Date Start"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              error={!!errors?.workExperience?.[index]?.dateStart}
+              helperText={errors?.workExperience?.[index]?.dateStart?.message}
+              {...register(`workExperience.${index}.dateStart`)}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Date End"
+              type="date"
+              InputLabelProps={{ shrink: true }}
+              error={!!errors?.workExperience?.[index]?.dateEnd}
+              helperText={errors?.workExperience?.[index]?.dateEnd?.message}
+              {...register(`workExperience.${index}.dateEnd`)}
+            />
+          </Grid>
+          {workExperience.length > 1 && (
+            <Grid item xs={12}>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => removeWorkExperience(index)}
+              >
+                Remove
+              </Button>
+            </Grid>
+          )}
+        </Grid>
       ))}
 
-      {/* Add Work Experience Form */}
-      <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>
-        Add Work Experience
-      </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Company Name"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Company Address"
-            value={companyAddress}
-            onChange={(e) => setCompanyAddress(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Position"
-            value={position}
-            onChange={(e) => setPosition(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            select
-            fullWidth
-            label="Employment Status"
-            value={employmentStatus}
-            onChange={(e) => setEmploymentStatus(e.target.value)}
-          >
-            {employmentStatusOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Date Start"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            value={dateStart}
-            onChange={(e) => setDateStart(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Date End"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            value={dateEnd}
-            onChange={(e) => setDateEnd(e.target.value)}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TextField
-            fullWidth
-            label="Number of Months"
-            type="number"
-            value={numberOfMonths}
-            onChange={(e) => setNumberOfMonths(e.target.value)}
-          />
-        </Grid>
-      </Grid>
-      <Box sx={{ mt: 2, textAlign: 'right' }}>
-        <Button variant="contained" onClick={handleAddWorkExperience}>
-          Add
+      <div className="mb-4 text-center">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={addWorkExperience}
+          sx={{ marginBottom: 2 }}
+        >
+          Add Work Experience
         </Button>
-      </Box>
+      </div>
 
-      {/* Navigation Buttons */}
-      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="contained" sx={{ mr: 2 }}>
-          Back
-        </Button>
-        <Button variant="contained" color="primary">
-          Next
-        </Button>
-      </Box>
+      <BackNextButton
+        activeStep={activeStep}
+        steps={steps}
+        handleBack={handleBack}
+        handleNext={handleNext}
+        isValid={isValid}
+        setIsValid={setIsValid}
+        schema={schema}
+        formData={workExperience}
+        user_type = {user_type}
+      />
     </Box>
   );
 };

@@ -1,4 +1,5 @@
 const userIndustryOptionTypes = [
+  '',
   '[A] Agriculture, forestry and fishing',
   '[B] Mining and quarrying',
   '[C] Manufacturing Electricity, gas, steam and air conditioning supply',

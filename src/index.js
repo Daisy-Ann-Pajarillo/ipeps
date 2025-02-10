@@ -4,7 +4,7 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { StyledEngineProvider } from '@mui/material';
-
+import { CssBaseline } from "@mui/material";
 import { Provider } from 'react-redux';
 import store from './store/store';
 
@@ -12,6 +12,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <StyledEngineProvider injectFirst>
+    <CssBaseline />
       <Provider store={store}>
         <App />
       </Provider>
