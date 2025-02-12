@@ -40,11 +40,11 @@ const stepsForJobseekers = [
   { label: "Professional License", component: EligibilityProfessionalLicense },
   { label: "Work Experience", component: WorkExperience },
   { label: "Other Skills", component: OtherSkills },
-  { label: "Review", component: ReviewApplication }
+  { label: "Review", component: ReviewApplication },
 ];
 const stepsForEmployer = [
   { label: "Personal Information", component: PersonalInfo },
-  { label: "Review", component: ReviewApplication }
+  { label: "Review", component: ReviewApplication },
 ];
 
 const StyledStepper = styled(Stepper)(({ theme }) => ({
@@ -53,37 +53,37 @@ const StyledStepper = styled(Stepper)(({ theme }) => ({
     cursor: "pointer",
     color: theme.palette.text.secondary,
     "&:hover": {
-      opacity: 0.8
-    }
+      opacity: 0.8,
+    },
   },
   "& .MuiStepLabel-active": {
     color: theme.palette.primary.main,
     "& .MuiStepIcon-root": {
       color: theme.palette.primary.main,
-    }
+    },
   },
   "& .MuiStepConnector-line": {
-    borderColor: theme.palette.divider
+    borderColor: theme.palette.divider,
   },
   "& .MuiStepIcon-root.Mui-completed": {
-    color: theme.palette.success.main
-  }
+    color: theme.palette.success.main,
+  },
 }));
 
 const UserApplicationForm = (props) => {
-
   const [activeStep, setActiveStep] = useState(0);
   const [pageData, setPageData] = useState({});
   const [isValid, setIsValid] = useState(false);
   //const [userHasValidEmail, setUserHasValidEmail] = useState(false);
-  const [userRequestedEmailConfirmation, setUserRequestedEmailConfirmation] = useState(false);
+  const [userRequestedEmailConfirmation, setUserRequestedEmailConfirmation] =
+    useState(false);
 
-  let steps = []
+  let steps = [];
 
-  if(props.user_type === "JOBSEEKER" || props.user_type === "STUDENT"){
-    steps = stepsForJobseekers
-  }else if(props.user_type === "EMPLOYER"){
-    steps = stepsForEmployer
+  if (props.user_type === "JOBSEEKER" || props.user_type === "STUDENT") {
+    steps = stepsForJobseekers;
+  } else if (props.user_type === "EMPLOYER") {
+    steps = stepsForEmployer;
   }
 
   useEffect(() => {
@@ -172,14 +172,14 @@ const UserApplicationForm = (props) => {
       <StepComponent
         pageData={pageData?.[getPageDataKey(activeStep)]}
         onRefresh={onRefresh}
-        isValid={isValid} 
+        isValid={isValid}
         setIsValid={setIsValid}
         activeStep={activeStep}
         steps={steps}
         handleBack={handleBack}
         handleNext={handleNext}
         review={steps}
-        user_type = {props.user_type}
+        user_type={props.user_type}
       />
     );
   };
@@ -187,8 +187,8 @@ const UserApplicationForm = (props) => {
   const getPageDataKey = (stepIndex) => {
     let pageDataKeys = {};
 
-    if(props.user_type === "JOBSEEKER"){
-       pageDataKeys = {
+    if (props.user_type === "JOBSEEKER") {
+      pageDataKeys = {
         0: "personal_info_page",
         1: "job_preference_page",
         2: "dialect_lang_prof_page",
@@ -199,12 +199,12 @@ const UserApplicationForm = (props) => {
         7: "work_experience_page", // For Other Skills
       };
     }
-    if(props.user_type === "EMPLOYER"){
+    if (props.user_type === "EMPLOYER") {
       pageDataKeys = {
-       0: "personal_info_page",
-     };
-   }
-   
+        0: "personal_info_page",
+      };
+    }
+
     return pageDataKeys[stepIndex];
   };
 
@@ -227,7 +227,7 @@ const UserApplicationForm = (props) => {
   return (
     <div className="fixed inset-0 flex justify-center items-center gap-2 px-3">
       <Container className=" max-w-[700px] h-full overflow-y-auto py-5 mx-0 flex flex-col items-start justify-center">
-      <div className="mb-4 text-left">
+        <div className="mb-4 text-left">
           <Button
             variant="contained"
             color="primary"
@@ -238,23 +238,21 @@ const UserApplicationForm = (props) => {
           </Button>
         </div>
         <Card className="overflow-y-scroll">
-          <CardHeader 
-            title={`${steps[activeStep].label} (${activeStep + 1}/${steps.length})`}
-             className="[&_.MuiCardHeader-title]:text-md" 
+          <CardHeader
+            title={`${steps[activeStep].label} (${activeStep + 1}/${
+              steps.length
+            })`}
+            className="[&_.MuiCardHeader-title]:text-md"
           />
 
-          <CardContent>
-            {getCurrentComponent()}
-          </CardContent>
+          <CardContent>{getCurrentComponent()}</CardContent>
         </Card>
       </Container>
       <Box className="max-w-64 flex-shrink-0 ">
         <StyledStepper activeStep={activeStep} orientation="vertical">
           {steps.map((step, index) => (
             <Step key={step.label} completed={index < activeStep}>
-              <StepLabel 
-                onClick={() => handleStepClick(index)}
-              >
+              <StepLabel onClick={() => handleStepClick(index)}>
                 <span className="hidden sm:block">{step.label}</span>
               </StepLabel>
             </Step>

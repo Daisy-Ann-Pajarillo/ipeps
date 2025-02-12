@@ -13,53 +13,62 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Box
+  Box,
 } from "@mui/material";
 import BackNextButton from "../backnextButton";
 import fieldOfStudyTypes from "../../../reusable/constants/fieldOfStudyTypes";
 
 // Updated validation schema to match form fields
 const schema = yup.object().shape({
-  educationHistory: yup
-    .array()
-    .of(
-      yup.object().shape({
-        schoolName: yup.string()
-          .min(3, "School Name should be at least 3 characters long")
-          .required("School name is required"),
-        degreeQualification: yup.string()
-          .required("Degree qualification is required"),
-        dateFrom: yup.date()
-          .required("Start date is required")
-          .max(new Date(), "Start date cannot be in the future"),
-        dateTo: yup.date()
-          .nullable() // ✅ Allows null values
-          .notRequired() // ✅ Ensures it's not required in validation
-          .when('dateFrom', (dateFrom, schema) =>
-            dateFrom
-              ? schema.test(
-                'end-date-after-start',
-                "End date must be after start date",
-                (dateTo) => !dateTo || (dateFrom && new Date(dateTo) > new Date(dateFrom))
-              ).max(new Date(), "End date cannot be in the future")
-              : schema
-          )
-          .transform((value, originalValue) => originalValue === "" ? null : value),
-        isCurrent: yup.boolean()
-          .default(false),
-        fieldOfStudy: yup.string()
-          .nullable() // ✅ Made optional (no required rule)
-          .transform((value, originalValue) => originalValue === "" ? null : value), // Optional and handles empty strings
-        major: yup.string().nullable(),
-        programDuration: yup.number()
-          .typeError("Program duration must be a number")
-          .positive("Must be a positive number")
-          .integer("Must be an integer")
-      })
-    )
+  educationHistory: yup.array().of(
+    yup.object().shape({
+      schoolName: yup
+        .string()
+        .min(3, "School Name should be at least 3 characters long")
+        .required("School name is required"),
+      degreeQualification: yup
+        .string()
+        .required("Degree qualification is required"),
+      dateFrom: yup
+        .date()
+        .required("Start date is required")
+        .max(new Date(), "Start date cannot be in the future"),
+      dateTo: yup
+        .date()
+        .nullable() // ✅ Allows null values
+        .notRequired() // ✅ Ensures it's not required in validation
+        .when("dateFrom", (dateFrom, schema) =>
+          dateFrom
+            ? schema
+                .test(
+                  "end-date-after-start",
+                  "End date must be after start date",
+                  (dateTo) =>
+                    !dateTo ||
+                    (dateFrom && new Date(dateTo) > new Date(dateFrom))
+                )
+                .max(new Date(), "End date cannot be in the future")
+            : schema
+        )
+        .transform((value, originalValue) =>
+          originalValue === "" ? null : value
+        ),
+      isCurrent: yup.boolean().default(false),
+      fieldOfStudy: yup
+        .string()
+        .nullable() // ✅ Made optional (no required rule)
+        .transform((value, originalValue) =>
+          originalValue === "" ? null : value
+        ), // Optional and handles empty strings
+      major: yup.string().nullable(),
+      programDuration: yup
+        .number()
+        .typeError("Program duration must be a number")
+        .positive("Must be a positive number")
+        .integer("Must be an integer"),
+    })
+  ),
 });
-
-
 
 const degreeOptions = [
   "Elementary",
@@ -71,7 +80,15 @@ const degreeOptions = [
   "PhD",
 ];
 
-const EducationalBackground = ({ activeStep, steps, handleBack, handleNext, isValid, setIsValid,user_type }) => {
+const EducationalBackground = ({
+  activeStep,
+  steps,
+  handleBack,
+  handleNext,
+  isValid,
+  setIsValid,
+  user_type,
+}) => {
   const {
     register,
     setValue,
@@ -82,20 +99,23 @@ const EducationalBackground = ({ activeStep, steps, handleBack, handleNext, isVa
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      educationHistory: [{
-        schoolName: "",
-        degreeQualification: "",
-        dateFrom: "",
-        dateTo: "",
-        isCurrent: false,
-        fieldOfStudy: "",
-        programDuration: "",
-      },
-    ],
+      educationHistory: [
+        {
+          schoolName: "",
+          degreeQualification: "",
+          dateFrom: "",
+          dateTo: "",
+          isCurrent: false,
+          fieldOfStudy: "",
+          programDuration: "",
+        },
+      ],
     },
   });
 
-  const [educationHistory, setEducationHistory] = useState(getValues("educationHistory"));
+  const [educationHistory, setEducationHistory] = useState(
+    getValues("educationHistory")
+  );
 
   // Watch for changes in the form
   const watchEducationHistory = watch("educationHistory");
@@ -124,9 +144,13 @@ const EducationalBackground = ({ activeStep, steps, handleBack, handleNext, isVa
   };
 
   const removeEducation = (index) => {
-    const updatedEducationHistory = educationHistory.filter((_, idx) => idx !== index);
+    const updatedEducationHistory = educationHistory.filter(
+      (_, idx) => idx !== index
+    );
     setEducationHistory(updatedEducationHistory);
-    setValue("educationHistory", updatedEducationHistory, { shouldValidate: true });
+    setValue("educationHistory", updatedEducationHistory, {
+      shouldValidate: true,
+    });
   };
 
   // Handle "Currently Attending" checkbox
@@ -141,13 +165,11 @@ const EducationalBackground = ({ activeStep, steps, handleBack, handleNext, isVa
     setValue(`educationHistory.${index}.dateTo`, null);
   };
 
-
   useEffect(() => {
     setIsValid(formIsValid && educationHistory.length > 0);
   }, [formIsValid, setIsValid, educationHistory]);
 
   return (
-
     <Box sx={{ p: 3 }}>
       {errors.educationHistory?.message && (
         <div style={{ color: "red", marginBottom: "1rem" }}>
@@ -199,7 +221,9 @@ const EducationalBackground = ({ activeStep, steps, handleBack, handleNext, isVa
               control={
                 <Checkbox
                   checked={item.isCurrent}
-                  onChange={(e) => handleCurrentCheckbox(index, e.target.checked)}
+                  onChange={(e) =>
+                    handleCurrentCheckbox(index, e.target.checked)
+                  }
                 />
               }
               label="Currently Attending"
@@ -209,24 +233,38 @@ const EducationalBackground = ({ activeStep, steps, handleBack, handleNext, isVa
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth required>
               <InputLabel>Degree or Qualification</InputLabel>
-              <Select {...register(`educationHistory.${index}.degreeQualification`)} error={!!errors.educationHistory?.[index]?.degreeQualification}>
+              <Select
+                {...register(`educationHistory.${index}.degreeQualification`)}
+                error={!!errors.educationHistory?.[index]?.degreeQualification}
+              >
                 {degreeOptions.map((option) => (
-                  <MenuItem key={option} value={option}>{option}</MenuItem>
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
                 ))}
               </Select>
-              <p className="text-red-500 text-sm">{errors.educationHistory?.[index]?.degreeQualification?.message}</p>
+              <p className="text-red-500 text-sm">
+                {errors.educationHistory?.[index]?.degreeQualification?.message}
+              </p>
             </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
               <InputLabel>Field of Study</InputLabel>
-              <Select {...register(`educationHistory.${index}.fieldOfStudy`)} error={!!errors.educationHistory?.[index]?.fieldOfStudy}>
+              <Select
+                {...register(`educationHistory.${index}.fieldOfStudy`)}
+                error={!!errors.educationHistory?.[index]?.fieldOfStudy}
+              >
                 {fieldOfStudyTypes.map((option) => (
-                  <MenuItem key={option} value={option}>{option}</MenuItem>
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
                 ))}
               </Select>
-              <p className="text-red-500 text-sm">{errors.educationHistory?.[index]?.fieldOfStudy?.message}</p>
+              <p className="text-red-500 text-sm">
+                {errors.educationHistory?.[index]?.fieldOfStudy?.message}
+              </p>
             </FormControl>
           </Grid>
 
@@ -238,7 +276,9 @@ const EducationalBackground = ({ activeStep, steps, handleBack, handleNext, isVa
               label="Program Duration (Years)"
               type="number"
               error={!!errors.educationHistory?.[index]?.programDuration}
-              helperText={errors.educationHistory?.[index]?.programDuration?.message}
+              helperText={
+                errors.educationHistory?.[index]?.programDuration?.message
+              }
             />
           </Grid>
           {educationHistory.length > 1 && (
@@ -273,10 +313,10 @@ const EducationalBackground = ({ activeStep, steps, handleBack, handleNext, isVa
         setIsValid={setIsValid}
         schema={schema}
         formData={educationHistory}
-        user_type = {user_type}
+        user_type={user_type}
+        api={"educational-background"}
       />
     </Box>
-
   );
 };
 

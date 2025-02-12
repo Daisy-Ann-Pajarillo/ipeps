@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Button } from "@mui/material";
-
+import axios from "../../axios";
 
 const BackNextButton = ({
   activeStep,
@@ -13,11 +13,9 @@ const BackNextButton = ({
   formData,
   canSkip,
   user_type,
-  api
+  api,
 }) => {
-
   useEffect(() => {
-
     if (canSkip) {
       setIsValid(true);
       return; // Skip validation if allowed
@@ -44,51 +42,140 @@ const BackNextButton = ({
     }
   }, [activeStep, canSkip, setIsValid]);
 
-  let isConfirmed = false
+  let isConfirmed = false;
 
   const pushToDataBase = () => {
-    console.log("Submitting form data: ", formData);
-
     if (user_type === "ADMIN") {
-      console.log("ADMIN")
-      isConfirmed = true
+      console.log("ADMIN");
+      isConfirmed = true;
     } else if (user_type === "EMPLOYER") {
-      console.log("EMPLOYER")
-      isConfirmed = true
-    }
-    else if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
-      console.log("JOBSEEKER")
+      console.log("EMPLOYER");
+      isConfirmed = true;
+    } else if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
+      console.log("JOBSEEKER");
       user_type = user_type.toLowerCase();
 
-      if(api === 'personal-info'){
-        //axious delete prevouis data
-        console.log(`/add/${user_type}/${api}`)
+      if (api === "personal-info") {
+        console.log("Data: ", formData);
+        axios
+          .post("/api/add-jobseeker-student-personal-information", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
       }
-      if(api === 'job-preference'){
-        console.log(`/jobseerker-student-${api}`)
-       
+      if (api === "job-preference") {
+        console.log("Data: ", formData);
+        axios
+          .post("/api/add-jobseeker-student-job-preference", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
       }
-      isConfirmed = true
-    }
-    else if (user_type === "ACADEME") {
+      if (api === "language-proficiency") {
+        console.log("Data: ", formData);
+        axios
+          .post("/api/add-jobseeker-student-language-proficiency", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+      if (api === "educational-background") {
+        console.log("Data: ", formData);
+        axios
+          .post("/api/add-jobseeker-student-educational-background", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+      if (api === "educational-background") {
+        console.log("Data: ", formData);
+        axios
+          .post("/api/add-jobseeker-student-educational-background", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+      if (api === "other-training") {
+        console.log("Data: ", formData);
+        axios
+          .post("/api/add-jobseeker-student-other-training", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
 
-      console.log("ACADEME")
-      isConfirmed = true
-    }
-    else if (user_type === "STUDENT") {
-      console.log("STUDENT")
-      isConfirmed = true
+      if (api === "professional-license") {
+        console.log("Data: ", formData);
+        // axios
+        //   .post("/api/add-jobseeker-student-other-skills", formData)
+        //   .then((response) => {
+        //     console.log("Response:", response.data);
+        //   })
+        //   .catch((error) => {
+        //     console.error("Error:", error);
+        //   });
+      }
+
+      if (api === "work-experience") {
+        console.log("Data: ", formData);
+        axios
+          .post("/api/add-jobseeker-student-work-experience", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      if (api === "other-skills") {
+        console.log("Data: ", formData);
+        axios
+          .post("/api/add-jobseeker-student-other-skills", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      isConfirmed = true;
+    } else if (user_type === "ACADEME") {
+      console.log("ACADEME");
+      isConfirmed = true;
+    } else if (user_type === "STUDENT") {
+      console.log("STUDENT");
+      isConfirmed = true;
     }
     if (isConfirmed) {
-      setTimeout(()=>{
-        isDone()
-      }, 3000)
+      setTimeout(() => {
+        isDone();
+      }, 3000);
     }
   };
 
   const isDone = () => {
     handleNext();
-  }
+  };
   return (
     <div className="flex justify-between mt-4">
       <Button
@@ -117,10 +204,8 @@ const BackNextButton = ({
       >
         {activeStep === steps.length - 2 ? "Finish" : "Next"}
       </Button>
-
     </div>
   );
 };
-
 
 export default BackNextButton;

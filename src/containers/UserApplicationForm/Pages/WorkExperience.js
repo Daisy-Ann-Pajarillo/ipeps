@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   Typography,
   Grid,
@@ -6,12 +6,12 @@ import {
   Button,
   Divider,
   MenuItem,
-  Box
-} from '@mui/material';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import BackNextButton from '../backnextButton';
+  Box,
+} from "@mui/material";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import BackNextButton from "../backnextButton";
 
 // Yup Validation Schema
 const schema = yup.object().shape({
@@ -19,34 +19,50 @@ const schema = yup.object().shape({
     .array()
     .of(
       yup.object().shape({
-        companyName: yup.string().required('Company Name is required'),
-        companyAddress: yup.string().required('Company Address is required'),
-        position: yup.string().required('Position is required'),
-        employmentStatus: yup.string().required('Employment Status is required'),
+        companyName: yup.string().required("Company Name is required"),
+        companyAddress: yup.string().required("Company Address is required"),
+        position: yup.string().required("Position is required"),
+        employmentStatus: yup
+          .string()
+          .required("Employment Status is required"),
         dateStart: yup
           .date()
-          .required('Start date is required')
-          .max(new Date(), 'Start date cannot be in the future'),
+          .required("Start date is required")
+          .max(new Date(), "Start date cannot be in the future"),
         dateEnd: yup
           .date()
-          .required('Date End is required')
-          .when('dateStart', (dateStart, schema) =>
+          .required("Date End is required")
+          .when("dateStart", (dateStart, schema) =>
             dateStart
-              ? schema.test(
-                  'end-date-after-start',
-                  'End date must be after start date',
-                  (dateEnd) => !dateEnd || (dateStart && new Date(dateEnd) > new Date(dateStart))
-                ).max(new Date(), 'End date cannot be in the future')
+              ? schema
+                  .test(
+                    "end-date-after-start",
+                    "End date must be after start date",
+                    (dateEnd) =>
+                      !dateEnd ||
+                      (dateStart && new Date(dateEnd) > new Date(dateStart))
+                  )
+                  .max(new Date(), "End date cannot be in the future")
               : schema
           )
-          .transform((value, originalValue) => (originalValue === '' ? null : value)),
+          .transform((value, originalValue) =>
+            originalValue === "" ? null : value
+          ),
       })
     )
-    .min(1, 'At least one work experience entry is required') // Ensure at least one entry exists
-    .required('Work Experience is required'), // Ensure the array itself is required
+    .min(1, "At least one work experience entry is required") // Ensure at least one entry exists
+    .required("Work Experience is required"), // Ensure the array itself is required
 });
 
-const WorkExperience = ({ activeStep, steps, handleBack, handleNext, isValid, setIsValid, user_type }) => {
+const WorkExperience = ({
+  activeStep,
+  steps,
+  handleBack,
+  handleNext,
+  isValid,
+  setIsValid,
+  user_type,
+}) => {
   // React Hook Form Setup
   const {
     register,
@@ -55,26 +71,31 @@ const WorkExperience = ({ activeStep, steps, handleBack, handleNext, isValid, se
     formState: { errors, isValid: formIsValid },
   } = useForm({
     resolver: yupResolver(schema),
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
       workExperience: [
         {
-          companyName: '',
-          companyAddress: '',
-          position: '',
-          employmentStatus: '',
-          dateStart: '',
-          dateEnd: '',
+          companyName: "",
+          companyAddress: "",
+          position: "",
+          employmentStatus: "",
+          dateStart: "",
+          dateEnd: "",
         },
       ],
     },
   });
 
   // Employment Status Options
-  const employmentStatusOptions = ['Full-Time', 'Part-Time', 'Contract', 'Freelance'];
+  const employmentStatusOptions = [
+    "Full-Time",
+    "Part-Time",
+    "Contract",
+    "Freelance",
+  ];
 
   // Watch for changes in the workExperience field
-  const workExperience = watch('workExperience');
+  const workExperience = watch("workExperience");
 
   // Update Parent Component's Validity State
   useEffect(() => {
@@ -84,21 +105,25 @@ const WorkExperience = ({ activeStep, steps, handleBack, handleNext, isValid, se
   // Add Work Experience Entry
   const addWorkExperience = () => {
     const newEntry = {
-      companyName: '',
-      companyAddress: '',
-      position: '',
-      employmentStatus: '',
-      dateStart: '',
-      dateEnd: '',
+      companyName: "",
+      companyAddress: "",
+      position: "",
+      employmentStatus: "",
+      dateStart: "",
+      dateEnd: "",
     };
     const updatedWorkExperience = [...workExperience, newEntry];
-    setValue('workExperience', updatedWorkExperience, { shouldValidate: false });
+    setValue("workExperience", updatedWorkExperience, {
+      shouldValidate: false,
+    });
   };
 
   // Remove Work Experience Entry
   const removeWorkExperience = (index) => {
-    const updatedWorkExperience = workExperience.filter((_, idx) => idx !== index);
-    setValue('workExperience', updatedWorkExperience, { shouldValidate: true });
+    const updatedWorkExperience = workExperience.filter(
+      (_, idx) => idx !== index
+    );
+    setValue("workExperience", updatedWorkExperience, { shouldValidate: true });
   };
 
   return (
@@ -125,7 +150,9 @@ const WorkExperience = ({ activeStep, steps, handleBack, handleNext, isValid, se
               fullWidth
               label="Company Address"
               error={!!errors?.workExperience?.[index]?.companyAddress}
-              helperText={errors?.workExperience?.[index]?.companyAddress?.message}
+              helperText={
+                errors?.workExperience?.[index]?.companyAddress?.message
+              }
               {...register(`workExperience.${index}.companyAddress`)}
             />
           </Grid>
@@ -144,7 +171,9 @@ const WorkExperience = ({ activeStep, steps, handleBack, handleNext, isValid, se
               fullWidth
               label="Employment Status"
               error={!!errors?.workExperience?.[index]?.employmentStatus}
-              helperText={errors?.workExperience?.[index]?.employmentStatus?.message}
+              helperText={
+                errors?.workExperience?.[index]?.employmentStatus?.message
+              }
               {...register(`workExperience.${index}.employmentStatus`)}
             >
               {employmentStatusOptions.map((option) => (
@@ -210,7 +239,8 @@ const WorkExperience = ({ activeStep, steps, handleBack, handleNext, isValid, se
         setIsValid={setIsValid}
         schema={schema}
         formData={workExperience}
-        user_type = {user_type}
+        user_type={user_type}
+        api={"work-experience"}
       />
     </Box>
   );
