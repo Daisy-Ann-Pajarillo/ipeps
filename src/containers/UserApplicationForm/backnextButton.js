@@ -124,14 +124,14 @@ const BackNextButton = ({
 
       if (api === "professional-license") {
         console.log("Data: ", formData);
-        // axios
-        //   .post("/api/add-jobseeker-student-other-skills", formData)
-        //   .then((response) => {
-        //     console.log("Response:", response.data);
-        //   })
-        //   .catch((error) => {
-        //     console.error("Error:", error);
-        //   });
+        axios
+          .post("/api/add-jobseeker-student-professional-license", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
       }
 
       if (api === "work-experience") {
