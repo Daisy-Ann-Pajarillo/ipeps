@@ -23,9 +23,10 @@ import {
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ApplicationDivider from "../components/ApplicationDivider";
 import BackNextButton from "../backnextButton";
-import provincesCitiesWithMunicipalities from "../../../reusable/constants/provincesCitiesWithMunicipalities";
+import completePHAddressOption from "../../../reusable/constants/completePHAddressOption";
 import countriesList from "../../../reusable/constants/countriesList";
-import religionOption from "../../../reusable/constants/religionOptionTypes";
+import religionOption from "../../../reusable/constants/religionOption";
+import companyIndustryTypes from "../../../reusable/constants/companyIndustryTypes";
 
 const baseSchema = yup.object().shape({
   first_name: yup.string().required("First name is required"),
@@ -240,6 +241,7 @@ const PersonalInfo = ({
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedMunicipality, setSelectedMunicipality] = useState(null);
+  const [selectedBarangay, setSelectedBarangay] = useState(null);
   //********** for permanent address
   const [selectedPermanentCountry, setSelectedPermanentCountry] =
     useState(null);
@@ -247,19 +249,53 @@ const PersonalInfo = ({
     useState(null);
   const [selectedPermanentMunicipality, setSelectedPermanentMunicipality] =
     useState(null);
+    const [selectedPermanentBarangay, setSelectedPermanentBarangay] = useState(null);
   //**********
   const [selectedReligion, setSelectedReligion] = useState(null);
 
-  const selectedProvinceData = selectedProvince
-    ? provincesCitiesWithMunicipalities.find(
-      (item) => item.province === selectedProvince.province
-    )
-    : null;
-  const selectedPermanentProvinceData = selectedProvince
-    ? provincesCitiesWithMunicipalities.find(
-      (item) => item.province === selectedProvince.province
-    )
-    : null;
+  
+// Helper function to extract provinces
+const getProvinces = () => {
+  return Object.values(completePHAddressOption)
+    .flatMap(region => 
+      Object.keys(region.province_list || {}).map(province => ({ province }))
+    );
+};
+// Helper function to extract municipalities for a given province
+const getMunicipalities = (selectedProvince) => {
+  return Object.values(completePHAddressOption)
+    .flatMap(region => {
+      const provinceData = region.province_list?.[selectedProvince];
+      if (!provinceData?.municipality_list) return [];
+      return provinceData.municipality_list.map(municipality => 
+        ({ municipality: Object.keys(municipality)[0] })
+      );
+    });
+};
+// Helper function to extract barangays for a given municipality
+const getBarangays = (selectedMunicipality) => {
+  return Object.values(completePHAddressOption)
+    .flatMap(region => 
+      Object.values(region.province_list || {})
+        .flatMap(province => {
+          // Find the municipality object that matches the selectedMunicipality
+          const municipalityObject = province.municipality_list?.find(
+            municipality => municipality && municipality[selectedMunicipality]
+          );
+          return municipalityObject?.[selectedMunicipality]?.barangay_list || [];
+        })
+    );
+};
+
+// Fetch all provinces
+const completeProvinces = getProvinces();
+const completeMunicipalities = getMunicipalities(selectedProvince?.province);
+const completeBarangays = getBarangays(selectedMunicipality?.municipality);
+
+const completePermanentProvinces = getProvinces();
+const completePermanentMunicipalities = getMunicipalities(selectedPermanentProvince?.province);
+const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.municipality);
+
 
   const [fileName, setFileName] = useState("");
   //********** for jobseeker
@@ -420,7 +456,7 @@ const PersonalInfo = ({
             </Grid>
             <Grid item xs={12} sm={6}>
               <Autocomplete
-                options={["Money", "Water"]}
+                options={companyIndustryTypes}
                 getOptionLabel={(option) => option}
                 value={selectedCompanyIndustry}
                 onChange={(event, newValue) => {
@@ -655,9 +691,9 @@ const PersonalInfo = ({
                   <Autocomplete
                     options={countriesList}
                     getOptionLabel={(option) => option}
-                    value={selectedPermanentCountry}
+                    value={selectedCountry}
                     onChange={(event, newValue) => {
-                      setSelectedPermanentCountry(newValue);
+                      setSelectedCountry(newValue);
                     }}
                     renderInput={(params) => (
                       <TextField
@@ -669,74 +705,78 @@ const PersonalInfo = ({
                     )}
                   />
                 </Grid>
-
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
-                    options={provincesCitiesWithMunicipalities}
-                    getOptionLabel={(option) => option.province}
-                    value={selectedPermanentProvince}
+                    options={completeProvinces}
+                    getOptionLabel={(option) => option?.province || ""}
+                    value={selectedProvince}
                     onChange={(event, newValue) => {
-                      setSelectedPermanentProvince(newValue);
-                      setSelectedPermanentMunicipality(null);
+                      setSelectedProvince(newValue);
+                      setSelectedMunicipality(null);
                     }}
                     renderInput={(params) => (
                       <TextField
-                        required={selectedPermanentCountry === "Philippines"}
+                        required={selectedCountry === "Philippines"}
                         {...register("province")}
                         {...params}
                         label="Province"
                       />
                     )}
-                    disabled={selectedPermanentCountry !== "Philippines"}
+                    disabled={selectedCountry !== "Philippines"}
                   />
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
-                    options={
-                      selectedPermanentProvinceData
-                        ? selectedPermanentProvinceData.municipalities
-                        : []
-                    }
-                    getOptionLabel={(option) => option}
-                    value={selectedPermanentMunicipality}
+                    options={completeMunicipalities}
+                    getOptionLabel={(option) => option?.municipality || ""}
+                    value={selectedMunicipality}
                     onChange={(event, newValue) =>
-                      setSelectedPermanentMunicipality(newValue)
+                      setSelectedMunicipality(newValue)
                     }
                     renderInput={(params) => (
                       <TextField
                         {...register("municipality")}
-                        required={selectedPermanentProvince}
+                        required={selectedProvince}
                         {...params}
                         label="Municipality"
                       />
                     )}
-                    disabled={!selectedPermanentProvince} // Disable if no province is selected
+                    disabled={!selectedProvince} // Disable if no province is selected
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    required={selectedPermanentMunicipality}
-                    disabled={!selectedPermanentMunicipality}
+                    required={selectedMunicipality}
+                    disabled={!selectedMunicipality}
                     label="Zip Code"
                     {...register("zipcode")}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    disabled={!selectedPermanentMunicipality}
-                    label="Barangay"
-                    {...register("barangay")}
-                    error={!!errors.barangay}
-                    helperText={errors.barangay?.message}
+                  <Autocomplete
+                    options={completeBarangays}
+                    getOptionLabel={(option) => option || ""}
+                    value={selectedBarangay}
+                    onChange={(event, newValue) =>
+                      setSelectedBarangay(newValue)
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...register("barangay")}
+                        required={selectedMunicipality}
+                        {...params}
+                        label="Barangay"
+                      />
+                    )}
+                    disabled={!selectedMunicipality} // Disable if no province is selected
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    disabled={!selectedPermanentMunicipality}
+                    disabled={!selectedMunicipality}
                     label="House No./Street Village"
                     {...register("housestreet")}
                   />
@@ -753,9 +793,9 @@ const PersonalInfo = ({
               <Autocomplete
                 options={countriesList}
                 getOptionLabel={(option) => option}
-                value={selectedCountry}
+                value={selectedPermanentCountry}
                 onChange={(event, newValue) => {
-                  setSelectedCountry(newValue);
+                  setSelectedPermanentCountry(newValue);
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -770,66 +810,73 @@ const PersonalInfo = ({
 
             <Grid item xs={12} sm={6}>
               <Autocomplete
-                options={provincesCitiesWithMunicipalities}
-                getOptionLabel={(option) => option.province}
-                value={selectedProvince}
+                options={completePermanentProvinces}
+                getOptionLabel={(option) => option?.province || ""}
+                value={selectedPermanentProvince}
                 onChange={(event, newValue) => {
-                  setSelectedProvince(newValue);
-                  setSelectedMunicipality(null);
+                  setSelectedPermanentProvince(newValue);
+                  setSelectedPermanentMunicipality(null);
                 }}
                 renderInput={(params) => (
                   <TextField
-                    required={selectedCountry === "Philippines"}
+                    required={selectedPermanentCountry === "Philippines"}
                     {...register("permanent_province")}
                     {...params}
                     label="Province"
                   />
                 )}
-                disabled={selectedCountry !== "Philippines"}
+                disabled={selectedPermanentCountry !== "Philippines"}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <Autocomplete
-                options={
-                  selectedProvinceData ? selectedProvinceData.municipalities : []
-                }
-                getOptionLabel={(option) => option}
-                value={selectedMunicipality}
-                onChange={(event, newValue) => setSelectedMunicipality(newValue)}
+               options={completePermanentMunicipalities}
+               getOptionLabel={(option) => option?.municipality || ""}
+                value={selectedPermanentMunicipality}
+                onChange={(event, newValue) => setSelectedPermanentMunicipality(newValue)}
                 renderInput={(params) => (
                   <TextField
                     {...register("permanent_municipality")}
-                    required={selectedProvince}
+                    required={selectedPermanentProvince}
                     {...params}
                     label="Municipality"
                   />
                 )}
-                disabled={!selectedProvince} // Disable if no province is selected
+                disabled={!selectedPermanentProvince} // Disable if no province is selected
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                required={selectedMunicipality}
-                disabled={!selectedMunicipality}
+                required={selectedPermanentMunicipality}
+                disabled={!selectedPermanentMunicipality}
                 label="Zip Code"
                 {...register("permanent_zipcode")}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                disabled={!selectedMunicipality}
-                label="Barangay"
-                {...register("permanent_barangay")}
-                error={!!errors.barangay}
-                helperText={errors.barangay?.message}
-              />
-            </Grid>
+                  <Autocomplete
+                    options={completePermanentBarangays}
+                    getOptionLabel={(option) => option || ""}
+                    value={selectedPermanentBarangay}
+                    onChange={(event, newValue) =>
+                      setSelectedPermanentBarangay(newValue)
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...register("permanent_barangay")}
+                        required={selectedPermanentMunicipality}
+                        {...params}
+                        label="Barangay"
+                      />
+                    )}
+                    disabled={!selectedPermanentMunicipality} // Disable if no province is selected
+                  />
+                </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                disabled={!selectedMunicipality}
+                disabled={!selectedPermanentMunicipality}
                 label="House No./Street Village"
                 {...register("permanent_housestreet")}
               />
