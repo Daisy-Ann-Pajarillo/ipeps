@@ -30,8 +30,8 @@ const DataCard = ({ title, data = [] }) => {
                   {item[key] === true
                     ? "Yes"
                     : item[key] === false
-                    ? "No"
-                    : item[key] || "-"}
+                      ? "No"
+                      : item[key] || "-"}
                 </span>
               </div>
             ))}
@@ -75,7 +75,7 @@ const DataCard = ({ title, data = [] }) => {
 //   ]
 // }
 
-const ReviewApplication = () => {
+const ReviewApplication = ({ user_type }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -83,8 +83,14 @@ const ReviewApplication = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("/api/get-jobseeker-student-all-data");
-        setData(response.data);
+        if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
+          const response = await axios.get("/api/get-jobseeker-student-all-data");
+          setData(response.data);
+        }else if (user_type === "ACADEME" ){
+          const response = await axios.get("////api");
+          setData(response.data);
+        }
+
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch data");
         console.error("Error fetching data:", err);
