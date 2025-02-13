@@ -149,7 +149,7 @@ const App = (props) => {
             path="/user-application-form"
             element={<UserApplicationForm 
               //user_type = {props.auth.user.user_type}
-              user_type = "JOBSEEKER"
+              user_type = "ACADEME"
               />}
           />
            {/* <Route
