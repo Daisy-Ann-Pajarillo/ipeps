@@ -49,8 +49,18 @@ const BackNextButton = ({
       console.log("ADMIN");
       isConfirmed = true;
     } else if (user_type === "EMPLOYER") {
-      console.log("EMPLOYER");
-      console.log(formData);
+      console.log("EMPLOYER data: ", formData);
+      if (api === "personal-info") {
+        console.log("Data: ", formData);
+        axios
+          .post("/api/add-employer-personal-information", formData)
+          .then((response) => {
+            console.log("Response:", response.data);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
       isConfirmed = true;
     } else if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
       console.log("JOBSEEKER");

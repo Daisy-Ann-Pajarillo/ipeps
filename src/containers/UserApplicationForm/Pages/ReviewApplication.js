@@ -30,8 +30,8 @@ const DataCard = ({ title, data = [] }) => {
                   {item[key] === true
                     ? "Yes"
                     : item[key] === false
-                      ? "No"
-                      : item[key] || "-"}
+                    ? "No"
+                    : item[key] || "-"}
                 </span>
               </div>
             ))}
@@ -42,39 +42,6 @@ const DataCard = ({ title, data = [] }) => {
   );
 };
 
-// -------- THIS IS THE SAMPLE DATA RESPONSE FROM THE BACKEND FOR ACADEME ------------
-// {
-//   "personal_info": [
-//       {
-//           "cellphone_number": "097326648432",
-//           "email": "ejlindayao@gmail.com",
-//           "employer_id_number": "48324729",
-//           "employer_position": "sample position",
-//           "first_name": "Edjay",
-//           "institution_name": "Sample",
-//           "institution_type": "Public Universities",
-//           "landline_number": "5543535",
-//           "last_name": "Lindayao",
-//           "middle_name": "Cantero",
-//           "permanent_barangay": "Permanent Barangay",
-//           "permanent_country": "Philippines",
-//           "permanent_house_no_street_village": null,
-//           "permanent_municipality": "Bangued",
-//           "permanent_province": "Abra",
-//           "permanent_zip_code": null,
-//           "prefix": "Mr.",
-//           "suffix": "Jr",
-//           "temporary_barangay": "Tabuc Suba",
-//           "temporary_country": "Philippines",
-//           "temporary_house_no_street_village": "Ilaya",
-//           "temporary_municipality": "Bangued",
-//           "temporary_province": "Guimaras",
-//           "temporary_zip_code": "4324",
-//           "valid_id_url": null
-//       }
-//   ]
-// }
-
 const ReviewApplication = ({ user_type }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -84,13 +51,27 @@ const ReviewApplication = ({ user_type }) => {
     const fetchData = async () => {
       try {
         if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
-          const response = await axios.get("/api/get-jobseeker-student-all-data");
+          const response = await axios.get(
+            "/api/get-jobseeker-student-all-data"
+          );
           setData(response.data);
-        }else if (user_type === "ACADEME" ){
-          const response = await axios.get("////api");
+        } else if (user_type === "ACADEME") {
+          console.log("user type ACADEME");
+
+          const response = await axios.get(
+            "/api/get-academe-personal-information"
+          );
+          console.log(response.data);
+          setData(response.data);
+        } else if (user_type === "EMPLOYER") {
+          console.log("user type EMPLOYER");
+
+          const response = await axios.get(
+            "/api/get-employer-personal-information"
+          );
+          console.log(response.data);
           setData(response.data);
         }
-
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch data");
         console.error("Error fetching data:", err);
@@ -127,8 +108,11 @@ const ReviewApplication = ({ user_type }) => {
     );
   }
 
-  const sections = [
+  const baseSections = [
     { title: "Personal Information", key: "personal_information" },
+  ];
+
+  const secondSection = [
     { title: "Job Preference", key: "job_preference" },
     { title: "Language Proficiency", key: "language_proficiency" },
     { title: "Educational Background", key: "educational_background" },
@@ -137,6 +121,10 @@ const ReviewApplication = ({ user_type }) => {
     { title: "Work Experience", key: "work_experience" },
     { title: "Other Skills", key: "other_skills" },
   ];
+  const sections =
+    user_type === "JOBSEEKER" || user_type === "STUDENT"
+      ? [...baseSections, ...secondSection]
+      : baseSections;
 
   return (
     <div className="p-6 max-w-6xl mx-auto">

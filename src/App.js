@@ -55,7 +55,6 @@ const App = (props) => {
           }
         />
       );
-      
     } else if (props.auth.user.user_type === "EMPLOYER") {
       authRoutes = (
         <Route
@@ -147,12 +146,14 @@ const App = (props) => {
           <Route path="/logout" element={<Logout />} />
           <Route
             path="/user-application-form"
-            element={<UserApplicationForm 
-              //user_type = {props.auth.user.user_type}
-              user_type = "ACADEME"
-              />}
+            element={
+              <UserApplicationForm
+                //user_type = {props.auth.user.user_type}
+                user_type="EMPLOYER"
+              />
+            }
           />
-           {/* <Route
+          {/* <Route
             path="/employer-application-form"
             element={<EmployerApplicationForm />}
           />
@@ -160,7 +161,7 @@ const App = (props) => {
             path="/academe-application-form"
             element={<AcademeApplicationForm />}
           /> */}
-          
+
           {/* Application Routes */}
           {applicationRoutes}
 
