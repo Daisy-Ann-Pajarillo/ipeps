@@ -50,7 +50,7 @@ const BackNextButton = ({
       isConfirmed = true;
     } else if (user_type === "EMPLOYER") {
       console.log("EMPLOYER");
-      console.log(formData)
+      console.log(formData);
       isConfirmed = true;
     } else if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
       console.log("JOBSEEKER");
@@ -122,7 +122,6 @@ const BackNextButton = ({
             console.error("Error:", error);
           });
       }
-
       if (api === "professional-license") {
         console.log("Data: ", formData);
         axios
@@ -162,6 +161,15 @@ const BackNextButton = ({
       isConfirmed = true;
     } else if (user_type === "ACADEME") {
       console.log("ACADEME");
+      console.log("Academe Personal Information: ", formData);
+      axios
+        .post("/api/add-academe-personal-information", formData)
+        .then((response) => {
+          console.log("Response:", response.data);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
       isConfirmed = true;
     } else if (user_type === "STUDENT") {
       console.log("STUDENT");

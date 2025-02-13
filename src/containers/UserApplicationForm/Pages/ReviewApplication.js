@@ -42,6 +42,39 @@ const DataCard = ({ title, data = [] }) => {
   );
 };
 
+// -------- THIS IS THE SAMPLE DATA RESPONSE FROM THE BACKEND FOR ACADEME ------------
+// {
+//   "personal_info": [
+//       {
+//           "cellphone_number": "097326648432",
+//           "email": "ejlindayao@gmail.com",
+//           "employer_id_number": "48324729",
+//           "employer_position": "sample position",
+//           "first_name": "Edjay",
+//           "institution_name": "Sample",
+//           "institution_type": "Public Universities",
+//           "landline_number": "5543535",
+//           "last_name": "Lindayao",
+//           "middle_name": "Cantero",
+//           "permanent_barangay": "Permanent Barangay",
+//           "permanent_country": "Philippines",
+//           "permanent_house_no_street_village": null,
+//           "permanent_municipality": "Bangued",
+//           "permanent_province": "Abra",
+//           "permanent_zip_code": null,
+//           "prefix": "Mr.",
+//           "suffix": "Jr",
+//           "temporary_barangay": "Tabuc Suba",
+//           "temporary_country": "Philippines",
+//           "temporary_house_no_street_village": "Ilaya",
+//           "temporary_municipality": "Bangued",
+//           "temporary_province": "Guimaras",
+//           "temporary_zip_code": "4324",
+//           "valid_id_url": null
+//       }
+//   ]
+// }
+
 const ReviewApplication = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
