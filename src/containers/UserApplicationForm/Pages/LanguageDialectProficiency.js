@@ -16,26 +16,24 @@ import {
 import languagesList from "../../../reusable/constants/languages";
 import BackNextButton from "../backnextButton";
 
-// Validation Schema using Yup
 const schema = yup.object().shape({
-  languages: yup
+  language_proficiency: yup
     .array()
     .of(
-      yup
-        .object()
-        .shape({
-          name: yup.string().required("Language is required"),
-          read: yup.boolean(),
-          write: yup.boolean(),
-          speak: yup.boolean(),
-          understand: yup.boolean(),
-        })
-        .test(
-          "at-least-one-skill",
-          "At least one skill (Read, Write, Speak, Understand) must be selected",
-          (value) =>
-            value.read || value.write || value.speak || value.understand
-        )
+      yup.object().shape({
+        language: yup.string().required("Language is required"),
+        can_read: yup.boolean().default(false),
+        can_write: yup.boolean().default(false),
+        can_speak: yup.boolean().default(false),
+        can_understand: yup.boolean().default(false),
+      }).test(
+        "at-least-one-skill",
+        "At least one skill (Read, Write, Speak, Understand) must be selected",
+        (value) => {
+          if (!value) return false;
+          return value.can_read || value.can_write || value.can_speak || value.can_understand;
+        }
+      )
     )
     .min(1, "At least one language is required")
     .required(),
@@ -60,45 +58,59 @@ const LanguageDialectProficiency = ({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      languages: [
+      language_proficiency: [
         {
-          name: "",
-          read: false,
-          write: false,
-          speak: false,
-          understand: false,
+          can_read: true,
+          can_speak: true,
+          can_understand: false,
+          can_write: true,
+          language: "Filipino"
         },
+        {
+          can_read: true,
+          can_speak: true,
+          can_understand: true,
+          can_write: true,
+          language: "English"
+        }
       ],
-    },
+    }
   });
 
   const [selectedLanguage, setSelectedLanguage] = useState(null);
-  const languages = watch("languages");
+  const [availableLanguages, setAvailableLanguages] = useState(languagesList);
+  const language_proficiency = watch("language_proficiency");
+
+  // Update available languages whenever language_proficiency changes
+  useEffect(() => {
+    const selectedLanguages = language_proficiency.map(lang => lang.language);
+    const filteredLanguages = languagesList.filter(
+      lang => !selectedLanguages.includes(lang.name)
+    );
+    setAvailableLanguages(filteredLanguages);
+  }, [language_proficiency]);
 
   // Add new language proficiency
   const addLanguage = () => {
     if (!selectedLanguage) return;
 
-    const currentLanguages = getValues("languages");
+    const newLangName = selectedLanguage.name;
+    const currentLanguages = getValues("language_proficiency");
 
-    // Ensure selectedLanguage is a string
-    const newLangName =
-      typeof selectedLanguage === "string"
-        ? selectedLanguage
-        : selectedLanguage?.name;
-
-    // Check if the language is already added
-    if (currentLanguages.some((lang) => lang.name === newLangName)) return;
+    // Final check to prevent duplicates
+    if (currentLanguages.some((lang) => lang.language === newLangName)) {
+      return;
+    }
 
     const newLanguage = {
-      name: newLangName,
-      read: false,
-      write: false,
-      speak: false,
-      understand: false,
+      language: newLangName,
+      can_read: false,
+      can_write: false,
+      can_speak: false,
+      can_understand: false,
     };
 
-    setValue("languages", [...currentLanguages, newLanguage], {
+    setValue("language_proficiency", [...currentLanguages, newLanguage], {
       shouldValidate: true,
     });
     setSelectedLanguage(null);
@@ -106,15 +118,15 @@ const LanguageDialectProficiency = ({
 
   // Remove language proficiency
   const removeLanguage = (languageName) => {
-    const updatedLanguages = getValues("languages").filter(
-      (lang) => lang.name !== languageName
+    const updatedLanguages = getValues("language_proficiency").filter(
+      (lang) => lang.language !== languageName
     );
-    setValue("languages", updatedLanguages, { shouldValidate: true });
+    setValue("language_proficiency", updatedLanguages, { shouldValidate: true });
   };
 
   useEffect(() => {
-    setIsValid(languages.length > 0 && formIsValid);
-  }, [formIsValid, setIsValid, languages]);
+    setIsValid(language_proficiency.length > 0 && formIsValid);
+  }, [formIsValid, setIsValid, language_proficiency]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -122,37 +134,36 @@ const LanguageDialectProficiency = ({
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Autocomplete
-            options={languagesList}
-            getOptionLabel={(option) =>
-              typeof option === "string" ? option : option.name
-            }
+            options={availableLanguages}
+            getOptionLabel={(option) => `${option.name} (${option.value})`}
             value={selectedLanguage}
             onChange={(event, newValue) => setSelectedLanguage(newValue)}
             renderInput={(params) => (
               <TextField {...params} label="Select Language" />
             )}
+            isOptionEqualToValue={(option, value) => option.name === value?.name}
           />
         </Grid>
       </Grid>
 
       {/* Added Languages */}
-      {languages.length > 0 && (
+      {language_proficiency.length > 0 && (
         <>
           <Typography variant="h6" gutterBottom sx={{ marginTop: 3 }}>
             Selected Languages
           </Typography>
           <Grid container spacing={2}>
-            {languages.map((lang, index) => (
+            {language_proficiency.map((lang, index) => (
               <Grid item xs={12} md={6} key={index}>
                 <Box
                   sx={{ border: "1px solid #ccc", padding: 2, borderRadius: 1 }}
                 >
                   <Typography variant="subtitle1" gutterBottom>
-                    {lang.name}
+                    {lang.language}
                   </Typography>
 
                   <Controller
-                    name={`languages.${index}.read`}
+                    name={`language_proficiency.${index}.can_read`}
                     control={control}
                     render={({ field }) => (
                       <FormControlLabel
@@ -167,7 +178,7 @@ const LanguageDialectProficiency = ({
                     )}
                   />
                   <Controller
-                    name={`languages.${index}.write`}
+                    name={`language_proficiency.${index}.can_write`}
                     control={control}
                     render={({ field }) => (
                       <FormControlLabel
@@ -182,7 +193,7 @@ const LanguageDialectProficiency = ({
                     )}
                   />
                   <Controller
-                    name={`languages.${index}.speak`}
+                    name={`language_proficiency.${index}.can_speak`}
                     control={control}
                     render={({ field }) => (
                       <FormControlLabel
@@ -197,7 +208,7 @@ const LanguageDialectProficiency = ({
                     )}
                   />
                   <Controller
-                    name={`languages.${index}.understand`}
+                    name={`language_proficiency.${index}.can_understand`}
                     control={control}
                     render={({ field }) => (
                       <FormControlLabel
@@ -214,7 +225,7 @@ const LanguageDialectProficiency = ({
                   <Button
                     variant="outlined"
                     color="error"
-                    onClick={() => removeLanguage(lang.name)}
+                    onClick={() => removeLanguage(lang.language)}
                     sx={{ marginTop: 1 }}
                   >
                     Remove
@@ -244,7 +255,7 @@ const LanguageDialectProficiency = ({
         isValid={isValid}
         setIsValid={setIsValid}
         schema={schema}
-        formData={languages}
+        formData={{ language_proficiency }}
         user_type={user_type}
         api={"language-proficiency"}
       />

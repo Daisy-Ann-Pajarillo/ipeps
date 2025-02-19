@@ -14,20 +14,20 @@ import BackNextButton from "../backnextButton";
 import countriesList from "../../../reusable/constants/countriesList";
 import userIndustryOptionTypes from "../../../reusable/constants/userIndustryOptionTypes";
 import provincesCitiesWithMunicipalities from "../../../reusable/constants/provincesCitiesWithMunicipalities"
-
+import completePHAddressOption from "../../../reusable/constants/completePHAddressOption";
 
 const schema = yup.object().shape({
   industry: yup.string().required("Industry is required"),
-  preferredOccupation: yup.string().required("Preferred Occupation is required"),
-  expectedSalaryRangeFrom: yup
+  preferred_occupation: yup.string().required("Preferred Occupation is required"),
+  salary_from: yup
     .number()
     .typeError("Must be a number")
     .min(1, "Salary must be greater than zero")
     .required("Expected salary (from) is required"),
-  expectedSalaryRangeTo: yup
+  salary_to: yup
     .number()
     .typeError("Must be a number")
-    .min(yup.ref("expectedSalaryRangeFrom"), "Must be greater than 'From' salary")
+    .min(yup.ref("salary_from"), "Must be greater than 'From' salary")
     .required("Expected salary (to) is required"),
   country: yup.string().required('Province is required'),
   province: yup.string().when("country", {
@@ -42,6 +42,7 @@ const schema = yup.object().shape({
   }),
 });
 
+
 const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, setIsValid, user_type }) => {
   const {
     register,
@@ -52,31 +53,119 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
     resolver: yupResolver(schema),
     mode: "all",
     defaultValues: {
-      country: null,
-      city: null,
-      industry: null,
-      preferredOccupation: "",
-      expectedSalaryRangeFrom: "",
-      expectedSalaryRangeTo: "",
-    },
+      "country": "Philippines",
+      "industry": "[A] Agriculture, forestry and fishing",
+      "municipality": "Buenavista",
+      "preferred_occupation": "Software Engineer",
+      "province": "Agusan del Norte",
+      "salary_from": 30000.0,
+      "salary_to": 50000.0
+    }
   });
 
   const formData = watch();
 
-  useEffect(() => {
-    setIsValid(formIsValid);
-  }, [formIsValid, setIsValid]);
+  const [formErrors, setFormErrors] = useState({});
+
+  const validateForm = async () => {
+    try {
+      // Validate the formData based on schema
+      await schema.validate(formData, { abortEarly: false });
+      setIsValid(true); // If validation passes, set isValid to true
+      setFormErrors({}); // Clear previous errors
+    } catch (error) {
+      setIsValid(false); // If validation fails, set isValid to false
+      const errorMessages = error.inner.reduce((acc, currError) => {
+        acc[currError.path] = currError.message;
+        return acc;
+      }, {});
+      setFormErrors(errorMessages); // Store errors in formErrors state
+    }
+  };
+
 
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedMunicipality, setSelectedMunicipality] = useState(null);
 
-  const selectedProvinceData = selectedProvince
-    ? provincesCitiesWithMunicipalities.find((item) => item.province === selectedProvince.province)
-    : null;
+  const [addressData, setAddressData] = useState({
+    provinces: [],
+    municipalities: [],
+  });
+  // Helper functions to fetch provinces, municipalities, and barangays
+  const getProvinces = () => {
+    return Object.keys(completePHAddressOption).map(regionId =>
+      Object.keys(completePHAddressOption[regionId].province_list)
+    ).flat();
+  };
+
+  const getMunicipalities = (selectedProvince) => {
+    if (!selectedProvince) {
+      console.log('No selected province');
+      return [];
+    }
+
+    // Find the province from the completePHAddressOption
+    const municipalities = Object.values(completePHAddressOption)
+      .flatMap(region => {
+        const provinceData = region.province_list?.[selectedProvince];
+        if (!provinceData) {
+          console.log(`No province data found for ${selectedProvince}`);
+          return [];
+        }
+
+        return provinceData.municipality_list.map(municipalityObj => {
+          const municipalityName = Object.keys(municipalityObj)[0]; // Get municipality name
+          return { municipality: municipalityName };
+        });
+      });
+
+    return municipalities;
+  };
+
+
+  // useEffect to update the addressData state based on selected province/municipality
+  useEffect(() => {
+    if (!selectedProvince || !selectedMunicipality) return;
+
+    const provinceData = getProvinces();
+    const provinces = provinceData;
+
+    const municipalityData = getMunicipalities(selectedProvince);
+    const municipalities = municipalityData.map(item => item.municipality);
+
+    setAddressData({
+      provinces,
+      municipalities,
+
+    });
+  }, [
+    selectedProvince,
+    selectedMunicipality,
+  ]);
+
+  // // Log addressData and selection values after update
+  // useEffect(() => {
+  //   console.log('Updated addressData:', addressData);
+  //   console.log('Selected Province:', selectedProvince);
+  //   console.log('Selected Municipality:', selectedMunicipality);
+  // }, [addressData, selectedProvince, selectedMunicipality]);
+
+
+  useEffect(() => {
+    setIsValid(formIsValid);
+    const { country, municipality, province } = formData
+    setSelectedCountry(country);
+    setSelectedProvince(province);
+    setSelectedMunicipality(municipality)
+  }, [formIsValid, setIsValid]);
+
+  useEffect(() => {
+    validateForm()
+  }, [])
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }} onClick={() => { validateForm() }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Typography variant="h6" sx={{ marginTop: 2 }}>
@@ -94,14 +183,17 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
             }}
             renderInput={(params) => <TextField
               {...register('country')}
-              {...params} required label="Country" />}
+              {...params} required label="Country"
+              error={formErrors.country}
+              helperText={formErrors.country}
+            />}
           />
         </Grid>
 
         <Grid item xs={12} sm={6}>
           <Autocomplete
-            options={provincesCitiesWithMunicipalities}
-            getOptionLabel={(option) => option.province}
+            options={addressData.provinces}
+            getOptionLabel={(option) => option}
             value={selectedProvince}
             onChange={(event, newValue) => {
               setSelectedProvince(newValue);
@@ -112,20 +204,25 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
               {...register('province')}
               {...params} label="Province" />}
             disabled={selectedCountry !== "Philippines"}
+            error={formErrors.province}
+            helperText={formErrors.province}
 
           />
         </Grid>
 
         <Grid item xs={12} sm={6}>
           <Autocomplete
-            options={selectedProvinceData ? selectedProvinceData.municipalities : []}
+            options={addressData.municipalities}
             getOptionLabel={(option) => option}
             value={selectedMunicipality}
             onChange={(event, newValue) => setSelectedMunicipality(newValue)}
             renderInput={(params) => <TextField
               {...register('municipality')}
               required={selectedProvince}
-              {...params} label="Municipality" />}
+              {...params} label="Municipality"
+              error={formErrors.country}
+              helperText={formErrors.country}
+            />}
             disabled={!selectedProvince} // Disable if no province is selected
           />
         </Grid>
@@ -154,7 +251,8 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
                 label="Industry"
                 variant="outlined"
                 fullWidth
-                error={Boolean(errors?.industry)}
+                error={formErrors.industry}
+                helperText={formErrors.industry}
               />
             )}
           />
@@ -165,8 +263,9 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
             required
             fullWidth
             label="Preferred Occupation"
-            {...register("preferredOccupation")}
-            error={Boolean(errors?.preferredOccupation)}
+            {...register("preferred_occupation")}
+            error={formErrors.preferred_occupation}
+            helperText={formErrors.preferred_occupation}
           />
           <Divider sx={{ marginBottom: 2 }} />
         </Grid>
@@ -183,8 +282,9 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
             required
             label="From"
             type="number"
-            {...register("expectedSalaryRangeFrom")}
-            error={Boolean(errors?.expectedSalaryRangeFrom)}
+            {...register("salary_from")}
+            error={formErrors.salary_from}
+            helperText={formErrors.salary_from}
           />
         </Grid>
 
@@ -194,8 +294,9 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
             required
             label="To"
             type="number"
-            {...register("expectedSalaryRangeTo")}
-            error={Boolean(errors?.expectedSalaryRangeTo)}
+            {...register("salary_to")}
+            error={formErrors.salary_to}
+            helperText={formErrors.salary_to}
           />
         </Grid>
       </Grid>

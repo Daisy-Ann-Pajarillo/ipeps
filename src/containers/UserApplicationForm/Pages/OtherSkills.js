@@ -14,15 +14,18 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import BackNextButton from "../backnextButton";
 
-// Yup Validation Schema
 const schema = yup.object().shape({
   skills: yup
     .array()
     .of(yup.string())
     .min(1, "At least one skill must be selected"),
-  otherSkills: yup
+  other_skills: yup
     .array()
-    .of(yup.string())
+    .of(
+      yup.object().shape({
+        skills: yup.string().required()
+      })
+    )
     .max(50, "Maximum 50 additional skills allowed"),
 });
 
@@ -35,29 +38,52 @@ const OtherSkills = ({
   setIsValid,
   user_type,
 }) => {
-  // React Hook Form Setup
   const { register, setValue, watch } = useForm({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
       skills: [],
-      otherSkills: [],
+      other_skills: [
+        { skills: "beautician" },
+        { skills: "carpentry" },
+        { skills: "embroidery" },
+        { skills: "Sample skill" },
+        { skills: "auto mechanic" },
+        { skills: "gardening" },
+        { skills: "Sample" }
+      ],
     },
   });
 
-  // Watch for changes in form values
   const skills = watch("skills");
-  const otherSkills = watch("otherSkills");
+  const other_skills = watch("other_skills");
 
-  // Handle checkbox changes
+  // Predefined skills list
+  const predefinedSkills = [
+    "auto mechanic",
+    "beautician",
+    "carpentry",
+    "computer literate",
+    "domestic chores",
+    "driver",
+    "electrician",
+    "embroidery",
+    "gardening",
+    "masonry",
+    "digital artist",
+    "painting jobs",
+    "photography",
+    "plumbing",
+    "sewing dresses",
+    "stenography",
+    "tailoring"
+  ];
+
   const handleSkillChange = (skill) => (event) => {
     const isChecked = event.target.checked;
-
     if (isChecked) {
-      // Add the skill to the array if checked
       setValue("skills", [...skills, skill], { shouldValidate: true });
     } else {
-      // Remove the skill from the array if unchecked
       setValue(
         "skills",
         skills.filter((selectedSkill) => selectedSkill !== skill),
@@ -66,121 +92,100 @@ const OtherSkills = ({
     }
   };
 
-  // Add a new skill
   const handleAddSkill = () => {
-    const newSkill = watch("newSkill"); // Get the value of the "newSkill" field
-    if (newSkill !== "" && otherSkills.length < 50) {
-      setValue("otherSkills", [...otherSkills, newSkill], {
-        shouldValidate: true,
-      });
-      setValue("newSkill", ""); // Clear the input field
+    const newSkill = watch("newSkill")?.trim().toLowerCase();
+    if (!newSkill) return;
+
+    // Check if the skill exists in predefined skills
+    const existingSkill = predefinedSkills.find(
+      skill => skill.toLowerCase() === newSkill
+    );
+
+    if (existingSkill) {
+      // If skill exists in predefined list, check its checkbox
+      if (!skills.includes(existingSkill)) {
+        setValue("skills", [...skills, existingSkill], { shouldValidate: true });
+      }
+    } else {
+      // If skill doesn't exist in predefined list, add to other_skills
+      const skillExists = other_skills.some(
+        item => item.skills.toLowerCase() === newSkill
+      );
+      
+      if (!skillExists && other_skills.length < 50) {
+        setValue("other_skills", [...other_skills, { skills: newSkill }], {
+          shouldValidate: true,
+        });
+      }
     }
+    setValue("newSkill", "");
   };
 
-  // Remove a skill
   const handleRemoveSkill = (skillToRemove) => {
     setValue(
-      "otherSkills",
-      otherSkills.filter((skill) => skill !== skillToRemove),
+      "other_skills",
+      other_skills.filter((skill) => skill.skills !== skillToRemove),
       { shouldValidate: true }
     );
   };
 
+  // Split predefined skills into columns
+  const splitSkills = (skills, columns) => {
+    const itemsPerColumn = Math.ceil(skills.length / columns);
+    return Array.from({ length: columns }, (_, index) =>
+      skills.slice(index * itemsPerColumn, (index + 1) * itemsPerColumn)
+    );
+  };
+
+  const skillColumns = splitSkills(predefinedSkills, 3);
+
+  // Check if a predefined skill is also in other_skills
+  const isSkillInOtherSkills = (skill) => {
+    return other_skills.some(item => item.skills.toLowerCase() === skill.toLowerCase());
+  };
+
+  // Initialize checkboxes based on other_skills
+  React.useEffect(() => {
+    const initialSkills = other_skills
+      .map(item => item.skills)
+      .filter(skill => predefinedSkills.includes(skill.toLowerCase()));
+    
+    if (initialSkills.length > 0) {
+      setValue("skills", initialSkills, { shouldValidate: true });
+    }
+  }, []);
+
   return (
     <Box sx={{ p: 3 }}>
-      {/* Skills Section */}
       <Typography variant="h6" gutterBottom>
         Select Your Skills
       </Typography>
+      
       <Grid container spacing={3}>
-        {/* First Column */}
-        <Grid item xs={12} md={4}>
-          {[
-            "auto mechanic",
-            "beautician",
-            "carpentry",
-            "computer literate",
-            "domestic chores",
-            "driver",
-          ].map((skill) => {
-            const formattedLabel = skill
-              .split(" ")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ");
-
-            return (
-              <FormControlLabel
-                key={skill}
-                control={
-                  <Checkbox
-                    checked={skills.includes(skill)}
-                    onChange={handleSkillChange(skill)}
-                  />
-                }
-                label={formattedLabel}
-              />
-            );
-          })}
-        </Grid>
-
-        {/* Second Column */}
-        <Grid item xs={12} md={4}>
-          {[
-            "electrician",
-            "embroidery",
-            "gardening",
-            "masonry",
-            "digital artist",
-            "painting jobs",
-          ].map((skill) => {
-            const formattedLabel = skill
-              .split(" ")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ");
-            return (
-              <FormControlLabel
-                key={skill}
-                control={
-                  <Checkbox
-                    checked={skills.includes(skill)}
-                    onChange={handleSkillChange(skill)}
-                  />
-                }
-                label={formattedLabel}
-              />
-            );
-          })}
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          {[
-            "photography",
-            "plumbing",
-            "sewing dresses",
-            "stenography",
-            "tailoring",
-          ].map((skill) => {
-            const formattedLabel = skill
-              .split(" ")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ");
-            return (
-              <FormControlLabel
-                key={skill}
-                control={
-                  <Checkbox
-                    checked={skills.includes(skill)}
-                    onChange={handleSkillChange(skill)}
-                  />
-                }
-                label={formattedLabel}
-              />
-            );
-          })}
-        </Grid>
+        {skillColumns.map((columnSkills, columnIndex) => (
+          <Grid item xs={12} md={4} key={columnIndex}>
+            {columnSkills.map((skill) => {
+              const formattedLabel = skill
+                .split(" ")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+              return (
+                <FormControlLabel
+                  key={skill}
+                  control={
+                    <Checkbox
+                      checked={skills.includes(skill) || isSkillInOtherSkills(skill)}
+                      onChange={handleSkillChange(skill)}
+                    />
+                  }
+                  label={formattedLabel}
+                />
+              );
+            })}
+          </Grid>
+        ))}
       </Grid>
 
-      {/* Additional Skills Section */}
       <Box sx={{ mt: 3, mb: 5 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={8}>
@@ -188,33 +193,37 @@ const OtherSkills = ({
               fullWidth
               label="Add other skills..."
               {...register("newSkill")}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddSkill();
+                }
+              }}
             />
           </Grid>
           <Grid item xs={4}>
             <Button
               variant="contained"
               onClick={handleAddSkill}
-              disabled={watch("newSkill") === "" || otherSkills.length >= 50}
+              disabled={!watch("newSkill")?.trim() || other_skills.length >= 50}
             >
               Add
             </Button>
           </Grid>
         </Grid>
 
-        {/* Display Added Skills */}
         <Box sx={{ mt: 2 }}>
-          {otherSkills.map((skill, index) => (
+          {other_skills.map((skill, index) => (
             <Chip
               key={index}
-              label={skill}
-              onDelete={() => handleRemoveSkill(skill)}
+              label={skill.skills}
+              onDelete={() => handleRemoveSkill(skill.skills)}
               sx={{ m: 0.5 }}
             />
           ))}
         </Box>
       </Box>
 
-      {/* Navigation Buttons */}
       <BackNextButton
         activeStep={activeStep}
         steps={steps}
@@ -225,8 +234,8 @@ const OtherSkills = ({
         schema={schema}
         canSkip={true}
         user_type={user_type}
-        formData={[...skills, ...otherSkills]} // Combine skills and otherSkills for submission
-        api={"other-skills"}
+        formData={{ skills, other_skills }}
+        api="other-skills"
       />
     </Box>
   );

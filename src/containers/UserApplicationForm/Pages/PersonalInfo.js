@@ -4,14 +4,10 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import {
   TextField,
-  FormControl,
   Checkbox,
   Grid,
   FormGroup,
   FormControlLabel,
-  Select,
-  MenuItem,
-  InputLabel,
   FormLabel,
   Box,
   Autocomplete,
@@ -31,7 +27,7 @@ import companyIndustryTypes from "../../../reusable/constants/companyIndustryTyp
 const baseSchema = yup.object().shape({
   first_name: yup.string().required("First name is required"),
   last_name: yup.string().required("Last name is required"),
-  cell_phone_no: yup
+  cellphone_number: yup
     .string()
     .matches(/^[0-9]+$/, "Must be a number")
     .min(10, "Must be at least 10 digits")
@@ -53,34 +49,34 @@ const baseSchema = yup.object().shape({
     then: (schema) => schema.required("Barangay is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
-  permanent_zipcode: yup.string().when("country", {
+  permanent_zip_code: yup.string().when("country", {
     is: "Philippines",
     then: (schema) => schema.required("Zip Code is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
 
   //////////////----------------------- Permanent Address
-  country: yup.string().when("permanent", {
+  temporary_country: yup.string().when("permanent", {
     is: false,
     then: (schema) => schema.required("Permanent Country is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
-  province: yup.string().when("permanent", {
+  temporary_province: yup.string().when("permanent", {
     is: false,
     then: (schema) => schema.required("Permanent Province is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
-  municipality: yup.string().when("permanent", {
+  temporary_municipality: yup.string().when("permanent", {
     is: false,
     then: (schema) => schema.required("Permanent Municipality is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
-  barangay: yup.string().when("permanent", {
+  temporary_barangay: yup.string().when("permanent", {
     is: false,
     then: (schema) => schema.required("Permanent Barangay is required"),
     otherwise: (schema) => schema.notRequired(),
   }),
-  zipcode: yup.string().when("permanent", {
+  temporary_zip_code: yup.string().when("permanent", {
     is: false,
     then: (schema) => schema.required("Permanent Zip Code is required"),
     otherwise: (schema) => schema.notRequired(),
@@ -112,7 +108,7 @@ const jobseekerSchema = yup.object().shape({
   height: yup.number().required("Height is required"),
   weight: yup.number().required("Weight is required"),
   employment_status: yup.string().required("Employment status is required"),
-  disabilities: yup
+  disability: yup
     .object()
     .shape({
       visual: yup.boolean().nullable(),
@@ -122,17 +118,17 @@ const jobseekerSchema = yup.object().shape({
     })
     .nullable()
     .notRequired(),
-  other_disabilities: yup.string().nullable().notRequired(),
-  land_line_no: yup.string().nullable().notRequired(),
+  // other_disabilities: yup.string().nullable().notRequired(),
+  landline_number: yup.string().nullable().notRequired(),
   religion: yup.string().required("Religion is required"),
   //--------------------------------------------
   tin: yup.string().required("TIN is required"),
-  sss_and_gsis_no: yup.string().required("SSS/GSIS number is required"),
-  pagibig_no: yup.string().required("Pag-IBIG number is required"),
+  sss_gsis_number: yup.string().required("SSS/GSIS number is required"),
+  pag_ibig_number: yup.string().required("Pag-IBIG number is required"),
   phil_health_no: yup.string().required("PhilHealth number is required"),
   //--------------------------------------------
-  looking_for_a_work: yup.string().required("Answer is required"),
-  looking_for_a_work_since: yup.string().when("looking_for_a_work", {
+  is_looking_for_work: yup.string().required("Answer is required"),
+  since_when_looking_for_work: yup.string().when("is_looking_for_work", {
     is: "YES",
     then: (schema) =>
       schema.required("Please specify since when you are looking for work"),
@@ -140,8 +136,8 @@ const jobseekerSchema = yup.object().shape({
   }),
 
   // OFW Section
-  an_ofw: yup.string().required("Answer is required"),
-  ofw_country: yup.string().when("an_ofw", {
+  is_ofw: yup.string().required("Answer is required"),
+  ofw_country: yup.string().when("is_ofw", {
     is: "YES",
     then: (schema) =>
       schema.required(
@@ -151,8 +147,8 @@ const jobseekerSchema = yup.object().shape({
   }),
 
   // Former OFW Section
-  former_ofw: yup.string().required("Answer is required"),
-  former_ofw_country: yup.string().when("former_ofw", {
+  is_former_ofw: yup.string().required("Answer is required"),
+  former_ofw_country: yup.string().when("is_former_ofw", {
     is: "YES",
     then: (schema) =>
       schema.required(
@@ -160,15 +156,15 @@ const jobseekerSchema = yup.object().shape({
       ),
     otherwise: (schema) => schema.notRequired(),
   }),
-  ofw_date_return: yup.string().when("former_ofw", {
+  former_ofw_country_date_return: yup.string().when("is_former_ofw", {
     is: "YES",
     then: (schema) => schema.required("Please specify the date of your return"),
     otherwise: (schema) => schema.notRequired(),
   }),
 
   // 4Ps Beneficiary Section
-  four_ps_beneficiary: yup.string().required("Answer is required"),
-  household_id: yup.string().when("four_ps_beneficiary", {
+  is_4ps_beneficiary: yup.string().required("Answer is required"),
+  _4ps_household_id_no: yup.string().when("is_4ps_beneficiary", {
     is: "YES",
     then: (schema) => schema.required("Please provide your household ID"),
     otherwise: (schema) => schema.notRequired(),
@@ -176,7 +172,7 @@ const jobseekerSchema = yup.object().shape({
 });
 // Employer-Specific Schema
 const employerSchema = yup.object().shape({
-  company: yup.string().required("Company / Agency Affiliation is required"),
+  company_name: yup.string().required("Company / Agency Affiliation is required"),
   company_workforce: yup.string().required("Company Workforce is required"),
   company_industry: yup.string().required("Company Industry is required"),
   company_classification: yup.string().required("Company Classification is required"),
@@ -189,7 +185,7 @@ const academeSchema = yup.object().shape({
 });
 // Academe Employer Schema Same
 const employerAcademeSchema = yup.object().shape({
-  company_email: yup.string().email("Invalid email format").required("Company Email is required"),
+  email: yup.string().email("Invalid email format").required("Company Email is required"),
   employer_position: yup.string().required("Employer Position is required"),
   employer_id_number: yup.string().required("Employer ID Number is required"),
 })
@@ -228,13 +224,56 @@ const PersonalInfo = ({
   } = useForm({
     resolver: yupResolver(getSchema(user_type)),
     mode: "onChange",
-    defaultValues: {},
+    defaultValues:{
+      "cellphone_number": "097348432",
+      "email": "ejlindayao@gmail.com",
+      "employer_id_number": "48324729",
+      "employer_position": "sample position",
+      "first_name": "Edjay",
+      "institution_name": "Sample",
+      "institution_type": "Public Universities",
+      "landline_number": "5543535",
+      "last_name": "Lindayao",
+      "middle_name": "Cantero",
+      "permanent_barangay": "Permanent Barangay",
+      "permanent_country": "Philippines",
+      "permanent_house_no_street_village": null,
+      "permanent_municipality": "Bangued",
+      "permanent_province": "Abra",
+      "permanent_zip_code": null,
+      "prefix": "Mr.",
+      "suffix": "Jr",
+      "temporary_barangay": null,
+      "temporary_country": null,
+      "temporary_house_no_street_village": null,
+      "temporary_municipality": null,
+      "temporary_province": null,
+      "temporary_zip_code": null,
+      "valid_id_url": null
+  }
   });
-
+  const [formErrors, setFormErrors] = useState({});
+  const validateForm = async () => {
+    try {
+      // Validate the formData based on schema
+      await getSchema(user_type).validate(formData, { abortEarly: false });
+      setIsValid(true); // If validation passes, set isValid to true
+      setFormErrors({}); // Clear previous errors
+    } catch (error) {
+      setIsValid(false); // If validation fails, set isValid to false
+      const errorMessages = error.inner.reduce((acc, currError) => {
+        acc[currError.path] = currError.message;
+        return acc;
+      }, {});
+      setFormErrors(errorMessages); // Store errors in formErrors state
+    }
+  };
   const formData = watch();
 
 
   const [selectedPrefix, setSelectedPrefix] = useState(null);
+  const [selectedSex, setSelectedSex] = useState(null);
+  const [selectedCivilStatus, setSelectedCivilStatus] = useState(null);
   //********** for address
   const [isPermanent, setIsPermanent] = useState(true);
   //********** for temporary address
@@ -249,52 +288,10 @@ const PersonalInfo = ({
     useState(null);
   const [selectedPermanentMunicipality, setSelectedPermanentMunicipality] =
     useState(null);
-    const [selectedPermanentBarangay, setSelectedPermanentBarangay] = useState(null);
+  const [selectedPermanentBarangay, setSelectedPermanentBarangay] = useState(null);
   //**********
   const [selectedReligion, setSelectedReligion] = useState(null);
 
-  
-// Helper function to extract provinces
-const getProvinces = () => {
-  return Object.values(completePHAddressOption)
-    .flatMap(region => 
-      Object.keys(region.province_list || {}).map(province => ({ province }))
-    );
-};
-// Helper function to extract municipalities for a given province
-const getMunicipalities = (selectedProvince) => {
-  return Object.values(completePHAddressOption)
-    .flatMap(region => {
-      const provinceData = region.province_list?.[selectedProvince];
-      if (!provinceData?.municipality_list) return [];
-      return provinceData.municipality_list.map(municipality => 
-        ({ municipality: Object.keys(municipality)[0] })
-      );
-    });
-};
-// Helper function to extract barangays for a given municipality
-const getBarangays = (selectedMunicipality) => {
-  return Object.values(completePHAddressOption)
-    .flatMap(region => 
-      Object.values(region.province_list || {})
-        .flatMap(province => {
-          // Find the municipality object that matches the selectedMunicipality
-          const municipalityObject = province.municipality_list?.find(
-            municipality => municipality && municipality[selectedMunicipality]
-          );
-          return municipalityObject?.[selectedMunicipality]?.barangay_list || [];
-        })
-    );
-};
-
-// Fetch all provinces
-const completeProvinces = getProvinces();
-const completeMunicipalities = getMunicipalities(selectedProvince?.province);
-const completeBarangays = getBarangays(selectedMunicipality?.municipality);
-
-const completePermanentProvinces = getProvinces();
-const completePermanentMunicipalities = getMunicipalities(selectedPermanentProvince?.province);
-const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.municipality);
 
 
   const [fileName, setFileName] = useState("");
@@ -322,6 +319,190 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
 
 
 
+  useEffect(() => {
+    // Update validation state
+    setIsValid(!Object.keys(errors).length);
+    // If formData is available (assuming API or form data has been fetched already)
+    if (formData) {
+
+      const {
+        temporary_country,
+        temporary_province,
+        temporary_municipality,
+        temporary_barangay,
+        permanent_country,
+        permanent_province,
+        permanent_municipality,
+        permanent_barangay,
+
+        prefix,
+        sex,
+        civil_status,
+        religion,
+        is_permanent,
+        employment_status,
+        is_looking_for_work,
+        is_willing_to_work_immediately,
+        is_ofw,
+        ofw_country,
+        is_former_ofw,
+        former_ofw_country,
+        is_4ps_beneficiary,
+
+        company_workforce,
+        company_industry,
+        company_classification,
+        company_type,
+
+        institution_type
+      } = formData;
+
+      setIsPermanent(is_permanent);
+
+      setSelectedCountry(temporary_country);
+      setSelectedProvince(temporary_province);
+      setSelectedMunicipality(temporary_municipality);
+      setSelectedBarangay(temporary_barangay);
+
+      setSelectedPermanentCountry(permanent_country);
+      setSelectedPermanentProvince(permanent_province);
+      setSelectedPermanentMunicipality(permanent_municipality);
+      setSelectedPermanentBarangay(permanent_barangay);
+
+      if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
+        setSelectedPrefix(prefix);
+        setSelectedSex(sex);
+        setSelectedCivilStatus(civil_status);
+        setSelectedReligion(religion);
+
+        setEmploymentStatus(employment_status)
+        setLookingForAWork(is_looking_for_work ? "YES" : "NO")
+        setWillingToWork(is_willing_to_work_immediately ? "YES" : "NO")
+
+        setAnOfw(is_ofw ? "YES" : "NO")
+        setOfwCountry(ofw_country)
+        setFormerOfw(is_former_ofw ? "YES" : "NO")
+        setFormerOfwCountry(former_ofw_country)
+
+        setFourPs(is_4ps_beneficiary ? "YES" : "NO")
+      }
+      if (user_type === "EMPLOYER") {
+        setSelectedCompanyClassification(company_classification)
+        setSelectedCompanyIndustry(company_industry)
+        setSelectedCompanyType(company_type)
+        setSelectedCompanyWorkforce(company_workforce)
+      }
+      if(user_type === "ACADEME"){
+        setSelectedInstitutionType(institution_type)
+      }
+    }
+  }, [errors, setIsValid, formData, user_type]);
+
+  const [addressData, setAddressData] = useState({
+    provinces: [],
+    municipalities: [],
+    barangays: [],
+    permanentProvinces: [],
+    permanentMunicipalities: [],
+    permanentBarangays: [],
+  });
+
+  // Helper functions to fetch provinces, municipalities, and barangays
+  const getProvinces = () => {
+    return Object.keys(completePHAddressOption).map(regionId =>
+      Object.keys(completePHAddressOption[regionId].province_list)
+    ).flat();
+  };
+
+  const getMunicipalities = (selectedProvince) => {
+    if (!selectedProvince) {
+      console.log('No selected province');
+      return [];
+    }
+
+    // Find the province from the completePHAddressOption
+    const municipalities = Object.values(completePHAddressOption)
+      .flatMap(region => {
+        const provinceData = region.province_list?.[selectedProvince];
+        if (!provinceData) {
+          return [];
+        }
+
+        return provinceData.municipality_list.map(municipalityObj => {
+          const municipalityName = Object.keys(municipalityObj)[0]; // Get municipality name
+          return { municipality: municipalityName };
+        });
+      });
+
+    return municipalities;
+  };
+
+  const getBarangays = (selectedMunicipality) => {
+    if (!selectedMunicipality) {
+      console.log('No selected municipality');
+      return [];
+    }
+
+    let barangays = [];
+
+    // Log to confirm that selectedMunicipality is correct
+    console.log(`Searching for barangays in municipality: ${selectedMunicipality}`);
+
+    // Loop through the regions and provinces in the data
+    Object.values(completePHAddressOption).forEach(region => {
+      Object.values(region.province_list || {}).forEach(province => {
+        province.municipality_list.forEach(municipalityObj => {
+          // Extract the municipality name from the object
+          const municipalityName = Object.keys(municipalityObj)[0];
+          // Check if this is the selected municipality
+          if (municipalityName === selectedMunicipality) {
+            barangays = municipalityObj[municipalityName].barangay_list;
+          }
+        });
+      });
+    });
+    return barangays;
+  };
+
+
+  // useEffect to update the addressData state based on selected province/municipality
+  useEffect(() => {
+    if (!selectedProvince || !selectedMunicipality) return;
+
+    const provinceData = getProvinces();
+    const provinces = provinceData;
+
+    const municipalityData = getMunicipalities(selectedProvince);
+    const municipalities = municipalityData.map(item => item.municipality);
+
+    const barangayData = getBarangays(selectedMunicipality);
+    const barangays = barangayData;
+
+    // For permanent values, follow the same process
+    const permanentProvinceData = getProvinces();
+    const permanentProvinces = permanentProvinceData;
+
+    const permanentMunicipalityData = getMunicipalities(selectedPermanentProvince);
+    const permanentMunicipalities = permanentMunicipalityData.map(item => item.municipality);
+
+    const permanentBarangayData = getBarangays(selectedPermanentMunicipality);
+    const permanentBarangays = permanentBarangayData;
+
+    setAddressData({
+      provinces,
+      municipalities,
+      barangays,
+      permanentProvinces,
+      permanentMunicipalities,
+      permanentBarangays,
+    });
+  }, [
+    selectedProvince,
+    selectedMunicipality,
+    selectedPermanentProvince,
+    selectedPermanentMunicipality,
+  ]);
+
   const handleFileChange = (event) => {
     if (event.target.files?.[0]) {
       const file = event.target.files[0];
@@ -333,15 +514,14 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
         shouldDirty: true,
         shouldTouch: true,
       });
+      validateForm(watch())
     }
   };
 
-  // Effect to update form validation state
-  useEffect(() => {
-    setIsValid(!Object.keys(errors).length);
-  }, [errors, setIsValid]);
+
+
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }} onClick={() => { validateForm() }}>
       <Grid container spacing={2}>
         {/* Basic Information */}
         <>
@@ -360,8 +540,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                   variant="outlined"
                   required
                   {...register("prefix")}
-                  error={!!errors.company_type}
-                  helperText={errors.company_type?.message}
+                  error={formErrors.prefix}
+                  helperText={formErrors.prefix}
                 />
               )}
             />
@@ -372,8 +552,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
               required
               label="First Name"
               {...register("first_name")}
-              error={!!errors.first_name}
-              helperText={errors.first_name?.message}
+              error={formErrors.first_name}
+              helperText={formErrors.first_name}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -381,6 +561,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
               fullWidth
               label="Middle Name"
               {...register("middle_name")}
+              error={formErrors.middle_name}
+              helperText={formErrors.middle_name}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -389,8 +571,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
               required
               label="Last Name"
               {...register("last_name")}
-              error={!!errors.last_name}
-              helperText={errors.last_name?.message}
+              error={formErrors.last_name}
+              helperText={formErrors.last_name}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -405,10 +587,10 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
               <TextField
                 fullWidth
                 label="Company / Agency Affiliation"
-                {...register("company")}
+                {...register("company_name")}
                 required
-                error={!!errors.company}
-                helperText={errors.company?.message}
+                error={formErrors.company_name}
+                helperText={formErrors.company_name}
               />
             </Grid>
 
@@ -427,8 +609,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     variant="outlined"
                     required
                     {...register("company_type")}
-                    error={!!errors.company_type}
-                    helperText={errors.company_type?.message}
+                    error={formErrors.company_type}
+                    helperText={formErrors.company_type}
                   />
                 )}
               />
@@ -448,8 +630,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     variant="outlined"
                     required
                     {...register("company_classification")}
-                    error={!!errors.company_classification}
-                    helperText={errors.company_classification?.message}
+                    error={formErrors.company_classification}
+                    helperText={formErrors.company_classification}
                   />
                 )}
               />
@@ -469,8 +651,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     required
                     variant="outlined"
                     {...register("company_industry")}
-                    error={!!errors.company_industry}
-                    helperText={errors.company_industry?.message}
+                    error={formErrors.company_industry}
+                    helperText={formErrors.company_industry}
                   />
                 )}
               />
@@ -493,8 +675,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     label="Workforce"
                     variant="outlined"
                     {...register("company_workforce")}
-                    error={!!errors.company_workforce}
-                    helperText={errors.company_workforce?.message}
+                    error={formErrors.company_workforce}
+                    helperText={formErrors.company_workforce}
                   />
                 )}
               />
@@ -509,11 +691,12 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                value={formData.institution_name}
                 label="Institution Name"
                 {...register("institution_name")}
                 required
-                error={!!errors.company}
-                helperText={errors.company?.message}
+                error={formErrors.institution_name}
+                helperText={formErrors.institution_name}
               />
             </Grid>
 
@@ -534,8 +717,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     variant="outlined"
                     required
                     {...register("institution_type")}
-                    error={!!errors.company_type}
-                    helperText={errors.company_type?.message}
+                    error={formErrors.institution_type}
+                    helperText={formErrors.institution_type}
                   />
                 )}
               />
@@ -550,9 +733,9 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 required
                 type="email"
                 label="Email Address"
-                {...register("company_email")}
-                error={!!errors.company_email}
-                helperText={errors.company_email?.message}
+                {...register("email")}
+                error={formErrors.email}
+                helperText={formErrors.email}
               />
             </Grid>
             <Grid item xs={12}>
@@ -561,8 +744,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 required
                 label="Employer's Position / Designation"
                 {...register("employer_position")}
-                error={!!errors.employer_position}
-                helperText={errors.employer_position?.message}
+                error={formErrors.employer_position}
+                helperText={formErrors.employer_position}
               />
             </Grid>
             <Grid item xs={12}>
@@ -571,8 +754,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 required
                 label="Employer's ID Number"
                 {...register("employer_id_number")}
-                error={!!errors.employer_id_number}
-                helperText={errors.employer_id_number?.message}
+                error={formErrors.employer_id_number}
+                helperText={formErrors.employer_id_number}
               />
             </Grid>
           </>
@@ -581,14 +764,25 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
         {(user_type === "JOBSEEKER" || user_type === "STUDENT") && (
           <>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth required>
-                <InputLabel>Sex</InputLabel>
-                <Select {...register("sex")} error={!!errors.sex}>
-                  <MenuItem value="Male">Male</MenuItem>
-                  <MenuItem value="Female">Female</MenuItem>
-                </Select>
-                <p className="text-red-500 text-sm">{errors.sex?.message}</p>
-              </FormControl>
+              <Autocomplete
+                options={["Male", "Female"]}
+                getOptionLabel={(option) => option}
+                value={selectedSex}
+                onChange={(event, newValue) => {
+                  setSelectedSex(newValue);
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Sex"
+                    variant="outlined"
+                    required
+                    {...register("sex")}
+                    error={formErrors.sex}
+                    helperText={formErrors.sex}
+                  />
+                )}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -598,8 +792,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 type="date"
                 {...register("date_of_birth")}
                 InputLabelProps={{ shrink: true }}
-                error={!!errors.date_of_birth}
-                helperText={errors.date_of_birth?.message}
+                error={formErrors.date_of_birth}
+                helperText={formErrors.date_of_birth}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -608,23 +802,30 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 required
                 label="Place of Birth"
                 {...register("place_of_birth")}
-                error={!!errors.place_of_birth}
-                helperText={errors.place_of_birth?.message}
+                error={formErrors.place_of_birth}
+                helperText={formErrors.place_of_birth}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth required>
-                <InputLabel>Civil Status</InputLabel>
-                <Select {...register("civil_status")} error={!!errors.civil_status}>
-                  <MenuItem value="Single">Single</MenuItem>
-                  <MenuItem value="Married">Married</MenuItem>
-                  <MenuItem value="Divorced">Divorced</MenuItem>
-                  <MenuItem value="Widowed">Widowed</MenuItem>
-                </Select>
-                <p className="text-red-500 text-sm">
-                  {errors.civil_status?.message}
-                </p>
-              </FormControl>
+              <Autocomplete
+                options={["Single", "Married", "Divorced", "Widowed"]}
+                getOptionLabel={(option) => option}
+                value={selectedCivilStatus}
+                onChange={(event, newValue) => {
+                  setSelectedCivilStatus(newValue);
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Civil Status"
+                    variant="outlined"
+                    required
+                    {...register("civil_status")}
+                    error={formErrors.civil_status}
+                    helperText={formErrors.civil_status}
+                  />
+                )}
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -632,8 +833,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 required
                 label="Height (cm)"
                 {...register("height")}
-                error={!!errors.height}
-                helperText={errors.height?.message}
+                error={formErrors.height}
+                helperText={formErrors.height}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -642,8 +843,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 required
                 label="Weight (kg)"
                 {...register("weight")}
-                error={!!errors.weight}
-                helperText={errors.weight?.message}
+                error={formErrors.weight}
+                helperText={formErrors.weight}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -660,6 +861,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     label="Select Religion"
                     variant="outlined"
                     {...register("religion")}
+                    error={formErrors.religion}
+                    helperText={formErrors.religion}
                   />
                 )}
               />
@@ -697,7 +900,7 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     }}
                     renderInput={(params) => (
                       <TextField
-                        {...register("country")}
+                        {...register("temporary_country")}
                         {...params}
                         required
                         label="Country"
@@ -707,8 +910,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
-                    options={completeProvinces}
-                    getOptionLabel={(option) => option?.province || ""}
+                    options={addressData.provinces}
+                    getOptionLabel={(option) => option}
                     value={selectedProvince}
                     onChange={(event, newValue) => {
                       setSelectedProvince(newValue);
@@ -717,7 +920,7 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     renderInput={(params) => (
                       <TextField
                         required={selectedCountry === "Philippines"}
-                        {...register("province")}
+                        {...register("temporary_province")}
                         {...params}
                         label="Province"
                       />
@@ -728,15 +931,15 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
 
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
-                    options={completeMunicipalities}
-                    getOptionLabel={(option) => option?.municipality || ""}
+                    options={addressData.municipalities}
+                    getOptionLabel={(option) => option}
                     value={selectedMunicipality}
                     onChange={(event, newValue) =>
                       setSelectedMunicipality(newValue)
                     }
                     renderInput={(params) => (
                       <TextField
-                        {...register("municipality")}
+                        {...register("temporary_municipality")}
                         required={selectedProvince}
                         {...params}
                         label="Municipality"
@@ -751,12 +954,12 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     required={selectedMunicipality}
                     disabled={!selectedMunicipality}
                     label="Zip Code"
-                    {...register("zipcode")}
+                    {...register("temporary_zip_code")}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
-                    options={completeBarangays}
+                    options={addressData.barangays}
                     getOptionLabel={(option) => option || ""}
                     value={selectedBarangay}
                     onChange={(event, newValue) =>
@@ -764,7 +967,7 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     }
                     renderInput={(params) => (
                       <TextField
-                        {...register("barangay")}
+                        {...register("temporary_barangay")}
                         required={selectedMunicipality}
                         {...params}
                         label="Barangay"
@@ -776,9 +979,10 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
+                    value={formData.temporary_house_no_street_village}
                     disabled={!selectedMunicipality}
                     label="House No./Street Village"
-                    {...register("housestreet")}
+                    {...register("temporary_house_no_street_village")}
                   />
                 </Grid>
               </>
@@ -803,6 +1007,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     {...params}
                     required
                     label="Country"
+                    error={formErrors.permanent_country}
+                    helperText={formErrors.permanent_country}
                   />
                 )}
               />
@@ -810,8 +1016,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
 
             <Grid item xs={12} sm={6}>
               <Autocomplete
-                options={completePermanentProvinces}
-                getOptionLabel={(option) => option?.province || ""}
+                options={addressData.permanentProvinces}
+                getOptionLabel={(option) => option}
                 value={selectedPermanentProvince}
                 onChange={(event, newValue) => {
                   setSelectedPermanentProvince(newValue);
@@ -823,6 +1029,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     {...register("permanent_province")}
                     {...params}
                     label="Province"
+                    error={formErrors.permanent_province}
+                    helperText={formErrors.permanent_province}
                   />
                 )}
                 disabled={selectedPermanentCountry !== "Philippines"}
@@ -830,8 +1038,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
             </Grid>
             <Grid item xs={12} sm={6}>
               <Autocomplete
-               options={completePermanentMunicipalities}
-               getOptionLabel={(option) => option?.municipality || ""}
+                options={addressData.permanentMunicipalities}
+                getOptionLabel={(option) => option}
                 value={selectedPermanentMunicipality}
                 onChange={(event, newValue) => setSelectedPermanentMunicipality(newValue)}
                 renderInput={(params) => (
@@ -840,6 +1048,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     required={selectedPermanentProvince}
                     {...params}
                     label="Municipality"
+                    error={formErrors.permanent_municipality}
+                    helperText={formErrors.permanent_municipality}
                   />
                 )}
                 disabled={!selectedPermanentProvince} // Disable if no province is selected
@@ -851,34 +1061,41 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 required={selectedPermanentMunicipality}
                 disabled={!selectedPermanentMunicipality}
                 label="Zip Code"
-                {...register("permanent_zipcode")}
+                {...register("permanent_zip_code")}
+                error={formErrors.permanent_zip_code}
+                helperText={formErrors.permanent_zip_code}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-                  <Autocomplete
-                    options={completePermanentBarangays}
-                    getOptionLabel={(option) => option || ""}
-                    value={selectedPermanentBarangay}
-                    onChange={(event, newValue) =>
-                      setSelectedPermanentBarangay(newValue)
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        {...register("permanent_barangay")}
-                        required={selectedPermanentMunicipality}
-                        {...params}
-                        label="Barangay"
-                      />
-                    )}
-                    disabled={!selectedPermanentMunicipality} // Disable if no province is selected
+              <Autocomplete
+                options={addressData.permanentBarangays}
+                getOptionLabel={(option) => option || ""}
+                value={selectedPermanentBarangay}
+                onChange={(event, newValue) =>
+                  setSelectedPermanentBarangay(newValue)
+                }
+                renderInput={(params) => (
+                  <TextField
+                    {...register("permanent_barangay")}
+                    required={selectedPermanentMunicipality}
+                    {...params}
+                    error={formErrors.permanent_barangay}
+                    helperText={formErrors.permanent_barangay}
+                    label="Barangay"
                   />
-                </Grid>
+                )}
+                disabled={!selectedPermanentMunicipality} // Disable if no province is selected
+              />
+            </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
+                value={formData.permanent_house_no_street_village}
                 disabled={!selectedPermanentMunicipality}
                 label="House No./Street Village"
-                {...register("permanent_housestreet")}
+                error={formErrors.permanent_house_no_street_village}
+                helperText={formErrors.permanent_house_no_street_village}
+                {...register("permanent_house_no_street_village")}
               />
             </Grid>
           </>
@@ -890,18 +1107,18 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
             fullWidth
             required
             label="Cellphone Number"
-            {...register("cell_phone_no")}
-            error={!!errors.cell_phone_no}
-            helperText={errors.cell_phone_no?.message}
+            {...register("cellphone_number")}
+            error={formErrors.cellphone_number}
+            helperText={formErrors.cellphone_number}
           />
         </Grid>
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
             label="Landline Number"
-            {...register("landlineno")}
-            error={!!errors.landlineno}
-            helperText={errors.landlineno?.message}
+            {...register("landline_number")}
+            error={formErrors.landline_number}
+            helperText={formErrors.landline_number}
           />
         </Grid>
         {/* Employer-Specific Fields */}
@@ -913,8 +1130,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 required
                 label="TIN"
                 {...register("tin")}
-                error={!!errors.tin}
-                helperText={errors.tin?.message}
+                error={formErrors.tin}
+                helperText={formErrors.tin}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -922,9 +1139,9 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 fullWidth
                 required
                 label="SSS/GSIS Number"
-                {...register("sss_and_gsis_no")}
-                error={!!errors.sss_and_gsis_no}
-                helperText={errors.sss_and_gsis_no?.message}
+                {...register("sss_gsis_number")}
+                error={formErrors.sss_gsis_number}
+                helperText={formErrors.sss_gsis_number}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -932,9 +1149,9 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 fullWidth
                 required
                 label="Pag-IBIG Number"
-                {...register("pagibig_no")}
-                error={!!errors.pagibig_no}
-                helperText={errors.pagibig_no?.message}
+                {...register("pag_ibig_number")}
+                error={formErrors.pag_ibig_number}
+                helperText={formErrors.pag_ibig_number}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -943,8 +1160,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 required
                 label="PhilHealth Number"
                 {...register("phil_health_no")}
-                error={!!errors.phil_health_no}
-                helperText={errors.phil_health_no?.message}
+                error={formErrors.phil_health_no}
+                helperText={formErrors.phil_health_no}
               />
             </Grid>
 
@@ -959,8 +1176,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     key={key}
                     control={
                       <Checkbox
-                        {...register(`disabilities.${key}`)}
-                        checked={formData.disabilities?.[key] || false}
+                        {...register(`disability.${key}`)}
+                        checked={formData.disability?.[key] || false}
                       />
                     }
                     label={key.charAt(0).toUpperCase() + key.slice(1)}
@@ -968,14 +1185,14 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                 ))}
               </FormGroup>
             </Grid>
-            <Grid item xs={12}>
+            {/* <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Other Disabilities"
                 {...register("other_disabilities")}
                 value={formData.other_disabilities || ""}
               />
-            </Grid>
+            </Grid> */}
 
             <ApplicationDivider />
 
@@ -994,8 +1211,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     variant="outlined"
                     required
                     {...register("employment_status")}
-                    error={!!errors.employment_status}
-                    helperText={errors.employment_status?.message}
+                    error={formErrors.employment_status}
+                    helperText={formErrors.employment_status}
                   />
                 )}
               />
@@ -1015,9 +1232,9 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     label="Looking for a work?"
                     variant="outlined"
                     required
-                    {...register("looking_for_a_work")}
-                    error={!!errors.looking_for_a_work}
-                    helperText={errors.looking_for_a_work?.message}
+                    {...register("is_looking_for_work")}
+                    error={formErrors.is_looking_for_work}
+                    helperText={formErrors.is_looking_for_work}
                   />
                 )}
               />
@@ -1028,11 +1245,11 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                   fullWidth
                   label="Since when?"
                   type="date"
-                  {...register("looking_for_a_work_since")}
+                  {...register("since_when_looking_for_work")}
                   required={lookingForAWork === "YES"}
                   InputLabelProps={{ shrink: true }}
-                  error={!!errors.looking_for_a_work_since}
-                  helperText={errors.looking_for_a_work_since?.message}
+                  error={formErrors.since_when_looking_for_work}
+                  helperText={formErrors.since_when_looking_for_work}
                 />
               </Grid>
             )}
@@ -1050,9 +1267,9 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     label="Wiling to work immediately?"
                     variant="outlined"
                     required
-                    {...register("willing_to_work_immediately")}
-                    error={!!errors.willing_to_work_immediately}
-                    helperText={errors.willing_to_work_immediately?.message}
+                    {...register("is_willing_to_work_immediately")}
+                    error={formErrors.is_willing_to_work_immediately}
+                    helperText={formErrors.is_willing_to_work_immediately}
                   />
                 )}
               />
@@ -1079,9 +1296,9 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                       label="Are you an OFW?"
                       variant="outlined"
                       required
-                      {...register("an_ofw")}
-                      error={!!errors.an_ofw}
-                      helperText={errors.an_ofw?.message}
+                      {...register("is_ofw")}
+                      error={formErrors.is_ofw}
+                      helperText={formErrors.is_ofw}
                     />
                   )}
                 />
@@ -1101,8 +1318,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                         {...params}
                         label="Specify Country"
                         required={anOfw === "YES"}
-                        error={!!errors.ofw_country}
-                        helperText={errors.ofw_country?.message}
+                        error={formErrors.ofw_country}
+                        helperText={formErrors.ofw_country}
                       />
                     )}
                   />
@@ -1128,10 +1345,10 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                       {...params}
                       label="Are you a Former OFW?"
                       variant="outlined"
-                      {...register("former_ofw")}
+                      {...register("is_former_ofw")}
                       required
-                      error={!!errors.former_ofw}
-                      helperText={errors.former_ofw?.message}
+                      error={formErrors.is_former_ofw}
+                      helperText={formErrors.is_former_ofw}
                     />
                   )}
                 />
@@ -1152,8 +1369,8 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                           {...params}
                           required={formerOfw === "YES"}
                           label="Previous Country of Deployment"
-                          error={!!errors.former_ofw_country}
-                          helperText={errors.former_ofw_country?.message}
+                          error={formErrors.former_ofw_country}
+                          helperText={formErrors.former_ofw_country}
                         />
                       )}
                     />
@@ -1164,10 +1381,10 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                       required={formerOfw === "YES"}
                       label="Date of return to Philippines"
                       type="date"
-                      {...register("ofw_date_return")}
+                      {...register("former_ofw_country_date_return")}
                       InputLabelProps={{ shrink: true }}
-                      error={!!errors.ofw_date_return}
-                      helperText={errors.ofw_date_return?.message}
+                      error={formErrors.former_ofw_country_date_return}
+                      helperText={formErrors.former_ofw_country_date_return}
                     />
                   </Grid>
                 </>
@@ -1190,9 +1407,9 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                     label="Are you a 4P's Beneficiary?"
                     variant="outlined"
                     required
-                    {...register("four_ps_beneficiary")}
-                    error={!!errors.former_ofw}
-                    helperText={errors.former_ofw?.message}
+                    {...register("is_4ps_beneficiary")}
+                    error={formErrors.is_4ps_beneficiary}
+                    helperText={formErrors.is_4ps_beneficiary}
                   />
                 )}
               />
@@ -1203,9 +1420,9 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
                   fullWidth
                   required={fourPs === "YES"}
                   label="Household ID no."
-                  {...register("household_id")}
-                  error={!!errors.household_id}
-                  helperText={errors.household_id?.message}
+                  {...register("_4ps_household_id_no")}
+                  error={formErrors._4ps_household_id_no}
+                  helperText={formErrors._4ps_household_id_no}
                 />
               </Grid>
             )}
@@ -1234,11 +1451,10 @@ const completePermanentBarangays = getBarangays(selectedPermanentMunicipality?.m
         {fileName && (
           <Typography variant="body2">Selected file: {fileName}</Typography>
         )}
-        {errors.id && (
-          <FormHelperText error>{errors.id.message}</FormHelperText>
+        {formErrors.id && (
+          <FormHelperText error>{formErrors.id}</FormHelperText>
         )}
       </Grid>
-
       <BackNextButton
         activeStep={activeStep}
         steps={steps}

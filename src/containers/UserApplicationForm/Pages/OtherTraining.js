@@ -7,39 +7,39 @@ import { TextField, Button, Grid, Box } from "@mui/material";
 import BackNextButton from "../backnextButton";
 
 const schema = yup.object().shape({
-  trainingHistory: yup.array().of(
+  other_training: yup.array().of(
     yup.object().shape({
-      courseName: yup.string().required("Course Name is required"),
-      dateStart: yup
+      course_name: yup.string().required("Course Name is required"),
+      start_date: yup
         .date()
         .required("Start date is required")
         .max(new Date(), "Start date cannot be in the future"),
-      dateEnd: yup
+      end_date: yup
         .date()
         .nullable() // ✅ Allows null values
         .notRequired() // ✅ Ensures it's not required in validation
-        .when("dateStart", (dateStart, schema) =>
-          dateStart
+        .when("start_date", (start_date, schema) =>
+          start_date
             ? schema
-                .min(yup.ref("dateStart"), "End date must be after start date")
+                .min(yup.ref("start_date"), "End date must be after start date")
                 .max(new Date(), "End date cannot be in the future")
             : schema
         )
         .transform((value, originalValue) =>
           originalValue === "" ? null : value
         ),
-      trainingInstitution: yup
+      training_institution: yup
         .string()
         .required("Training Institution is required"),
-      certificatesReceived: yup.string(),
-      hoursOfTraining: yup
+      certificates_received: yup.string(),
+      hours_of_training: yup
         .number()
         .required("Hours of Training is required")
         .positive("Hours must be a positive number")
         .integer("Hours must be a whole number"),
-      skillsAcquired: yup.string().nullable(),
-      credentialID: yup.string(),
-      credentialURL: yup.string().url("Must be a valid URL").nullable(),
+      skills_acquired: yup.string().nullable(),
+      credential_id: yup.string(),
+      credential_url: yup.string().url("Must be a valid URL").nullable(),
     })
   ),
 });
@@ -63,121 +63,132 @@ const OtherTraining = ({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      trainingHistory: [
+      other_training:[ 
         {
-          courseName: "",
-          dateStart: "",
-          dateEnd: "",
-          trainingInstitution: "",
-          certificatesReceived: "",
-          hoursOfTraining: "",
-          skillsAcquired: "",
-          credentialID: "",
-          credentialURL: "",
+            "certificates_received": "Sample 1 Cert",
+            "course_name": "Sample 1",
+            "credential_id": "kflksng 1",
+            "credential_url": "https://www.facebook.com/",
+            "end_date": "Tue, 11 Feb 2025 00:00:00 GMT",
+            "hours_of_training": 3,
+            "skills_acquired": "Sample 1 Skill ",
+            "start_date": "Mon, 03 Feb 2025 00:00:00 GMT",
+            "training_institution": "Sample 1 Institution"
         },
-      ],
+        {
+            "certificates_received": "Sample 2 Cert ",
+            "course_name": "Sample 2",
+            "credential_id": "2342342",
+            "credential_url": "https://www.facebook.com/",
+            "end_date": "Mon, 10 Feb 2025 00:00:00 GMT",
+            "hours_of_training": 2,
+            "skills_acquired": "Sample 2 Skills",
+            "start_date": "Sat, 01 Feb 2025 00:00:00 GMT",
+            "training_institution": "Sample 2"
+        }
+    ]
     },
   });
 
-  // Use watch to dynamically track changes in trainingHistory
-  const trainingHistory = watch(
-    "trainingHistory",
-    getValues("trainingHistory")
+  // Use watch to dynamically track changes in other_training
+  const other_training = watch(
+    "other_training",
+    getValues("other_training")
   );
 
   const addTrainingHistory = () => {
     const newEntry = {
-      courseName: "",
-      dateStart: "",
-      dateEnd: "",
-      trainingInstitution: "",
-      certificatesReceived: "",
-      hoursOfTraining: "",
-      skillsAcquired: "",
-      credentialID: "",
-      credentialURL: "",
+      course_name: "",
+      start_date: "",
+      end_date: "",
+      training_institution: "",
+      certificates_received: "",
+      hours_of_training: "",
+      skills_acquired: "",
+      credential_id: "",
+      credential_url: "",
     };
 
-    const updatedTrainingHistory = [...trainingHistory, newEntry];
+    const updatedTrainingHistory = [...other_training, newEntry];
 
     // Update the form value and ensure validation is triggered
-    setValue("trainingHistory", updatedTrainingHistory, {
+    setValue("other_training", updatedTrainingHistory, {
       shouldValidate: false,
     });
   };
 
   const removeTrainingHistory = (index) => {
-    const updatedTrainingHistory = trainingHistory.filter(
+    const updatedTrainingHistory = other_training.filter(
       (_, idx) => idx !== index
     );
-    setValue("trainingHistory", updatedTrainingHistory, {
+    setValue("other_training", updatedTrainingHistory, {
       shouldValidate: true,
     });
   };
 
   useEffect(() => {
-    setIsValid(formIsValid && trainingHistory.length > 0);
-  }, [formIsValid, setIsValid, trainingHistory]);
+    setIsValid(formIsValid && other_training.length > 0);
+  }, [formIsValid, setIsValid, other_training]);
 
   return (
     <Box sx={{ p: 3 }}>
-      {trainingHistory.map((entry, index) => (
+      {other_training.map((entry, index) => (
         <Grid container spacing={2} key={index} sx={{ marginBottom: 5 }}>
           <Grid item xs={12} sm={11}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
-                  {...register(`trainingHistory.${index}.courseName`)}
+                  {...register(`other_training.${index}.course_name`)}
                   label="Course Name"
                   fullWidth
                   required
-                  error={!!errors.trainingHistory?.[index]?.courseName}
+                  error={!!errors.other_training?.[index]?.course_name}
                   helperText={
-                    errors.trainingHistory?.[index]?.courseName?.message
+                    errors.other_training?.[index]?.course_name?.message
                   }
                 />
               </Grid>
               <Grid item xs={6}>
                 <TextField
-                  {...register(`trainingHistory.${index}.dateStart`)}
+                  {...register(`other_training.${index}.start_date`)}
                   type="date"
                   label="Start Date"
                   fullWidth
                   required
                   InputLabelProps={{ shrink: true }}
-                  error={!!errors.trainingHistory?.[index]?.dateStart}
+                  error={!!errors.other_training?.[index]?.start_date}
                   helperText={
-                    errors.trainingHistory?.[index]?.dateStart?.message
+                    errors.other_training?.[index]?.start_date?.message
                   }
                 />
               </Grid>
               <Grid item xs={6}>
                 <TextField
-                  {...register(`trainingHistory.${index}.dateEnd`)}
+                  {...register(`other_training.${index}.end_date`)}
                   type="date"
                   label="End Date"
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-                  error={!!errors.trainingHistory?.[index]?.dateEnd}
-                  helperText={errors.trainingHistory?.[index]?.dateEnd?.message}
+                  error={!!errors.other_training?.[index]?.end_date}
+                  helperText={errors.other_training?.[index]?.end_date?.message}
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  {...register(`trainingHistory.${index}.trainingInstitution`)}
+                  {...register(`other_training.${index}.training_institution`)}
                   label="Training Institution"
                   fullWidth
                   required
-                  error={!!errors.trainingHistory?.[index]?.trainingInstitution}
+                  error={!!errors.other_training?.[index]?.training_institution}
                   helperText={
-                    errors.trainingHistory?.[index]?.trainingInstitution
+                    errors.other_training?.[index]?.training_institution
                       ?.message
                   }
                 />
               </Grid>
               <Grid item xs={6}>
                 <TextField
-                  {...register(`trainingHistory.${index}.certificatesReceived`)}
+                  {...register(`other_training.${index}.certificates_received`)}
                   label="Certificates Received"
                   fullWidth
                   required
@@ -185,50 +196,50 @@ const OtherTraining = ({
               </Grid>
               <Grid item xs={6}>
                 <TextField
-                  {...register(`trainingHistory.${index}.hoursOfTraining`)}
+                  {...register(`other_training.${index}.hours_of_training`)}
                   type="number"
                   label="Hours of Training"
                   fullWidth
                   required
-                  error={!!errors.trainingHistory?.[index]?.hoursOfTraining}
+                  error={!!errors.other_training?.[index]?.hours_of_training}
                   helperText={
-                    errors.trainingHistory?.[index]?.hoursOfTraining?.message
+                    errors.other_training?.[index]?.hours_of_training?.message
                   }
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
-                  {...register(`trainingHistory.${index}.skillsAcquired`)}
+                  {...register(`other_training.${index}.skills_acquired`)}
                   label="Skills Acquired"
                   fullWidth
-                  error={!!errors.trainingHistory?.[index]?.skillsAcquired}
+                  error={!!errors.other_training?.[index]?.skills_acquired}
                   helperText={
-                    errors.trainingHistory?.[index]?.skillsAcquired?.message
+                    errors.other_training?.[index]?.skills_acquired?.message
                   }
                 />
               </Grid>
               <Grid item xs={6}>
                 <TextField
-                  {...register(`trainingHistory.${index}.credentialID`)}
+                  {...register(`other_training.${index}.credential_id`)}
                   label="Credential ID"
                   fullWidth
                 />
               </Grid>
               <Grid item xs={6}>
                 <TextField
-                  {...register(`trainingHistory.${index}.credentialURL`)}
+                  {...register(`other_training.${index}.credential_url`)}
                   label="Credential URL"
                   fullWidth
-                  error={!!errors.trainingHistory?.[index]?.credentialURL}
+                  error={!!errors.other_training?.[index]?.credential_url}
                   helperText={
-                    errors.trainingHistory?.[index]?.credentialURL?.message
+                    errors.other_training?.[index]?.credential_url?.message
                   }
                 />
               </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12}>
-            {trainingHistory.length > 1 && (
+            {other_training.length > 1 && (
               <Grid item xs={12}>
                 <Button
                   variant="outlined"
@@ -261,7 +272,7 @@ const OtherTraining = ({
         setIsValid={setIsValid}
         canSkip={true}
         schema={schema}
-        formData={trainingHistory}
+        formData={other_training}
         user_type={user_type}
         api={"other-training"}
       />

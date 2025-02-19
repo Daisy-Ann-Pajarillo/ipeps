@@ -1,13 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, Grid, TextField, Button, Autocomplete } from "@mui/material";
 import BackNextButton from "../backnextButton";
 
-// Validation Schema using Yup
 const schema = yup.object().shape({
-  eligibilities: yup
+  professional_license: yup
     .array()
     .of(
       yup.object().shape({
@@ -19,26 +18,28 @@ const schema = yup.object().shape({
           .required("Date is required"),
         rating: yup.lazy((value) =>
           value === null || value === undefined
-            ? yup.string().nullable()
+            ? yup.string()
             : yup
-                .number()
-                .required("Rating is required for Civil Service Eligibility")
+              .number()
+              .required("Rating is required for Civil Service Eligibility")
         ),
         validity: yup.lazy((value) =>
           value === null || value === undefined
             ? yup.date().nullable()
             : yup
-                .date()
-                .typeError("Valid Until must be a valid date")
-                .required(
-                  "Valid Until is required for PRC Professional License"
-                )
+              .date()
+              .typeError("Valid Until must be a valid date")
+              .required("Valid Until is required for PRC Professional License")
         ),
       })
     )
-    //.min(1, "At least one eligibility is required")
     .required(),
 });
+
+const eligibilityType = [
+  "Civil Service Eligibility",
+  "PRC Professional License",
+];
 
 const EligibilityProfessionalLicense = ({
   activeStep,
@@ -56,25 +57,32 @@ const EligibilityProfessionalLicense = ({
     formState: { isValid: formIsValid },
   } = useForm({
     resolver: yupResolver(schema),
-    mode: "onChange", // Trigger validation on every change
+    mode: "onChange",
     defaultValues: {
-      eligibilities: [
+      professional_license: [
         {
-          type: null,
-          name: "",
-          date: "",
-          rating: null,
-          validity: null,
+          date: "2025-02-12",
+          type: "Civil Service Eligibility",
+          name: "Sampleee121241",
+          rating: 1,
+          validity: null
         },
+        {
+          date: "2025-02-12",
+          type: "Civil Service Eligibility",
+          name: "Sampleee121241",
+          rating: 1,
+          validity: null
+        }
       ],
     },
   });
 
-  const eligibilities = watch("eligibilities");
+  const professional_license = watch("professional_license");
 
   useEffect(() => {
-    setIsValid(formIsValid && eligibilities.length > 0);
-  }, [formIsValid, setIsValid, eligibilities]);
+    setIsValid(formIsValid && professional_license.length > 0);
+  }, [formIsValid, setIsValid, professional_license]);
 
   const addEligibility = () => {
     const newEligibility = {
@@ -84,48 +92,48 @@ const EligibilityProfessionalLicense = ({
       rating: null,
       validity: null,
     };
-    setValue("eligibilities", [...eligibilities, newEligibility], {
+    setValue("professional_license", [...professional_license, newEligibility], {
       shouldValidate: false,
     });
   };
 
   const removeEligibility = (index) => {
-    const updatedEligibilities = eligibilities.filter(
+    const updatedEligibilities = professional_license.filter(
       (_, idx) => idx !== index
     );
-    setValue("eligibilities", updatedEligibilities, { shouldValidate: true });
+    setValue("professional_license", updatedEligibilities, { shouldValidate: true });
   };
-
-  const eligibilityType = [
-    "Civil Service Eligibility",
-    "PRC Professional License",
-  ];
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Display Added Eligibilities */}
       <Grid container>
-        {eligibilities.map((eligibility, index) => (
+        {professional_license.map((eligibility, index) => (
           <Box spacing={2} key={index} sx={{ marginBottom: 5 }}>
             <Grid container spacing={3}>
-              {/* Eligibility Type */}
               <Grid item xs={12}>
                 <Controller
-                  name={`eligibilities[${index}].type`}
+                  name={`professional_license.${index}.type`}
                   control={control}
                   render={({ field }) => (
                     <Autocomplete
                       options={eligibilityType}
-                      getOptionLabel={(option) => option}
                       value={field.value || null}
-                      onChange={(event, newValue) => {
-                        field.onChange(newValue); // Update the form state immediately
+                      onChange={(_, newValue) => {
+                        field.onChange(newValue);
+                        // Reset related fields when type changes
+                        if (newValue === "Civil Service Eligibility") {
+                          setValue(`professional_license.${index}.validity`, null);
+                        } else if (newValue === "PRC Professional License") {
+                          setValue(`professional_license.${index}.rating`, null);
+                        }
                       }}
                       renderInput={(params) => (
                         <TextField
                           {...params}
                           required
                           label="Select License"
+                          error={!!field.error}
+                          helperText={field.error?.message}
                         />
                       )}
                     />
@@ -133,10 +141,9 @@ const EligibilityProfessionalLicense = ({
                 />
               </Grid>
 
-              {/* Name Field */}
               <Grid item xs={12}>
                 <Controller
-                  name={`eligibilities[${index}].name`}
+                  name={`professional_license.${index}.name`}
                   control={control}
                   render={({ field }) => (
                     <TextField fullWidth required label="Name" {...field} />
@@ -144,10 +151,9 @@ const EligibilityProfessionalLicense = ({
                 />
               </Grid>
 
-              {/* Date Field */}
               <Grid item xs={12} md={6}>
                 <Controller
-                  name={`eligibilities[${index}].date`}
+                  name={`professional_license.${index}.date`}
                   control={control}
                   render={({ field }) => (
                     <TextField
@@ -162,26 +168,29 @@ const EligibilityProfessionalLicense = ({
                 />
               </Grid>
 
-              {/* Rating Field (only for Civil Service) */}
-              {watch(`eligibilities[${index}].type`) ===
-                "Civil Service Eligibility" && (
+              {watch(`professional_license.${index}.type`) === "Civil Service Eligibility" && (
                 <Grid item xs={12} md={6}>
                   <Controller
-                    name={`eligibilities[${index}].rating`}
+                    name={`professional_license.${index}.rating`}
                     control={control}
                     render={({ field }) => (
-                      <TextField fullWidth required label="Rating" {...field} />
+                      <TextField 
+                        fullWidth 
+                        required 
+                        label="Rating" 
+                        type="number"
+                        inputProps={{ step: "0.01" }}
+                        {...field} 
+                      />
                     )}
                   />
                 </Grid>
               )}
 
-              {/* Validity Field (only for PRC License) */}
-              {watch(`eligibilities[${index}].type`) ===
-                "PRC Professional License" && (
+              {watch(`professional_license.${index}.type`) === "PRC Professional License" && (
                 <Grid item xs={12} md={6}>
                   <Controller
-                    name={`eligibilities[${index}].validity`}
+                    name={`professional_license.${index}.validity`}
                     control={control}
                     render={({ field }) => (
                       <TextField
@@ -197,9 +206,7 @@ const EligibilityProfessionalLicense = ({
                 </Grid>
               )}
 
-              {/* Remove Button */}
-
-              {eligibilities.length > 1 && (
+              {professional_license.length > 1 && (
                 <Grid item xs={12}>
                   <Button
                     variant="outlined"
@@ -214,6 +221,7 @@ const EligibilityProfessionalLicense = ({
           </Box>
         ))}
       </Grid>
+      
       <div className="mb-4 text-center">
         <Button
           variant="contained"
@@ -224,7 +232,7 @@ const EligibilityProfessionalLicense = ({
           Add Eligibility
         </Button>
       </div>
-      {/* Navigation Buttons */}
+
       <BackNextButton
         activeStep={activeStep}
         steps={steps}
@@ -234,7 +242,7 @@ const EligibilityProfessionalLicense = ({
         setIsValid={setIsValid}
         schema={schema}
         canSkip={true}
-        formData={eligibilities}
+        formData={professional_license}
         user_type={user_type}
         api={"professional-license"}
       />
