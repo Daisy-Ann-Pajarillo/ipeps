@@ -1,48 +1,11 @@
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { TextField, Button, Grid, Box } from "@mui/material";
 
 import BackNextButton from "../backnextButton";
+import {otherTrainingsSchema} from "../schema/schema"
 
-const schema = yup.object().shape({
-  other_training: yup.array().of(
-    yup.object().shape({
-      course_name: yup.string().required("Course Name is required"),
-      start_date: yup
-        .date()
-        .required("Start date is required")
-        .max(new Date(), "Start date cannot be in the future"),
-      end_date: yup
-        .date()
-        .nullable() // ✅ Allows null values
-        .notRequired() // ✅ Ensures it's not required in validation
-        .when("start_date", (start_date, schema) =>
-          start_date
-            ? schema
-                .min(yup.ref("start_date"), "End date must be after start date")
-                .max(new Date(), "End date cannot be in the future")
-            : schema
-        )
-        .transform((value, originalValue) =>
-          originalValue === "" ? null : value
-        ),
-      training_institution: yup
-        .string()
-        .required("Training Institution is required"),
-      certificates_received: yup.string(),
-      hours_of_training: yup
-        .number()
-        .required("Hours of Training is required")
-        .positive("Hours must be a positive number")
-        .integer("Hours must be a whole number"),
-      skills_acquired: yup.string().nullable(),
-      credential_id: yup.string(),
-      credential_url: yup.string().url("Must be a valid URL").nullable(),
-    })
-  ),
-});
 
 const OtherTraining = ({
   activeStep,
@@ -60,7 +23,7 @@ const OtherTraining = ({
     watch,
     formState: { errors, isValid: formIsValid },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(otherTrainingsSchema),
     mode: "onChange",
     defaultValues: {
       other_training:[ 
@@ -271,7 +234,7 @@ const OtherTraining = ({
         isValid={isValid}
         setIsValid={setIsValid}
         canSkip={true}
-        schema={schema}
+        schema={otherTrainingsSchema}
         formData={other_training}
         user_type={user_type}
         api={"other-training"}

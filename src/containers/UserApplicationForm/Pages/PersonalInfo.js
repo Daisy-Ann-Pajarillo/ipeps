@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+
 import {
   TextField,
   Checkbox,
@@ -23,172 +23,10 @@ import completePHAddressOption from "../../../reusable/constants/completePHAddre
 import countriesList from "../../../reusable/constants/countriesList";
 import religionOption from "../../../reusable/constants/religionOption";
 import companyIndustryTypes from "../../../reusable/constants/companyIndustryTypes";
+import fetchData from "../api/fetchData";
 
-const baseSchema = yup.object().shape({
-  first_name: yup.string().required("First name is required"),
-  last_name: yup.string().required("Last name is required"),
-  cellphone_number: yup
-    .string()
-    .matches(/^[0-9]+$/, "Must be a number")
-    .min(10, "Must be at least 10 digits")
-    .required("Cellphone number is required"),
-  permanent: yup.boolean(),
-  permanent_country: yup.string().required("Province is required"),
-  permanent_province: yup.string().when("country", {
-    is: "Philippines",
-    then: (schema) => schema.required("Province is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  permanent_municipality: yup.string().when("country", {
-    is: "Philippines",
-    then: (schema) => schema.required("Municipality is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  permanent_barangay: yup.string().when("country", {
-    is: "Philippines",
-    then: (schema) => schema.required("Barangay is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  permanent_zip_code: yup.string().when("country", {
-    is: "Philippines",
-    then: (schema) => schema.required("Zip Code is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-
-  //////////////----------------------- Permanent Address
-  temporary_country: yup.string().when("permanent", {
-    is: false,
-    then: (schema) => schema.required("Permanent Country is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  temporary_province: yup.string().when("permanent", {
-    is: false,
-    then: (schema) => schema.required("Permanent Province is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  temporary_municipality: yup.string().when("permanent", {
-    is: false,
-    then: (schema) => schema.required("Permanent Municipality is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  temporary_barangay: yup.string().when("permanent", {
-    is: false,
-    then: (schema) => schema.required("Permanent Barangay is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  temporary_zip_code: yup.string().when("permanent", {
-    is: false,
-    then: (schema) => schema.required("Permanent Zip Code is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  id: yup
-    .mixed()
-    .test("fileSize", "File size is too large", (value) => {
-      if (!value || !value.length) return true;
-      const fileSize = value[0]?.size || 0;
-      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-      console.log("Testing file size:", fileSize, "Max size:", maxSize);
-      return fileSize <= maxSize;
-    })
-    .test("fileType", "Unsupported file format", (value) => {
-      if (!value || !value.length) return true;
-      const fileType = value[0]?.type || "";
-      const supportedTypes = ["image/jpeg", "image/png", "application/pdf"];
-      console.log("Testing file type:", fileType);
-      return supportedTypes.includes(fileType);
-    })
-    .required("Company ID is required"),
-});
-// Job Seeker-Specific Schema
-const jobseekerSchema = yup.object().shape({
-  sex: yup.string().required("Please select your sex"),
-  date_of_birth: yup.string().required("Date of birth is required"),
-  place_of_birth: yup.string().required("Place of birth is required"),
-  civil_status: yup.string().required("Please select your civil status"),
-  height: yup.number().required("Height is required"),
-  weight: yup.number().required("Weight is required"),
-  employment_status: yup.string().required("Employment status is required"),
-  disability: yup
-    .object()
-    .shape({
-      visual: yup.boolean().nullable(),
-      hearing: yup.boolean().nullable(),
-      speech: yup.boolean().nullable(),
-      physical: yup.boolean().nullable(),
-    })
-    .nullable()
-    .notRequired(),
-  // other_disabilities: yup.string().nullable().notRequired(),
-  landline_number: yup.string().nullable().notRequired(),
-  religion: yup.string().required("Religion is required"),
-  //--------------------------------------------
-  tin: yup.string().required("TIN is required"),
-  sss_gsis_number: yup.string().required("SSS/GSIS number is required"),
-  pag_ibig_number: yup.string().required("Pag-IBIG number is required"),
-  phil_health_no: yup.string().required("PhilHealth number is required"),
-  //--------------------------------------------
-  is_looking_for_work: yup.string().required("Answer is required"),
-  since_when_looking_for_work: yup.string().when("is_looking_for_work", {
-    is: "YES",
-    then: (schema) =>
-      schema.required("Please specify since when you are looking for work"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-
-  // OFW Section
-  is_ofw: yup.string().required("Answer is required"),
-  ofw_country: yup.string().when("is_ofw", {
-    is: "YES",
-    then: (schema) =>
-      schema.required(
-        "Please specify the country where you are working as an OFW"
-      ),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-
-  // Former OFW Section
-  is_former_ofw: yup.string().required("Answer is required"),
-  former_ofw_country: yup.string().when("is_former_ofw", {
-    is: "YES",
-    then: (schema) =>
-      schema.required(
-        "Please specify the country where you previously worked as an OFW"
-      ),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  former_ofw_country_date_return: yup.string().when("is_former_ofw", {
-    is: "YES",
-    then: (schema) => schema.required("Please specify the date of your return"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-
-  // 4Ps Beneficiary Section
-  is_4ps_beneficiary: yup.string().required("Answer is required"),
-  _4ps_household_id_no: yup.string().when("is_4ps_beneficiary", {
-    is: "YES",
-    then: (schema) => schema.required("Please provide your household ID"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-});
-// Employer-Specific Schema
-const employerSchema = yup.object().shape({
-  company_name: yup.string().required("Company / Agency Affiliation is required"),
-  company_workforce: yup.string().required("Company Workforce is required"),
-  company_industry: yup.string().required("Company Industry is required"),
-  company_classification: yup.string().required("Company Classification is required"),
-  company_type: yup.string().required("Company Type is required"),
-});
-// Academe-Specific Schema
-const academeSchema = yup.object().shape({
-  institution_name: yup.string().required("Institution Name is required"),
-  institution_type: yup.string().required("Institution Type is required"),
-});
-// Academe Employer Schema Same
-const employerAcademeSchema = yup.object().shape({
-  email: yup.string().email("Invalid email format").required("Company Email is required"),
-  employer_position: yup.string().required("Employer Position is required"),
-  employer_id_number: yup.string().required("Employer ID Number is required"),
-})
+import { baseSchema, academeSchema, employerSchema, employerAcademeSchema, jobseekerSchema } from "../schema/schema";
+import validateForm from "../schema/validateForm";
 
 
 // Dynamic Schema Based on User Type
@@ -216,6 +54,8 @@ const PersonalInfo = ({
   setIsValid,
   user_type,
 }) => {
+
+  //const fetch_data = fetchData();
   const {
     register,
     setValue,
@@ -224,52 +64,55 @@ const PersonalInfo = ({
   } = useForm({
     resolver: yupResolver(getSchema(user_type)),
     mode: "onChange",
-    defaultValues:{
-      "cellphone_number": "097348432",
-      "email": "ejlindayao@gmail.com",
-      "employer_id_number": "48324729",
-      "employer_position": "sample position",
-      "first_name": "Edjay",
-      "institution_name": "Sample",
-      "institution_type": "Public Universities",
-      "landline_number": "5543535",
-      "last_name": "Lindayao",
-      "middle_name": "Cantero",
-      "permanent_barangay": "Permanent Barangay",
-      "permanent_country": "Philippines",
-      "permanent_house_no_street_village": null,
-      "permanent_municipality": "Bangued",
-      "permanent_province": "Abra",
-      "permanent_zip_code": null,
-      "prefix": "Mr.",
-      "suffix": "Jr",
-      "temporary_barangay": null,
-      "temporary_country": null,
-      "temporary_house_no_street_village": null,
-      "temporary_municipality": null,
-      "temporary_province": null,
-      "temporary_zip_code": null,
-      "valid_id_url": null
-  }
-  });
+    defaultValues: 
+      {
+          "_4ps_household_id_no": "98538475",
+          "cellphone_number": "099843208",
+          "civil_status": "Single",
+          "date_of_birth": "Sun, 02 Feb 2025 00:00:00 GMT",
+          "disability": "visual, hearing",
+          "employment_status": "Employed",
+          "first_name": "Edjay",
+          "former_ofw_country": "United Arab Emirates",
+          "former_ofw_country_date_return": "Fri, 28 Feb 2025 00:00:00 GMT",
+          "height": 172.0,
+          "is_4ps_beneficiary": true,
+          "is_former_ofw": true,
+          "is_looking_for_work": true,
+          "is_ofw": true,
+          "is_willing_to_work_immediately": true,
+          "landline_number": null,
+          "last_name": "Lindayao",
+          "middle_name": "Cantero",
+          "ofw_country": "Philippines",
+          "pag_ibig_number": "43242211",
+          "permanent_barangay": null,
+          "permanent_country": "Philippines",
+          "permanent_house_no_street_village": null,
+          "permanent_municipality": null,
+          "permanent_province": "Iloilo",
+          "permanent_zip_code": "5000",
+          "phil_health_no": "87463823",
+          "place_of_birth": "Antique",
+          "religion": "Aglipay",
+          "sex": "Male",
+          "since_when_looking_for_work": "Sat, 01 Feb 2025 00:00:00 GMT",
+          "sss_gsis_number": "5435353",
+          "suffix": "Jr",
+          "temporary_barangay": "Tabuc Suba",
+          "temporary_country": "Philippines",
+          "temporary_house_no_street_village": "Ilaya",
+          "temporary_municipality": "Bangued",
+          "temporary_province": "Abra",
+          "temporary_zip_code": "5000",
+          "tin": "43242344",
+          "valid_id_url": null,
+          "weight": 55.0
+      }
+});
   const [formErrors, setFormErrors] = useState({});
-  const validateForm = async () => {
-    try {
-      // Validate the formData based on schema
-      await getSchema(user_type).validate(formData, { abortEarly: false });
-      setIsValid(true); // If validation passes, set isValid to true
-      setFormErrors({}); // Clear previous errors
-    } catch (error) {
-      setIsValid(false); // If validation fails, set isValid to false
-      const errorMessages = error.inner.reduce((acc, currError) => {
-        acc[currError.path] = currError.message;
-        return acc;
-      }, {});
-      setFormErrors(errorMessages); // Store errors in formErrors state
-    }
-  };
-  const formData = watch();
 
+  const formData = watch();
 
   const [selectedPrefix, setSelectedPrefix] = useState(null);
   const [selectedSex, setSelectedSex] = useState(null);
@@ -396,7 +239,7 @@ const PersonalInfo = ({
         setSelectedInstitutionType(institution_type)
       }
     }
-  }, [errors, setIsValid, formData, user_type]);
+  }, [errors, setIsValid, ]);
 
   const [addressData, setAddressData] = useState({
     provinces: [],
@@ -514,14 +357,16 @@ const PersonalInfo = ({
         shouldDirty: true,
         shouldTouch: true,
       });
-      validateForm(watch())
+      validateForm(getSchema(user_type),watch(), setIsValid,setFormErrors)
     }
   };
 
 
 
   return (
-    <Box sx={{ p: 3 }} onClick={() => { validateForm() }}>
+    <Box sx={{ p: 3 }} onClick={() => {   
+      validateForm(getSchema(user_type),formData, setIsValid, setFormErrors);
+    }}>
       <Grid container spacing={2}>
         {/* Basic Information */}
         <>

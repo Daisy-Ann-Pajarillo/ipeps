@@ -11,23 +11,8 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import BackNextButton from "../backnextButton";
-
-const schema = yup.object().shape({
-  skills: yup
-    .array()
-    .of(yup.string())
-    .min(1, "At least one skill must be selected"),
-  other_skills: yup
-    .array()
-    .of(
-      yup.object().shape({
-        skills: yup.string().required()
-      })
-    )
-    .max(50, "Maximum 50 additional skills allowed"),
-});
+import { otherSkillsSchema } from "../schema/schema"
 
 const OtherSkills = ({
   activeStep,
@@ -39,7 +24,7 @@ const OtherSkills = ({
   user_type,
 }) => {
   const { register, setValue, watch } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(otherSkillsSchema),
     mode: "onChange",
     defaultValues: {
       skills: [],
@@ -111,7 +96,7 @@ const OtherSkills = ({
       const skillExists = other_skills.some(
         item => item.skills.toLowerCase() === newSkill
       );
-      
+
       if (!skillExists && other_skills.length < 50) {
         setValue("other_skills", [...other_skills, { skills: newSkill }], {
           shouldValidate: true,
@@ -149,7 +134,7 @@ const OtherSkills = ({
     const initialSkills = other_skills
       .map(item => item.skills)
       .filter(skill => predefinedSkills.includes(skill.toLowerCase()));
-    
+
     if (initialSkills.length > 0) {
       setValue("skills", initialSkills, { shouldValidate: true });
     }
@@ -160,7 +145,7 @@ const OtherSkills = ({
       <Typography variant="h6" gutterBottom>
         Select Your Skills
       </Typography>
-      
+
       <Grid container spacing={3}>
         {skillColumns.map((columnSkills, columnIndex) => (
           <Grid item xs={12} md={4} key={columnIndex}>
@@ -231,10 +216,10 @@ const OtherSkills = ({
         handleNext={handleNext}
         isValid={isValid}
         setIsValid={setIsValid}
-        schema={schema}
+        schema={otherSkillsSchema}
         canSkip={true}
         user_type={user_type}
-        formData={{ skills, other_skills }}
+        formData={[...skills, ...other_skills.map(item => item.skills)]}
         api="other-skills"
       />
     </Box>

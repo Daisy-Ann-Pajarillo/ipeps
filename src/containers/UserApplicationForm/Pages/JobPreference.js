@@ -9,38 +9,13 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+
 import BackNextButton from "../backnextButton";
 import countriesList from "../../../reusable/constants/countriesList";
 import userIndustryOptionTypes from "../../../reusable/constants/userIndustryOptionTypes";
-import provincesCitiesWithMunicipalities from "../../../reusable/constants/provincesCitiesWithMunicipalities"
 import completePHAddressOption from "../../../reusable/constants/completePHAddressOption";
-
-const schema = yup.object().shape({
-  industry: yup.string().required("Industry is required"),
-  preferred_occupation: yup.string().required("Preferred Occupation is required"),
-  salary_from: yup
-    .number()
-    .typeError("Must be a number")
-    .min(1, "Salary must be greater than zero")
-    .required("Expected salary (from) is required"),
-  salary_to: yup
-    .number()
-    .typeError("Must be a number")
-    .min(yup.ref("salary_from"), "Must be greater than 'From' salary")
-    .required("Expected salary (to) is required"),
-  country: yup.string().required('Province is required'),
-  province: yup.string().when("country", {
-    is: "Philippines",
-    then: (schema) => schema.required("Province is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  municipality: yup.string().when("country", {
-    is: "Philippines",
-    then: (schema) => schema.required("Municipality is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-});
+import validateForm from "../schema/validateForm";
+import { jobPreferenceSchema } from "../schema/schema";
 
 
 const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, setIsValid, user_type }) => {
@@ -50,7 +25,7 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
     watch,
     formState: { errors, isValid: formIsValid },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(jobPreferenceSchema),
     mode: "all",
     defaultValues: {
       "country": "Philippines",
@@ -66,23 +41,6 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
   const formData = watch();
 
   const [formErrors, setFormErrors] = useState({});
-
-  const validateForm = async () => {
-    try {
-      // Validate the formData based on schema
-      await schema.validate(formData, { abortEarly: false });
-      setIsValid(true); // If validation passes, set isValid to true
-      setFormErrors({}); // Clear previous errors
-    } catch (error) {
-      setIsValid(false); // If validation fails, set isValid to false
-      const errorMessages = error.inner.reduce((acc, currError) => {
-        acc[currError.path] = currError.message;
-        return acc;
-      }, {});
-      setFormErrors(errorMessages); // Store errors in formErrors state
-    }
-  };
-
 
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedProvince, setSelectedProvince] = useState(null);
@@ -161,11 +119,13 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
   }, [formIsValid, setIsValid]);
 
   useEffect(() => {
-    validateForm()
+    validateForm(jobPreferenceSchema,formData, setIsValid,setFormErrors)
   }, [])
 
   return (
-    <Box sx={{ p: 3 }} onClick={() => { validateForm() }}>
+    <Box sx={{ p: 3 }} onClick={() => {
+       validateForm(jobPreferenceSchema,formData, setIsValid,setFormErrors)
+      }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Typography variant="h6" sx={{ marginTop: 2 }}>
@@ -308,7 +268,7 @@ const JobPreference = ({ activeStep, steps, handleBack, handleNext, isValid, set
         handleNext={handleNext}
         isValid={isValid}
         setIsValid={setIsValid}
-        schema={schema}
+        schema={jobPreferenceSchema}
         formData={formData}
         user_type={user_type}
         api="job-preference"

@@ -1,40 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, Grid, TextField, Button, Autocomplete } from "@mui/material";
 import BackNextButton from "../backnextButton";
 
-const schema = yup.object().shape({
-  professional_license: yup
-    .array()
-    .of(
-      yup.object().shape({
-        type: yup.string().required("Eligibility Type is required"),
-        name: yup.string().required("Name is required"),
-        date: yup
-          .date()
-          .typeError("Date must be a valid date")
-          .required("Date is required"),
-        rating: yup.lazy((value) =>
-          value === null || value === undefined
-            ? yup.string()
-            : yup
-              .number()
-              .required("Rating is required for Civil Service Eligibility")
-        ),
-        validity: yup.lazy((value) =>
-          value === null || value === undefined
-            ? yup.date().nullable()
-            : yup
-              .date()
-              .typeError("Valid Until must be a valid date")
-              .required("Valid Until is required for PRC Professional License")
-        ),
-      })
-    )
-    .required(),
-});
+
+import {professionalEligibilitySchema} from "../schema/schema"
 
 const eligibilityType = [
   "Civil Service Eligibility",
@@ -56,7 +27,7 @@ const EligibilityProfessionalLicense = ({
     setValue,
     formState: { isValid: formIsValid },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(professionalEligibilitySchema),
     mode: "onChange",
     defaultValues: {
       professional_license: [
@@ -65,14 +36,14 @@ const EligibilityProfessionalLicense = ({
           type: "Civil Service Eligibility",
           name: "Sampleee121241",
           rating: 1,
-          validity: null
+          valid_until: null
         },
         {
           date: "2025-02-12",
           type: "Civil Service Eligibility",
           name: "Sampleee121241",
           rating: 1,
-          validity: null
+          valid_until: null
         }
       ],
     },
@@ -90,7 +61,7 @@ const EligibilityProfessionalLicense = ({
       name: "",
       date: "",
       rating: null,
-      validity: null,
+      valid_until: null,
     };
     setValue("professional_license", [...professional_license, newEligibility], {
       shouldValidate: false,
@@ -122,7 +93,7 @@ const EligibilityProfessionalLicense = ({
                         field.onChange(newValue);
                         // Reset related fields when type changes
                         if (newValue === "Civil Service Eligibility") {
-                          setValue(`professional_license.${index}.validity`, null);
+                          setValue(`professional_license.${index}.valid_until`, null);
                         } else if (newValue === "PRC Professional License") {
                           setValue(`professional_license.${index}.rating`, null);
                         }
@@ -190,7 +161,7 @@ const EligibilityProfessionalLicense = ({
               {watch(`professional_license.${index}.type`) === "PRC Professional License" && (
                 <Grid item xs={12} md={6}>
                   <Controller
-                    name={`professional_license.${index}.validity`}
+                    name={`professional_license.${index}.valid_until`}
                     control={control}
                     render={({ field }) => (
                       <TextField
@@ -240,7 +211,7 @@ const EligibilityProfessionalLicense = ({
         handleNext={handleNext}
         isValid={isValid}
         setIsValid={setIsValid}
-        schema={schema}
+        schema={professionalEligibilitySchema}
         canSkip={true}
         formData={professional_license}
         user_type={user_type}

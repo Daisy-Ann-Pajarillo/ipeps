@@ -10,48 +10,8 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import BackNextButton from "../backnextButton";
-
-const schema = yup.object().shape({
-  work_experience: yup
-    .array()
-    .of(
-      yup.object().shape({
-        company_name: yup.string().required("Company Name is required"),
-        company_address: yup.string().required("Company Address is required"),
-        position: yup.string().required("Position is required"),
-        employment_status: yup
-          .string()
-          .required("Employment Status is required"),
-        date_start: yup
-          .date()
-          .required("Start date is required")
-          .max(new Date(), "Start date cannot be in the future"),
-        date_end: yup
-          .date()
-          .required("End date is required")
-          .when("date_start", (date_start, schema) =>
-            date_start
-              ? schema
-                  .test(
-                    "end-date-after-start",
-                    "End date must be after start date",
-                    (date_end) =>
-                      !date_end ||
-                      (date_start && new Date(date_end) > new Date(date_start))
-                  )
-                  .max(new Date(), "End date cannot be in the future")
-              : schema
-          )
-          .transform((value, originalValue) =>
-            originalValue === "" ? null : value
-          ),
-      })
-    )
-    .min(1, "At least one work experience entry is required")
-    .required("Work Experience is required"),
-});
+import { workExperienceSchema } from "../schema/schema";
 
 const WorkExperience = ({
   activeStep,
@@ -68,7 +28,7 @@ const WorkExperience = ({
     watch,
     formState: { errors, isValid: formIsValid },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(workExperienceSchema),
     mode: "onChange",
     defaultValues: {
       work_experience: [
@@ -237,7 +197,7 @@ const WorkExperience = ({
         handleNext={handleNext}
         isValid={isValid}
         setIsValid={setIsValid}
-        schema={schema}
+        schema={workExperienceSchema}
         formData={{work_experience}}
         user_type={user_type}
         api={"work-experience"}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import {
   Box,
   Typography,
@@ -15,29 +14,8 @@ import {
 
 import languagesList from "../../../reusable/constants/languages";
 import BackNextButton from "../backnextButton";
+import { languageProficiencySchema } from "../schema/schema";
 
-const schema = yup.object().shape({
-  language_proficiency: yup
-    .array()
-    .of(
-      yup.object().shape({
-        language: yup.string().required("Language is required"),
-        can_read: yup.boolean().default(false),
-        can_write: yup.boolean().default(false),
-        can_speak: yup.boolean().default(false),
-        can_understand: yup.boolean().default(false),
-      }).test(
-        "at-least-one-skill",
-        "At least one skill (Read, Write, Speak, Understand) must be selected",
-        (value) => {
-          if (!value) return false;
-          return value.can_read || value.can_write || value.can_speak || value.can_understand;
-        }
-      )
-    )
-    .min(1, "At least one language is required")
-    .required(),
-});
 
 const LanguageDialectProficiency = ({
   activeStep,
@@ -55,7 +33,7 @@ const LanguageDialectProficiency = ({
     control,
     formState: { isValid: formIsValid },
   } = useForm({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(languageProficiencySchema),
     mode: "onChange",
     defaultValues: {
       language_proficiency: [
@@ -254,7 +232,7 @@ const LanguageDialectProficiency = ({
         handleNext={handleNext}
         isValid={isValid}
         setIsValid={setIsValid}
-        schema={schema}
+        schema={languageProficiencySchema}
         formData={{ language_proficiency }}
         user_type={user_type}
         api={"language-proficiency"}
