@@ -15,7 +15,7 @@ import {
 import languagesList from "../../../reusable/constants/languages";
 import BackNextButton from "../backnextButton";
 import { languageProficiencySchema } from "../schema/schema";
-
+import fetchData from "../api/fetchData";
 
 const LanguageDialectProficiency = ({
   activeStep,
@@ -26,6 +26,27 @@ const LanguageDialectProficiency = ({
   setIsValid,
   user_type,
 }) => {
+  const [languageProficiency, setLanguageProficiency] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const [availableLanguages, setAvailableLanguages] = useState(languagesList);
+
+  // Fetch user data first
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const response = await fetchData("api/get-user-info");
+        setLanguageProficiency(response.language_proficiency);
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLanguages();
+  }, []);
+
+  // Initialize form with default values
   const {
     setValue,
     getValues,
@@ -36,39 +57,33 @@ const LanguageDialectProficiency = ({
     resolver: yupResolver(languageProficiencySchema),
     mode: "onChange",
     defaultValues: {
-      language_proficiency: [
-        {
-          can_read: true,
-          can_speak: true,
-          can_understand: false,
-          can_write: true,
-          language: "Filipino"
-        },
-        {
-          can_read: true,
-          can_speak: true,
-          can_understand: true,
-          can_write: true,
-          language: "English"
-        }
-      ],
-    }
+      language_proficiency: [], // Default to empty array
+    },
   });
 
-  const [selectedLanguage, setSelectedLanguage] = useState(null);
-  const [availableLanguages, setAvailableLanguages] = useState(languagesList);
+  // Watch the language_proficiency field
   const language_proficiency = watch("language_proficiency");
 
   // Update available languages whenever language_proficiency changes
   useEffect(() => {
-    const selectedLanguages = language_proficiency.map(lang => lang.language);
+    if (!language_proficiency || !Array.isArray(language_proficiency)) return;
+
+    const selectedLanguages = language_proficiency.map((lang) => lang.language);
     const filteredLanguages = languagesList.filter(
-      lang => !selectedLanguages.includes(lang.name)
+      (lang) => !selectedLanguages.includes(lang.name)
     );
     setAvailableLanguages(filteredLanguages);
   }, [language_proficiency]);
 
-  // Add new language proficiency
+  useEffect(() => {
+    if (languageProficiency && !loading) {
+      setValue("language_proficiency", languageProficiency, {
+        shouldValidate: true,
+      });
+    }
+  }, [languageProficiency, loading, setValue]);
+
+  // Add a new language proficiency
   const addLanguage = () => {
     if (!selectedLanguage) return;
 
@@ -77,6 +92,7 @@ const LanguageDialectProficiency = ({
 
     // Final check to prevent duplicates
     if (currentLanguages.some((lang) => lang.language === newLangName)) {
+      console.warn(`Language "${newLangName}" already exists.`);
       return;
     }
 
@@ -91,21 +107,28 @@ const LanguageDialectProficiency = ({
     setValue("language_proficiency", [...currentLanguages, newLanguage], {
       shouldValidate: true,
     });
-    setSelectedLanguage(null);
+    setSelectedLanguage(null); // Reset the selected language
   };
 
-  // Remove language proficiency
+  // Remove a language proficiency
   const removeLanguage = (languageName) => {
     const updatedLanguages = getValues("language_proficiency").filter(
       (lang) => lang.language !== languageName
     );
-    setValue("language_proficiency", updatedLanguages, { shouldValidate: true });
+
+    setValue("language_proficiency", updatedLanguages, {
+      shouldValidate: true,
+    });
   };
 
+  // Update the overall validity of the form
   useEffect(() => {
-    setIsValid(language_proficiency.length > 0 && formIsValid);
-  }, [formIsValid, setIsValid, language_proficiency]);
-
+    setIsValid(
+      Array.isArray(languageProficiency) &&
+        language_proficiency.length > 0 &&
+        formIsValid
+    );
+  }, [formIsValid, language_proficiency]);
   return (
     <Box sx={{ p: 3 }}>
       {/* Language Selection */}
@@ -119,7 +142,9 @@ const LanguageDialectProficiency = ({
             renderInput={(params) => (
               <TextField {...params} label="Select Language" />
             )}
-            isOptionEqualToValue={(option, value) => option.name === value?.name}
+            isOptionEqualToValue={(option, value) =>
+              option.name === value?.name
+            }
           />
         </Grid>
       </Grid>

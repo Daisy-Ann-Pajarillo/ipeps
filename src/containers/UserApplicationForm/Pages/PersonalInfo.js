@@ -25,21 +25,24 @@ import religionOption from "../../../reusable/constants/religionOption";
 import companyIndustryTypes from "../../../reusable/constants/companyIndustryTypes";
 import fetchData from "../api/fetchData";
 
-import { baseSchema, academeSchema, employerSchema, employerAcademeSchema, jobseekerSchema } from "../schema/schema";
+import {
+  baseSchema,
+  academeSchema,
+  employerSchema,
+  employerAcademeSchema,
+  jobseekerSchema,
+} from "../schema/schema";
 import validateForm from "../schema/validateForm";
-
 
 // Dynamic Schema Based on User Type
 const getSchema = (userType) => {
   if (userType === "EMPLOYER") {
-    baseSchema.concat(employerSchema)
+    baseSchema.concat(employerSchema);
     return baseSchema.concat(employerAcademeSchema);
-  }
-  else if (userType === "ACADEME") {
-    baseSchema.concat(academeSchema)
+  } else if (userType === "ACADEME") {
+    baseSchema.concat(academeSchema);
     return baseSchema.concat(employerAcademeSchema);
-  }
-  else if (userType === "JOBSEEKER" || userType === "STUDENT") {
+  } else if (userType === "JOBSEEKER" || userType === "STUDENT") {
     return baseSchema.concat(jobseekerSchema);
   }
   return baseSchema;
@@ -54,62 +57,48 @@ const PersonalInfo = ({
   setIsValid,
   user_type,
 }) => {
+  const [userInfo, setUserInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  //const fetch_data = fetchData();
+  // Fetch user data first
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetchData("api/get-user-info");
+        setUserInfo(response.personal_information[0]);
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
+
+  // Create form with a separate reset action after data loads
+  const formMethods = useForm({
+    resolver: yupResolver(getSchema(user_type)),
+    mode: "onChange",
+    defaultValues: {}, // Start with empty defaults
+  });
+
+  // Use reset when userInfo is available
+  useEffect(() => {
+    if (userInfo && !loading) {
+      formMethods.reset(userInfo); // This sets all values at once
+      console.log("Form reset with user data:", userInfo);
+    }
+  }, [userInfo, loading, formMethods]);
+
+  // Destructure after form is created
   const {
     register,
     setValue,
     formState: { errors },
     watch,
-  } = useForm({
-    resolver: yupResolver(getSchema(user_type)),
-    mode: "onChange",
-    defaultValues: 
-      {
-          "_4ps_household_id_no": "98538475",
-          "cellphone_number": "099843208",
-          "civil_status": "Single",
-          "date_of_birth": "Sun, 02 Feb 2025 00:00:00 GMT",
-          "disability": "visual, hearing",
-          "employment_status": "Employed",
-          "first_name": "Edjay",
-          "former_ofw_country": "United Arab Emirates",
-          "former_ofw_country_date_return": "Fri, 28 Feb 2025 00:00:00 GMT",
-          "height": 172.0,
-          "is_4ps_beneficiary": true,
-          "is_former_ofw": true,
-          "is_looking_for_work": true,
-          "is_ofw": true,
-          "is_willing_to_work_immediately": true,
-          "landline_number": null,
-          "last_name": "Lindayao",
-          "middle_name": "Cantero",
-          "ofw_country": "Philippines",
-          "pag_ibig_number": "43242211",
-          "permanent_barangay": null,
-          "permanent_country": "Philippines",
-          "permanent_house_no_street_village": null,
-          "permanent_municipality": null,
-          "permanent_province": "Iloilo",
-          "permanent_zip_code": "5000",
-          "phil_health_no": "87463823",
-          "place_of_birth": "Antique",
-          "religion": "Aglipay",
-          "sex": "Male",
-          "since_when_looking_for_work": "Sat, 01 Feb 2025 00:00:00 GMT",
-          "sss_gsis_number": "5435353",
-          "suffix": "Jr",
-          "temporary_barangay": "Tabuc Suba",
-          "temporary_country": "Philippines",
-          "temporary_house_no_street_village": "Ilaya",
-          "temporary_municipality": "Bangued",
-          "temporary_province": "Abra",
-          "temporary_zip_code": "5000",
-          "tin": "43242344",
-          "valid_id_url": null,
-          "weight": 55.0
-      }
-});
+  } = formMethods;
+
   const [formErrors, setFormErrors] = useState({});
 
   const formData = watch();
@@ -131,11 +120,10 @@ const PersonalInfo = ({
     useState(null);
   const [selectedPermanentMunicipality, setSelectedPermanentMunicipality] =
     useState(null);
-  const [selectedPermanentBarangay, setSelectedPermanentBarangay] = useState(null);
+  const [selectedPermanentBarangay, setSelectedPermanentBarangay] =
+    useState(null);
   //**********
   const [selectedReligion, setSelectedReligion] = useState(null);
-
-
 
   const [fileName, setFileName] = useState("");
   //********** for jobseeker
@@ -152,22 +140,130 @@ const PersonalInfo = ({
   const [fourPs, setFourPs] = useState(null);
 
   //********** for employer
-  const [selectedCompanyClassification, setSelectedCompanyClassification] = useState(null);
+  const [selectedCompanyClassification, setSelectedCompanyClassification] =
+    useState(null);
   const [selectedCompanyIndustry, setSelectedCompanyIndustry] = useState(null);
   const [selectedCompanyType, setSelectedCompanyType] = useState(null);
-  const [selectedCompanyWorkforce, setSelectedCompanyWorkforce] = useState(null);
+  const [selectedCompanyWorkforce, setSelectedCompanyWorkforce] =
+    useState(null);
 
   //********** for academe
   const [selectedInstitutionType, setSelectedInstitutionType] = useState(null);
 
+  const [addressData, setAddressData] = useState({
+    provinces: [],
+    municipalities: [],
+    barangays: [],
+    permanentProvinces: [],
+    permanentMunicipalities: [],
+    permanentBarangays: [],
+  });
 
+  // Address helper functions
+  const getProvinces = () => {
+    return Object.keys(completePHAddressOption)
+      .map((regionId) =>
+        Object.keys(completePHAddressOption[regionId].province_list)
+      )
+      .flat();
+  };
 
+  const getMunicipalities = (selectedProvince) => {
+    if (!selectedProvince) {
+      return [];
+    }
+
+    const municipalities = Object.values(completePHAddressOption).flatMap(
+      (region) => {
+        const provinceData = region.province_list?.[selectedProvince];
+        if (!provinceData) {
+          return [];
+        }
+
+        return provinceData.municipality_list.map((municipalityObj) => {
+          const municipalityName = Object.keys(municipalityObj)[0];
+          return { municipality: municipalityName };
+        });
+      }
+    );
+
+    return municipalities;
+  };
+
+  const getBarangays = (selectedMunicipality) => {
+    if (!selectedMunicipality) {
+      return [];
+    }
+
+    let barangays = [];
+
+    Object.values(completePHAddressOption).forEach((region) => {
+      Object.values(region.province_list || {}).forEach((province) => {
+        province.municipality_list.forEach((municipalityObj) => {
+          const municipalityName = Object.keys(municipalityObj)[0];
+          if (municipalityName === selectedMunicipality) {
+            barangays = municipalityObj[municipalityName].barangay_list;
+          }
+        });
+      });
+    });
+    return barangays;
+  };
+
+  // Address data effect - optimized with conditions
+  useEffect(() => {
+    // Skip if no address selections yet
+    if (
+      (!selectedProvince && !selectedPermanentProvince) ||
+      (!selectedMunicipality && !selectedPermanentMunicipality)
+    )
+      return;
+
+    // Get all provinces once
+    const provinces = getProvinces();
+
+    // Get data for temporary address
+    const municipalities = selectedProvince
+      ? getMunicipalities(selectedProvince).map((item) => item.municipality)
+      : [];
+
+    const barangays = selectedMunicipality
+      ? getBarangays(selectedMunicipality)
+      : [];
+
+    // Get data for permanent address
+    const permanentMunicipalities = selectedPermanentProvince
+      ? getMunicipalities(selectedPermanentProvince).map(
+          (item) => item.municipality
+        )
+      : [];
+
+    const permanentBarangays = selectedPermanentMunicipality
+      ? getBarangays(selectedPermanentMunicipality)
+      : [];
+
+    setAddressData({
+      provinces,
+      municipalities,
+      barangays,
+      permanentProvinces: provinces, // Reuse provinces data
+      permanentMunicipalities,
+      permanentBarangays,
+    });
+  }, [
+    selectedProvince,
+    selectedMunicipality,
+    selectedPermanentProvince,
+    selectedPermanentMunicipality,
+  ]);
+
+  // Form validation and data sync effect
   useEffect(() => {
     // Update validation state
     setIsValid(!Object.keys(errors).length);
-    // If formData is available (assuming API or form data has been fetched already)
-    if (formData) {
 
+    // If formData is available, update all state variables
+    if (formData && Object.keys(formData).length > 0) {
       const {
         temporary_country,
         temporary_province,
@@ -177,7 +273,6 @@ const PersonalInfo = ({
         permanent_province,
         permanent_municipality,
         permanent_barangay,
-
         prefix,
         sex,
         civil_status,
@@ -191,160 +286,52 @@ const PersonalInfo = ({
         is_former_ofw,
         former_ofw_country,
         is_4ps_beneficiary,
-
         company_workforce,
         company_industry,
         company_classification,
         company_type,
-
-        institution_type
+        institution_type,
       } = formData;
 
+      // Set address-related state
       setIsPermanent(is_permanent);
-
       setSelectedCountry(temporary_country);
       setSelectedProvince(temporary_province);
       setSelectedMunicipality(temporary_municipality);
       setSelectedBarangay(temporary_barangay);
-
       setSelectedPermanentCountry(permanent_country);
       setSelectedPermanentProvince(permanent_province);
       setSelectedPermanentMunicipality(permanent_municipality);
       setSelectedPermanentBarangay(permanent_barangay);
 
+      // User type specific state
       if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
         setSelectedPrefix(prefix);
         setSelectedSex(sex);
         setSelectedCivilStatus(civil_status);
         setSelectedReligion(religion);
-
-        setEmploymentStatus(employment_status)
-        setLookingForAWork(is_looking_for_work ? "YES" : "NO")
-        setWillingToWork(is_willing_to_work_immediately ? "YES" : "NO")
-
-        setAnOfw(is_ofw ? "YES" : "NO")
-        setOfwCountry(ofw_country)
-        setFormerOfw(is_former_ofw ? "YES" : "NO")
-        setFormerOfwCountry(former_ofw_country)
-
-        setFourPs(is_4ps_beneficiary ? "YES" : "NO")
+        setEmploymentStatus(employment_status);
+        setLookingForAWork(is_looking_for_work ? "YES" : "NO");
+        setWillingToWork(is_willing_to_work_immediately ? "YES" : "NO");
+        setAnOfw(is_ofw ? "YES" : "NO");
+        setOfwCountry(ofw_country);
+        setFormerOfw(is_former_ofw ? "YES" : "NO");
+        setFormerOfwCountry(former_ofw_country);
+        setFourPs(is_4ps_beneficiary ? "YES" : "NO");
       }
+
       if (user_type === "EMPLOYER") {
-        setSelectedCompanyClassification(company_classification)
-        setSelectedCompanyIndustry(company_industry)
-        setSelectedCompanyType(company_type)
-        setSelectedCompanyWorkforce(company_workforce)
+        setSelectedCompanyClassification(company_classification);
+        setSelectedCompanyIndustry(company_industry);
+        setSelectedCompanyType(company_type);
+        setSelectedCompanyWorkforce(company_workforce);
       }
-      if(user_type === "ACADEME"){
-        setSelectedInstitutionType(institution_type)
+
+      if (user_type === "ACADEME") {
+        setSelectedInstitutionType(institution_type);
       }
     }
-  }, [errors, setIsValid, ]);
-
-  const [addressData, setAddressData] = useState({
-    provinces: [],
-    municipalities: [],
-    barangays: [],
-    permanentProvinces: [],
-    permanentMunicipalities: [],
-    permanentBarangays: [],
-  });
-
-  // Helper functions to fetch provinces, municipalities, and barangays
-  const getProvinces = () => {
-    return Object.keys(completePHAddressOption).map(regionId =>
-      Object.keys(completePHAddressOption[regionId].province_list)
-    ).flat();
-  };
-
-  const getMunicipalities = (selectedProvince) => {
-    if (!selectedProvince) {
-      console.log('No selected province');
-      return [];
-    }
-
-    // Find the province from the completePHAddressOption
-    const municipalities = Object.values(completePHAddressOption)
-      .flatMap(region => {
-        const provinceData = region.province_list?.[selectedProvince];
-        if (!provinceData) {
-          return [];
-        }
-
-        return provinceData.municipality_list.map(municipalityObj => {
-          const municipalityName = Object.keys(municipalityObj)[0]; // Get municipality name
-          return { municipality: municipalityName };
-        });
-      });
-
-    return municipalities;
-  };
-
-  const getBarangays = (selectedMunicipality) => {
-    if (!selectedMunicipality) {
-      console.log('No selected municipality');
-      return [];
-    }
-
-    let barangays = [];
-
-    // Log to confirm that selectedMunicipality is correct
-    console.log(`Searching for barangays in municipality: ${selectedMunicipality}`);
-
-    // Loop through the regions and provinces in the data
-    Object.values(completePHAddressOption).forEach(region => {
-      Object.values(region.province_list || {}).forEach(province => {
-        province.municipality_list.forEach(municipalityObj => {
-          // Extract the municipality name from the object
-          const municipalityName = Object.keys(municipalityObj)[0];
-          // Check if this is the selected municipality
-          if (municipalityName === selectedMunicipality) {
-            barangays = municipalityObj[municipalityName].barangay_list;
-          }
-        });
-      });
-    });
-    return barangays;
-  };
-
-
-  // useEffect to update the addressData state based on selected province/municipality
-  useEffect(() => {
-    if (!selectedProvince || !selectedMunicipality) return;
-
-    const provinceData = getProvinces();
-    const provinces = provinceData;
-
-    const municipalityData = getMunicipalities(selectedProvince);
-    const municipalities = municipalityData.map(item => item.municipality);
-
-    const barangayData = getBarangays(selectedMunicipality);
-    const barangays = barangayData;
-
-    // For permanent values, follow the same process
-    const permanentProvinceData = getProvinces();
-    const permanentProvinces = permanentProvinceData;
-
-    const permanentMunicipalityData = getMunicipalities(selectedPermanentProvince);
-    const permanentMunicipalities = permanentMunicipalityData.map(item => item.municipality);
-
-    const permanentBarangayData = getBarangays(selectedPermanentMunicipality);
-    const permanentBarangays = permanentBarangayData;
-
-    setAddressData({
-      provinces,
-      municipalities,
-      barangays,
-      permanentProvinces,
-      permanentMunicipalities,
-      permanentBarangays,
-    });
-  }, [
-    selectedProvince,
-    selectedMunicipality,
-    selectedPermanentProvince,
-    selectedPermanentMunicipality,
-  ]);
+  }, [errors, user_type]);
 
   const handleFileChange = (event) => {
     if (event.target.files?.[0]) {
@@ -357,16 +344,20 @@ const PersonalInfo = ({
         shouldDirty: true,
         shouldTouch: true,
       });
-      validateForm(getSchema(user_type),watch(), setIsValid,setFormErrors)
+      validateForm(getSchema(user_type), watch(), setIsValid, setFormErrors);
     }
   };
 
-
-
+  if (loading) {
+    return <p>Loading...</p>; // Prevent rendering until data is ready
+  }
   return (
-    <Box sx={{ p: 3 }} onClick={() => {   
-      validateForm(getSchema(user_type),formData, setIsValid, setFormErrors);
-    }}>
+    <Box
+      sx={{ p: 3 }}
+      onClick={() => {
+        validateForm(getSchema(user_type), formData, setIsValid, setFormErrors);
+      }}
+    >
       <Grid container spacing={2}>
         {/* Basic Information */}
         <>
@@ -504,10 +495,12 @@ const PersonalInfo = ({
             </Grid>
             <Grid item xs={12} sm={6}>
               <Autocomplete
-                options={["MICRO ENTERPRISE(<10)",
+                options={[
+                  "MICRO ENTERPRISE(<10)",
                   "SMALL ENTERPRISE(10 - 50)",
                   "MEDIUM-SIZED ENTERPRISE(51 - 250)",
-                  "LARGE ENTERPRISE(>250)"]}
+                  "LARGE ENTERPRISE(>250)",
+                ]}
                 getOptionLabel={(option) => option}
                 value={selectedCompanyWorkforce}
                 onChange={(event, newValue) => {
@@ -526,7 +519,6 @@ const PersonalInfo = ({
                 )}
               />
             </Grid>
-
           </>
         )}
         {user_type === "ACADEME" && (
@@ -547,9 +539,16 @@ const PersonalInfo = ({
 
             <Grid item xs={12} sm={6}>
               <Autocomplete
-                options={["Public Universities", "Private Universities", "Community Colleges",
-                  "Technical Colleges", "Vocational Colleges", "Nursing Schools",
-                  "Special Interest Colleges", "Art Colleges"]}
+                options={[
+                  "Public Universities",
+                  "Private Universities",
+                  "Community Colleges",
+                  "Technical Colleges",
+                  "Vocational Colleges",
+                  "Nursing Schools",
+                  "Special Interest Colleges",
+                  "Art Colleges",
+                ]}
                 getOptionLabel={(option) => option}
                 value={selectedInstitutionType}
                 onChange={(event, newValue) => {
@@ -886,7 +885,9 @@ const PersonalInfo = ({
                 options={addressData.permanentMunicipalities}
                 getOptionLabel={(option) => option}
                 value={selectedPermanentMunicipality}
-                onChange={(event, newValue) => setSelectedPermanentMunicipality(newValue)}
+                onChange={(event, newValue) =>
+                  setSelectedPermanentMunicipality(newValue)
+                }
                 renderInput={(params) => (
                   <TextField
                     {...register("permanent_municipality")}

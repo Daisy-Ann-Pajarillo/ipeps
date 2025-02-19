@@ -4,76 +4,76 @@ export const baseSchema = yup.object().shape({
   first_name: yup.string().required("First name is required"),
   last_name: yup.string().required("Last name is required"),
   cellphone_number: yup
-      .string()
-      .matches(/^[0-9]+$/, "Must be a number")
-      .min(10, "Must be at least 10 digits")
-      .required("Cellphone number is required"),
+    .string()
+    .matches(/^\+?[0-9]+$/, "Must be a valid number")
+    .min(10, "Must be at least 10 digits")
+    .required("Cellphone number is required"),
   permanent: yup.boolean(),
   permanent_country: yup.string().required("Province is required"),
   permanent_province: yup.string().when("country", {
-      is: "Philippines",
-      then: (schema) => schema.required("Province is required"),
-      otherwise: (schema) => schema.notRequired(),
+    is: "Philippines",
+    then: (schema) => schema.required("Province is required"),
+    otherwise: (schema) => schema.notRequired(),
   }),
   permanent_municipality: yup.string().when("country", {
-      is: "Philippines",
-      then: (schema) => schema.required("Municipality is required"),
-      otherwise: (schema) => schema.notRequired(),
+    is: "Philippines",
+    then: (schema) => schema.required("Municipality is required"),
+    otherwise: (schema) => schema.notRequired(),
   }),
   permanent_barangay: yup.string().when("country", {
-      is: "Philippines",
-      then: (schema) => schema.required("Barangay is required"),
-      otherwise: (schema) => schema.notRequired(),
+    is: "Philippines",
+    then: (schema) => schema.required("Barangay is required"),
+    otherwise: (schema) => schema.notRequired(),
   }),
   permanent_zip_code: yup.string().when("country", {
-      is: "Philippines",
-      then: (schema) => schema.required("Zip Code is required"),
-      otherwise: (schema) => schema.notRequired(),
+    is: "Philippines",
+    then: (schema) => schema.required("Zip Code is required"),
+    otherwise: (schema) => schema.notRequired(),
   }),
 
   //////////////----------------------- Permanent Address
   temporary_country: yup.string().when("permanent", {
-      is: false,
-      then: (schema) => schema.required("Permanent Country is required"),
-      otherwise: (schema) => schema.notRequired(),
+    is: false,
+    then: (schema) => schema.required("Permanent Country is required"),
+    otherwise: (schema) => schema.notRequired(),
   }),
   temporary_province: yup.string().when("permanent", {
-      is: false,
-      then: (schema) => schema.required("Permanent Province is required"),
-      otherwise: (schema) => schema.notRequired(),
+    is: false,
+    then: (schema) => schema.required("Permanent Province is required"),
+    otherwise: (schema) => schema.notRequired(),
   }),
   temporary_municipality: yup.string().when("permanent", {
-      is: false,
-      then: (schema) => schema.required("Permanent Municipality is required"),
-      otherwise: (schema) => schema.notRequired(),
+    is: false,
+    then: (schema) => schema.required("Permanent Municipality is required"),
+    otherwise: (schema) => schema.notRequired(),
   }),
   temporary_barangay: yup.string().when("permanent", {
-      is: false,
-      then: (schema) => schema.required("Permanent Barangay is required"),
-      otherwise: (schema) => schema.notRequired(),
+    is: false,
+    then: (schema) => schema.required("Permanent Barangay is required"),
+    otherwise: (schema) => schema.notRequired(),
   }),
   temporary_zip_code: yup.string().when("permanent", {
-      is: false,
-      then: (schema) => schema.required("Permanent Zip Code is required"),
-      otherwise: (schema) => schema.notRequired(),
+    is: false,
+    then: (schema) => schema.required("Permanent Zip Code is required"),
+    otherwise: (schema) => schema.notRequired(),
   }),
   id: yup
-      .mixed()
-      .test("fileSize", "File size is too large", (value) => {
-          if (!value || !value.length) return true;
-          const fileSize = value[0]?.size || 0;
-          const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-          console.log("Testing file size:", fileSize, "Max size:", maxSize);
-          return fileSize <= maxSize;
-      })
-      .test("fileType", "Unsupported file format", (value) => {
-          if (!value || !value.length) return true;
-          const fileType = value[0]?.type || "";
-          const supportedTypes = ["image/jpeg", "image/png", "application/pdf"];
-          console.log("Testing file type:", fileType);
-          return supportedTypes.includes(fileType);
-      })
-      .required("Company ID is required"),
+    .mixed()
+    .test("fileSize", "File size is too large", (value) => {
+      if (!value || !value.length) return true;
+      const fileSize = value[0]?.size || 0;
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      console.log("Testing file size:", fileSize, "Max size:", maxSize);
+      return fileSize <= maxSize;
+    })
+    .test("fileType", "Unsupported file format", (value) => {
+      if (!value || !value.length) return true;
+      const fileType = value[0]?.type || "";
+      const supportedTypes = ["image/jpeg", "image/png", "application/pdf"];
+      console.log("Testing file type:", fileType);
+      return supportedTypes.includes(fileType);
+    })
+    .required("Company ID is required"),
 });
 // Job Seeker-Specific Schema
 export const jobseekerSchema = yup.object().shape({
@@ -85,15 +85,15 @@ export const jobseekerSchema = yup.object().shape({
   weight: yup.number().required("Weight is required"),
   employment_status: yup.string().required("Employment status is required"),
   disability: yup
-      .object()
-      .shape({
-          visual: yup.boolean().nullable(),
-          hearing: yup.boolean().nullable(),
-          speech: yup.boolean().nullable(),
-          physical: yup.boolean().nullable(),
-      })
-      .nullable()
-      .notRequired(),
+    .object()
+    .shape({
+      visual: yup.boolean().nullable(),
+      hearing: yup.boolean().nullable(),
+      speech: yup.boolean().nullable(),
+      physical: yup.boolean().nullable(),
+    })
+    .nullable()
+    .notRequired(),
   // other_disabilities: yup.string().nullable().notRequired(),
   landline_number: yup.string().nullable().notRequired(),
   religion: yup.string().required("Religion is required"),
@@ -105,53 +105,57 @@ export const jobseekerSchema = yup.object().shape({
   //--------------------------------------------
   is_looking_for_work: yup.string().required("Answer is required"),
   since_when_looking_for_work: yup.string().when("is_looking_for_work", {
-      is: "YES",
-      then: (schema) =>
-          schema.required("Please specify since when you are looking for work"),
-      otherwise: (schema) => schema.notRequired(),
+    is: "YES",
+    then: (schema) =>
+      schema.required("Please specify since when you are looking for work"),
+    otherwise: (schema) => schema.notRequired(),
   }),
 
   // OFW Section
   is_ofw: yup.string().required("Answer is required"),
   ofw_country: yup.string().when("is_ofw", {
-      is: "YES",
-      then: (schema) =>
-          schema.required(
-              "Please specify the country where you are working as an OFW"
-          ),
-      otherwise: (schema) => schema.notRequired(),
+    is: "YES",
+    then: (schema) =>
+      schema.required(
+        "Please specify the country where you are working as an OFW"
+      ),
+    otherwise: (schema) => schema.notRequired(),
   }),
 
   // Former OFW Section
   is_former_ofw: yup.string().required("Answer is required"),
   former_ofw_country: yup.string().when("is_former_ofw", {
-      is: "YES",
-      then: (schema) =>
-          schema.required(
-              "Please specify the country where you previously worked as an OFW"
-          ),
-      otherwise: (schema) => schema.notRequired(),
+    is: "YES",
+    then: (schema) =>
+      schema.required(
+        "Please specify the country where you previously worked as an OFW"
+      ),
+    otherwise: (schema) => schema.notRequired(),
   }),
   former_ofw_country_date_return: yup.string().when("is_former_ofw", {
-      is: "YES",
-      then: (schema) => schema.required("Please specify the date of your return"),
-      otherwise: (schema) => schema.notRequired(),
+    is: "YES",
+    then: (schema) => schema.required("Please specify the date of your return"),
+    otherwise: (schema) => schema.notRequired(),
   }),
 
   // 4Ps Beneficiary Section
   is_4ps_beneficiary: yup.string().required("Answer is required"),
   _4ps_household_id_no: yup.string().when("is_4ps_beneficiary", {
-      is: "YES",
-      then: (schema) => schema.required("Please provide your household ID"),
-      otherwise: (schema) => schema.notRequired(),
+    is: "YES",
+    then: (schema) => schema.required("Please provide your household ID"),
+    otherwise: (schema) => schema.notRequired(),
   }),
 });
 // Employer-Specific Schema
 export const employerSchema = yup.object().shape({
-  company_name: yup.string().required("Company / Agency Affiliation is required"),
+  company_name: yup
+    .string()
+    .required("Company / Agency Affiliation is required"),
   company_workforce: yup.string().required("Company Workforce is required"),
   company_industry: yup.string().required("Company Industry is required"),
-  company_classification: yup.string().required("Company Classification is required"),
+  company_classification: yup
+    .string()
+    .required("Company Classification is required"),
   company_type: yup.string().required("Company Type is required"),
 });
 // Academe-Specific Schema
@@ -161,13 +165,18 @@ export const academeSchema = yup.object().shape({
 });
 // Academe Employer Schema Same
 export const employerAcademeSchema = yup.object().shape({
-  email: yup.string().email("Invalid email format").required("Company Email is required"),
+  email: yup
+    .string()
+    .email("Invalid email format")
+    .required("Company Email is required"),
   employer_position: yup.string().required("Employer Position is required"),
   employer_id_number: yup.string().required("Employer ID Number is required"),
-})
+});
 export const jobPreferenceSchema = yup.object().shape({
   industry: yup.string().required("Industry is required"),
-  preferred_occupation: yup.string().required("Preferred Occupation is required"),
+  preferred_occupation: yup
+    .string()
+    .required("Preferred Occupation is required"),
   salary_from: yup
     .number()
     .typeError("Must be a number")
@@ -178,15 +187,17 @@ export const jobPreferenceSchema = yup.object().shape({
     .typeError("Must be a number")
     .min(yup.ref("salary_from"), "Must be greater than 'From' salary")
     .required("Expected salary (to) is required"),
-  country: yup.string().required('Province is required'),
+  country: yup.string().required("Province is required"),
   province: yup.string().when("country", {
     is: "Philippines",
-    then: (jobPreferenceSchema) => jobPreferenceSchema.required("Province is required"),
+    then: (jobPreferenceSchema) =>
+      jobPreferenceSchema.required("Province is required"),
     otherwise: (jobPreferenceSchema) => jobPreferenceSchema.notRequired(),
   }),
   municipality: yup.string().when("country", {
     is: "Philippines",
-    then: (jobPreferenceSchema) => jobPreferenceSchema.required("Municipality is required"),
+    then: (jobPreferenceSchema) =>
+      jobPreferenceSchema.required("Municipality is required"),
     otherwise: (jobPreferenceSchema) => jobPreferenceSchema.notRequired(),
   }),
 });
@@ -206,7 +217,10 @@ export const professionalEligibilitySchema = yup.object().shape({
           .typeError("Rating must be a number")
           .when("name", {
             is: (name) => name === "Civil Service Eligibility",
-            then: (schema) => schema.required("Rating is required for Civil Service Eligibility"),
+            then: (schema) =>
+              schema.required(
+                "Rating is required for Civil Service Eligibility"
+              ),
             otherwise: (schema) => schema.nullable(),
           }),
         valid_until: yup
@@ -215,8 +229,10 @@ export const professionalEligibilitySchema = yup.object().shape({
           .typeError("Valid Until must be a valid date")
           .when("name", {
             is: (name) => name === "PRC Professional License",
-            then: (schema) => 
-              schema.required("Valid Until is required for PRC Professional License"),
+            then: (schema) =>
+              schema.required(
+                "Valid Until is required for PRC Professional License"
+              ),
             otherwise: (schema) => schema.nullable(),
           })
           .test(
@@ -287,20 +303,28 @@ export const languageProficiencySchema = yup.object().shape({
   language_proficiency: yup
     .array()
     .of(
-      yup.object().shape({
-        language: yup.string().required("Language is required"),
-        can_read: yup.boolean().default(false),
-        can_write: yup.boolean().default(false),
-        can_speak: yup.boolean().default(false),
-        can_understand: yup.boolean().default(false),
-      }).test(
-        "at-least-one-skill",
-        "At least one skill (Read, Write, Speak, Understand) must be selected",
-        (value) => {
-          if (!value) return false;
-          return value.can_read || value.can_write || value.can_speak || value.can_understand;
-        }
-      )
+      yup
+        .object()
+        .shape({
+          language: yup.string().required("Language is required"),
+          can_read: yup.boolean().default(false),
+          can_write: yup.boolean().default(false),
+          can_speak: yup.boolean().default(false),
+          can_understand: yup.boolean().default(false),
+        })
+        .test(
+          "at-least-one-skill",
+          "At least one skill (Read, Write, Speak, Understand) must be selected",
+          (value) => {
+            if (!value) return false;
+            return (
+              value.can_read ||
+              value.can_write ||
+              value.can_speak ||
+              value.can_understand
+            );
+          }
+        )
     )
     .min(1, "At least one language is required")
     .required(),
@@ -314,7 +338,7 @@ export const otherSkillsSchema = yup.object().shape({
     .array()
     .of(
       yup.object().shape({
-        skills: yup.string().required()
+        skills: yup.string().required(),
       })
     )
     .max(50, "Maximum 50 additional skills allowed"),

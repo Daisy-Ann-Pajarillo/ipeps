@@ -15,8 +15,8 @@ import {
 } from "@mui/material";
 import BackNextButton from "../backnextButton";
 import fieldOfStudyTypes from "../../../reusable/constants/fieldOfStudyTypes";
-import { educationalBackgroundSchema } from "../schema/schema"
-
+import { educationalBackgroundSchema } from "../schema/schema";
+import fetchData from "../api/fetchData";
 
 const degreeOptions = [
   "Elementary",
@@ -37,6 +37,25 @@ const EducationalBackground = ({
   setIsValid,
   user_type,
 }) => {
+  const [educationBackground, setEducationBackground] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user data first
+  useEffect(() => {
+    const fetchEducation = async () => {
+      try {
+        const response = await fetchData("api/get-user-info");
+        setEducationBackground(response.educational_background || []);
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEducation();
+  }, []);
+
+  // Initialize form with default values
   const {
     register,
     setValue,
@@ -47,32 +66,33 @@ const EducationalBackground = ({
     resolver: yupResolver(educationalBackgroundSchema),
     mode: "onChange",
     defaultValues: {
-      educationHistory: [
-        {
-          school_name: "",
-          degree_or_qualification: "",
-          date_from: "",
-          date_to: "",
-          is_current: false,
-          field_of_study: "",
-          program_duration: "",
-        },
-      ],
+      educational_background: [],
     },
   });
 
-  const [educationHistory, setEducationHistory] = useState(
-    getValues("educationHistory")
-  );
-
   // Watch for changes in the form
-  const watchEducationHistory = watch("educationHistory");
+  const watchEducationHistory = watch("educational_background");
+
+  // State to track education history
+  const [educationHistory, setEducationHistory] = useState(
+    getValues("educational_background")
+  );
 
   // Update state when form values change
   useEffect(() => {
     setEducationHistory(watchEducationHistory || []);
   }, [watchEducationHistory]);
 
+  // Populate form with fetched educationBackground data
+  useEffect(() => {
+    if (educationBackground && !loading) {
+      setValue("educational_background", educationBackground, {
+        shouldValidate: true,
+      });
+    }
+  }, [educationBackground, loading, setValue]);
+
+  // Add a new education entry
   const addEducation = () => {
     const newEntry = {
       school_name: "",
@@ -83,20 +103,20 @@ const EducationalBackground = ({
       field_of_study: "",
       program_duration: "",
     };
-
     const updatedEducationHistory = [...educationHistory, newEntry];
     setEducationHistory(updatedEducationHistory);
-    setValue("educationHistory", updatedEducationHistory, {
+    setValue("educational_background", updatedEducationHistory, {
       shouldValidate: false,
     });
   };
 
+  // Remove an education entry
   const removeEducation = (index) => {
     const updatedEducationHistory = educationHistory.filter(
       (_, idx) => idx !== index
     );
     setEducationHistory(updatedEducationHistory);
-    setValue("educationHistory", updatedEducationHistory, {
+    setValue("educational_background", updatedEducationHistory, {
       shouldValidate: true,
     });
   };
@@ -106,16 +126,22 @@ const EducationalBackground = ({
     const updatedHistory = [...educationHistory];
     updatedHistory[index].is_current = checked;
     if (checked) {
-      updatedHistory[index].date_to = null;
+      updatedHistory[index].date_to = null; // Clear end date if "Currently Attending"
     }
     setEducationHistory(updatedHistory);
-    setValue(`educationHistory.${index}.is_current`, checked);
-    setValue(`educationHistory.${index}.date_to`, null);
+    setValue(`educational_background.${index}.is_current`, checked);
+    setValue(`educational_background.${index}.date_to`, null);
   };
 
+  // Update overall form validity
   useEffect(() => {
     setIsValid(formIsValid && educationHistory.length > 0);
-  }, [formIsValid, setIsValid, educationHistory]);
+  }, [formIsValid, educationHistory]);
+
+  // Loading state
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -132,16 +158,18 @@ const EducationalBackground = ({
               fullWidth
               required
               label="School Name"
-              {...register(`educationHistory.${index}.school_name`)}
+              {...register(`educational_background.${index}.school_name`)}
               error={!!errors.educationHistory?.[index]?.school_name}
-              helperText={errors.educationHistory?.[index]?.school_name?.message}
+              helperText={
+                errors.educationHistory?.[index]?.school_name?.message
+              }
             />
           </Grid>
 
           <Grid item xs={6}>
             <TextField
               fullWidth
-              {...register(`educationHistory.${index}.date_from`)}
+              {...register(`educational_background.${index}.date_from`)}
               label="Date From"
               type="date"
               required
@@ -154,7 +182,7 @@ const EducationalBackground = ({
           <Grid item xs={6}>
             <TextField
               fullWidth
-              {...register(`educationHistory.${index}.date_to`)}
+              {...register(`educational_background.${index}.date_to`)}
               label="Date To"
               type="date"
               disabled={item.is_current}
@@ -182,8 +210,12 @@ const EducationalBackground = ({
             <FormControl fullWidth required>
               <InputLabel>Degree or Qualification</InputLabel>
               <Select
-                {...register(`educationHistory.${index}.degree_or_qualification`)}
-                error={!!errors.educationHistory?.[index]?.degree_or_qualification}
+                {...register(
+                  `educational_background.${index}.degree_or_qualification`
+                )}
+                error={
+                  !!errors.educationHistory?.[index]?.degree_or_qualification
+                }
               >
                 {degreeOptions.map((option) => (
                   <MenuItem key={option} value={option}>
@@ -192,7 +224,10 @@ const EducationalBackground = ({
                 ))}
               </Select>
               <p className="text-red-500 text-sm">
-                {errors.educationHistory?.[index]?.degree_or_qualification?.message}
+                {
+                  errors.educationHistory?.[index]?.degree_or_qualification
+                    ?.message
+                }
               </p>
             </FormControl>
           </Grid>
@@ -201,7 +236,7 @@ const EducationalBackground = ({
             <FormControl fullWidth>
               <InputLabel>Field of Study</InputLabel>
               <Select
-                {...register(`educationHistory.${index}.field_of_study`)}
+                {...register(`educational_background.${index}.field_of_study`)}
                 error={!!errors.educationHistory?.[index]?.field_of_study}
               >
                 {fieldOfStudyTypes.map((option) => (
@@ -220,7 +255,7 @@ const EducationalBackground = ({
             <TextField
               fullWidth
               required
-              {...register(`educationHistory.${index}.program_duration`)}
+              {...register(`educational_background.${index}.program_duration`)}
               label="Program Duration (Years)"
               type="number"
               error={!!errors.educationHistory?.[index]?.program_duration}
