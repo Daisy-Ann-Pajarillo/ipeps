@@ -202,51 +202,50 @@ export const jobPreferenceSchema = yup.object().shape({
   }),
 });
 export const professionalEligibilitySchema = yup.object().shape({
-  professional_license: yup
-    .array()
-    .of(
-      yup.object().shape({
-        type: yup.string().required("Eligibility Type is required"),
-        name: yup.string().required("Name is required"),
-        date: yup
-          .date()
-          .typeError("Date must be a valid date")
-          .required("Date is required"),
-        rating: yup
-          .number()
-          .typeError("Rating must be a number")
-          .when("name", {
-            is: (name) => name === "Civil Service Eligibility",
-            then: (schema) =>
-              schema.required(
-                "Rating is required for Civil Service Eligibility"
-              ),
-            otherwise: (schema) => schema.nullable(),
-          }),
-        valid_until: yup
-          .date()
-          .nullable()
-          .typeError("Valid Until must be a valid date")
-          .when("name", {
-            is: (name) => name === "PRC Professional License",
-            then: (schema) =>
-              schema.required(
-                "Valid Until is required for PRC Professional License"
-              ),
-            otherwise: (schema) => schema.nullable(),
-          })
-          .test(
-            "valid-until-greater",
-            "Valid Until must be greater than Date",
-            function (validUntil) {
-              const { date } = this.parent; // Get the `date` field
-              return !validUntil || !date || validUntil > date; // Pass if `validUntil` is greater than `date`
-            }
-          ),
-      })
-    )
-    .required("At least one professional license is required"),
+  professional_license: yup.array().of(
+    yup.object().shape({
+      license: yup.string()
+        .required('License type is required')
+        .oneOf(
+          ['Civil Service Eligibility', 'PRC Professional License'],
+          'Select a valid license type'
+        ),
+      name: yup.string()
+        .required('Name is required')
+        .min(2, 'Name must be at least 2 characters'),
+      date: yup.date()
+        .required('Date is required')
+        .max(new Date(), 'Date cannot be in the future')
+        .typeError('Please enter a valid date'),
+      // Conditional validation based on license type
+      rating: yup.mixed()
+        .when('license', {
+          is: 'Civil Service Eligibility',
+          then: (schema) =>
+            yup.number()
+              .required('Rating is required')
+              .min(0, 'Rating must be a positive number')
+              .max(100, 'Rating cannot exceed 100')
+              .typeError('Rating must be a number'),
+          otherwise: (schema) => schema.nullable()
+        }),
+      valid_until: yup.mixed()
+        .when('license', {
+          is: 'PRC Professional License',
+          then: (schema) =>
+            yup.date()
+              .required('Valid until date is required')
+              .min(new Date(), 'Expiration date must be in the future')
+              .typeError('Please enter a valid date'),
+          otherwise: (schema) => schema.nullable()
+        })
+    })
+  )
+    .min(1, 'At least one professional license or eligibility is required')
+    .default([])
 });
+
+// Custom va
 
 // Updated validation schema to match form fields
 export const educationalBackgroundSchema = yup.object().shape({
@@ -270,14 +269,16 @@ export const educationalBackgroundSchema = yup.object().shape({
         .when("date_from", (date_from, schema) =>
           date_from
             ? schema
-                .test(
-                  "end-date-after-start",
-                  "End date must be after start date",
-                  (date_to) =>
-                    !date_to ||
-                    (date_from && new Date(date_to) > new Date(date_from))
-                )
-                .max(new Date(), "End date cannot be in the future")
+              .test(
+                "end-date-after-start",
+                "End date must be after start date",
+                function (value) {
+                  const { date_from, date_to } = this.parent; // `this.parent` gives access to the form values for this validation
+                  if (!date_to || !date_from) return true; // Skip validation if either date is not set
+                  return new Date(date_to) > new Date(date_from); // Check if `date_to` is after `date_from`
+                }
+              )
+              .max(new Date(), "End date cannot be in the future")
             : schema
         )
         .transform((value, originalValue) =>
@@ -286,10 +287,7 @@ export const educationalBackgroundSchema = yup.object().shape({
       is_current: yup.boolean().default(false),
       field_of_study: yup
         .string()
-        .nullable() // ✅ Made optional (no required rule)
-        .transform((value, originalValue) =>
-          originalValue === "" ? null : value
-        ), // Optional and handles empty strings
+        .required(),
       major: yup.string().nullable(),
       program_duration: yup
         .number()
@@ -359,8 +357,8 @@ export const otherTrainingsSchema = yup.object().shape({
         .when("start_date", (start_date, schema) =>
           start_date
             ? schema
-                .min(yup.ref("start_date"), "End date must be after start date")
-                .max(new Date(), "End date cannot be in the future")
+              .min(yup.ref("start_date"), "End date must be after start date")
+              .max(new Date(), "End date cannot be in the future")
             : schema
         )
         .transform((value, originalValue) =>
@@ -369,7 +367,9 @@ export const otherTrainingsSchema = yup.object().shape({
       training_institution: yup
         .string()
         .required("Training Institution is required"),
-      certificates_received: yup.string(),
+      certificates_received: yup
+        .string()
+        .required("Certificate Received is required"),
       hours_of_training: yup
         .number()
         .required("Hours of Training is required")
@@ -402,14 +402,14 @@ export const workExperienceSchema = yup.object().shape({
           .when("date_start", (date_start, schema) =>
             date_start
               ? schema
-                  .test(
-                    "end-date-after-start",
-                    "End date must be after start date",
-                    (date_end) =>
-                      !date_end ||
-                      (date_start && new Date(date_end) > new Date(date_start))
-                  )
-                  .max(new Date(), "End date cannot be in the future")
+                .test(
+                  "end-date-after-start",
+                  "End date must be after start date",
+                  (date_end) =>
+                    !date_end ||
+                    (date_start && new Date(date_end) > new Date(date_start))
+                )
+                .max(new Date(), "End date cannot be in the future")
               : schema
           )
           .transform((value, originalValue) =>

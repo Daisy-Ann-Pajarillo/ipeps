@@ -65,7 +65,7 @@ const PersonalInfo = ({
     const fetchUserInfo = async () => {
       try {
         const response = await fetchData("api/get-user-info");
-        setUserInfo(response.personal_information[0]);
+        setUserInfo(response.personal_info[0]);
       } catch (error) {
         console.error("Error fetching user info:", error);
       } finally {
@@ -234,8 +234,8 @@ const PersonalInfo = ({
     // Get data for permanent address
     const permanentMunicipalities = selectedPermanentProvince
       ? getMunicipalities(selectedPermanentProvince).map(
-          (item) => item.municipality
-        )
+        (item) => item.municipality
+      )
       : [];
 
     const permanentBarangays = selectedPermanentMunicipality

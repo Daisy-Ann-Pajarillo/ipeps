@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import BackNextButton from "../backnextButton";
 import { otherSkillsSchema } from "../schema/schema"
-
+import fetchData from "../api/fetchData";
 const OtherSkills = ({
   activeStep,
   steps,
@@ -23,25 +23,45 @@ const OtherSkills = ({
   setIsValid,
   user_type,
 }) => {
+  const [otherSkills, setOtherSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user work experience data
+  useEffect(() => {
+    const fetchOtherSkills = async () => {
+      try {
+        const response = await fetchData("api/get-user-info");
+        setOtherSkills(response.other_skills || []);
+      } catch (error) {
+        console.error("Error fetching user work experience:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOtherSkills();
+  }, []);
+
+
   const { register, setValue, watch } = useForm({
     resolver: yupResolver(otherSkillsSchema),
     mode: "onChange",
     defaultValues: {
       skills: [],
-      other_skills: [
-        { skills: "beautician" },
-        { skills: "carpentry" },
-        { skills: "embroidery" },
-        { skills: "Sample skill" },
-        { skills: "auto mechanic" },
-        { skills: "gardening" },
-        { skills: "Sample" }
-      ],
+      other_skills: [],
     },
   });
 
   const skills = watch("skills");
   const other_skills = watch("other_skills");
+
+  // Update form values with fetched data when loading is done
+  useEffect(() => {
+    if (otherSkills && !loading) {
+      setValue("other_skills", otherSkills, {
+        shouldValidate: true,
+      });
+    }
+  }, [loading, otherSkills, setValue]);
 
   // Predefined skills list
   const predefinedSkills = [
@@ -140,6 +160,11 @@ const OtherSkills = ({
     }
   }, []);
 
+  // Loading state
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+  
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>

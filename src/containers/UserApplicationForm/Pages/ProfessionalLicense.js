@@ -5,7 +5,6 @@ import { Box, Grid, TextField, Button, Autocomplete } from "@mui/material";
 import BackNextButton from "../backnextButton";
 import fetchData from "../api/fetchData";
 import { professionalEligibilitySchema } from "../schema/schema";
-import validateForm from "../schema/validateForm";
 
 const eligibilityTypeOptions = [
   "Civil Service Eligibility",
@@ -23,7 +22,6 @@ const EligibilityProfessionalLicense = ({
 }) => {
   const [professionalLicenses, setProfessionalLicenses] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [formErrors, setFormErrors] = useState({});
 
   // Fetch user data first
   useEffect(() => {
@@ -44,7 +42,6 @@ const EligibilityProfessionalLicense = ({
     register,
     watch,
     setValue,
-    getValues,
     control,
     formState: { errors, isValid: formIsValid },
   } = useForm({
@@ -69,14 +66,9 @@ const EligibilityProfessionalLicense = ({
   // Validate form when license history changes
   useEffect(() => {
     if (!loading) {
-      validateForm(
-        professionalEligibilitySchema,
-        { professional_license },
-        setIsValid,
-        setFormErrors
-      );
+      setIsValid(formIsValid); // Automatically updates when form is valid
     }
-  }, [professional_license, loading, setIsValid]);
+  }, [professional_license, loading, formIsValid, setIsValid]);
 
   const addEligibility = () => {
     const newEligibility = {
@@ -119,7 +111,7 @@ const EligibilityProfessionalLicense = ({
   }
 
   return (
-    <Box sx={{ p: 3 }} onChange={() => validateForm(professionalEligibilitySchema, { professional_license }, setIsValid, setFormErrors)}>
+    <Box sx={{ p: 3 }}>
       <Grid container>
         {professional_license.map((eligibility, index) => (
           <Box key={index} sx={{ marginBottom: 5, width: "100%" }}>
@@ -143,8 +135,8 @@ const EligibilityProfessionalLicense = ({
                           {...params}
                           label="Select License"
                           required
-                          error={Boolean(formErrors?.[index]?.license)}
-                          helperText={formErrors?.[index]?.license || ""}
+                          error={!!errors?.professional_license?.[index]?.license}
+                          helperText={errors?.professional_license?.[index]?.license?.message || ""}
                         />
                       )}
                     />
@@ -159,8 +151,8 @@ const EligibilityProfessionalLicense = ({
                   required
                   label="Name"
                   {...register(`professional_license.${index}.name`)}
-                  error={Boolean(formErrors?.[index]?.name)}
-                  helperText={formErrors?.[index]?.name || ""}
+                  error={!!errors?.professional_license?.[index]?.name}
+                  helperText={errors?.professional_license?.[index]?.name?.message || ""}
                 />
               </Grid>
 
@@ -173,8 +165,8 @@ const EligibilityProfessionalLicense = ({
                   type="date"
                   InputLabelProps={{ shrink: true }}
                   {...register(`professional_license.${index}.date`)}
-                  error={Boolean(formErrors?.[index]?.date)}
-                  helperText={formErrors?.[index]?.date || ""}
+                  error={!!errors?.professional_license?.[index]?.date}
+                  helperText={errors?.professional_license?.[index]?.date?.message || ""}
                 />
               </Grid>
 
@@ -188,8 +180,8 @@ const EligibilityProfessionalLicense = ({
                     type="number"
                     inputProps={{ step: "0.01" }}
                     {...register(`professional_license.${index}.rating`)}
-                    error={Boolean(formErrors?.[index]?.rating)}
-                    helperText={formErrors?.[index]?.rating || ""}
+                    error={!!errors?.professional_license?.[index]?.rating}
+                    helperText={errors?.professional_license?.[index]?.rating?.message || ""}
                   />
                 </Grid>
               )}
@@ -204,8 +196,8 @@ const EligibilityProfessionalLicense = ({
                     type="date"
                     InputLabelProps={{ shrink: true }}
                     {...register(`professional_license.${index}.valid_until`)}
-                    error={Boolean(formErrors?.[index]?.valid_until)}
-                    helperText={formErrors?.[index]?.valid_until || ""}
+                    error={!!errors?.professional_license?.[index]?.valid_until}
+                    helperText={errors?.professional_license?.[index]?.valid_until?.message || ""}
                   />
                 </Grid>
               )}
@@ -248,7 +240,7 @@ const EligibilityProfessionalLicense = ({
         setIsValid={setIsValid}
         schema={professionalEligibilitySchema}
         canSkip={true}
-        formData={professional_license}
+        formData={{ professional_license }}
         user_type={user_type}
         api={"professional-license"}
       />

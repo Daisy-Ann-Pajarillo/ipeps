@@ -26,7 +26,7 @@ import JobPreference from "./Pages/JobPreference";
 import LanguageDialectProficiency from "./Pages/LanguageDialectProficiency";
 import EducationalBackground from "./Pages/EducationalBackground";
 import OtherTraining from "./Pages/OtherTraining";
-import EligibilityProfessionalLicense from "./Pages/EligibilityProfessionalLicense";
+import ProfessionalLicense from "./Pages/ProfessionalLicense";
 import WorkExperience from "./Pages/WorkExperience";
 import OtherSkills from "./Pages/OtherSkills";
 import ReviewApplication from "./Pages/ReviewApplication";
@@ -37,7 +37,7 @@ const stepsForJobseekers = [
   { label: "Language Proficiency", component: LanguageDialectProficiency },
   { label: "Educational Background", component: EducationalBackground },
   { label: "Other Training", component: OtherTraining },
-  { label: "Professional License", component: EligibilityProfessionalLicense },
+  { label: "Professional License", component: ProfessionalLicense },
   { label: "Work Experience", component: WorkExperience },
   { label: "Other Skills", component: OtherSkills },
   { label: "Review", component: ReviewApplication },

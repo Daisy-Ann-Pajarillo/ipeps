@@ -1,11 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { TextField, Button, Grid, Box } from "@mui/material";
-
+import { otherTrainingsSchema } from "../schema/schema";
+import fetchData from "../api/fetchData";
 import BackNextButton from "../backnextButton";
-import {otherTrainingsSchema} from "../schema/schema"
-
 
 const OtherTraining = ({
   activeStep,
@@ -16,6 +15,24 @@ const OtherTraining = ({
   setIsValid,
   user_type,
 }) => {
+  const [otherTrainings, setOtherTrainings] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user data first
+  useEffect(() => {
+    const fetchOtherTrainings = async () => {
+      try {
+        const response = await fetchData("api/get-user-info");
+        setOtherTrainings(response.other_training || []);
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOtherTrainings();
+  }, []);
+
   const {
     register,
     setValue,
@@ -26,38 +43,21 @@ const OtherTraining = ({
     resolver: yupResolver(otherTrainingsSchema),
     mode: "onChange",
     defaultValues: {
-      other_training:[ 
-        {
-            "certificates_received": "Sample 1 Cert",
-            "course_name": "Sample 1",
-            "credential_id": "kflksng 1",
-            "credential_url": "https://www.facebook.com/",
-            "end_date": "Tue, 11 Feb 2025 00:00:00 GMT",
-            "hours_of_training": 3,
-            "skills_acquired": "Sample 1 Skill ",
-            "start_date": "Mon, 03 Feb 2025 00:00:00 GMT",
-            "training_institution": "Sample 1 Institution"
-        },
-        {
-            "certificates_received": "Sample 2 Cert ",
-            "course_name": "Sample 2",
-            "credential_id": "2342342",
-            "credential_url": "https://www.facebook.com/",
-            "end_date": "Mon, 10 Feb 2025 00:00:00 GMT",
-            "hours_of_training": 2,
-            "skills_acquired": "Sample 2 Skills",
-            "start_date": "Sat, 01 Feb 2025 00:00:00 GMT",
-            "training_institution": "Sample 2"
-        }
-    ]
+      other_training: [],
     },
   });
 
   // Use watch to dynamically track changes in other_training
-  const other_training = watch(
-    "other_training",
-    getValues("other_training")
-  );
+  const other_training = watch("other_training", getValues("other_training"));
+
+  // Populate form with fetched data
+  useEffect(() => {
+    if (otherTrainings && !loading) {
+      setValue("other_training", otherTrainings, {
+        shouldValidate: true,
+      });
+    }
+  }, [loading, setValue, otherTrainings]);
 
   const addTrainingHistory = () => {
     const newEntry = {
@@ -89,9 +89,14 @@ const OtherTraining = ({
     });
   };
 
+  // Update isValid state based on form validation and other_training length
   useEffect(() => {
     setIsValid(formIsValid && other_training.length > 0);
   }, [formIsValid, setIsValid, other_training]);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <Box sx={{ p: 3 }}>
@@ -105,10 +110,8 @@ const OtherTraining = ({
                   label="Course Name"
                   fullWidth
                   required
-                  error={!!errors.other_training?.[index]?.course_name}
-                  helperText={
-                    errors.other_training?.[index]?.course_name?.message
-                  }
+                  error={!!errors?.other_training?.[index]?.course_name}
+                  helperText={errors?.other_training?.[index]?.course_name?.message}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -119,10 +122,8 @@ const OtherTraining = ({
                   fullWidth
                   required
                   InputLabelProps={{ shrink: true }}
-                  error={!!errors.other_training?.[index]?.start_date}
-                  helperText={
-                    errors.other_training?.[index]?.start_date?.message
-                  }
+                  error={!!errors?.other_training?.[index]?.start_date}
+                  helperText={errors?.other_training?.[index]?.start_date?.message}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -132,8 +133,8 @@ const OtherTraining = ({
                   label="End Date"
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-                  error={!!errors.other_training?.[index]?.end_date}
-                  helperText={errors.other_training?.[index]?.end_date?.message}
+                  error={!!errors?.other_training?.[index]?.end_date}
+                  helperText={errors?.other_training?.[index]?.end_date?.message}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -142,11 +143,8 @@ const OtherTraining = ({
                   label="Training Institution"
                   fullWidth
                   required
-                  error={!!errors.other_training?.[index]?.training_institution}
-                  helperText={
-                    errors.other_training?.[index]?.training_institution
-                      ?.message
-                  }
+                  error={!!errors?.other_training?.[index]?.training_institution}
+                  helperText={errors?.other_training?.[index]?.training_institution?.message}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -155,6 +153,8 @@ const OtherTraining = ({
                   label="Certificates Received"
                   fullWidth
                   required
+                  error={!!errors?.other_training?.[index]?.certificates_received}
+                  helperText={errors?.other_training?.[index]?.certificates_received?.message}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -164,10 +164,8 @@ const OtherTraining = ({
                   label="Hours of Training"
                   fullWidth
                   required
-                  error={!!errors.other_training?.[index]?.hours_of_training}
-                  helperText={
-                    errors.other_training?.[index]?.hours_of_training?.message
-                  }
+                  error={!!errors?.other_training?.[index]?.hours_of_training}
+                  helperText={errors?.other_training?.[index]?.hours_of_training?.message}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -175,10 +173,8 @@ const OtherTraining = ({
                   {...register(`other_training.${index}.skills_acquired`)}
                   label="Skills Acquired"
                   fullWidth
-                  error={!!errors.other_training?.[index]?.skills_acquired}
-                  helperText={
-                    errors.other_training?.[index]?.skills_acquired?.message
-                  }
+                  error={!!errors?.other_training?.[index]?.skills_acquired}
+                  helperText={errors?.other_training?.[index]?.skills_acquired?.message}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -193,25 +189,21 @@ const OtherTraining = ({
                   {...register(`other_training.${index}.credential_url`)}
                   label="Credential URL"
                   fullWidth
-                  error={!!errors.other_training?.[index]?.credential_url}
-                  helperText={
-                    errors.other_training?.[index]?.credential_url?.message
-                  }
+                  error={!!errors?.other_training?.[index]?.credential_url}
+                  helperText={errors?.other_training?.[index]?.credential_url?.message}
                 />
               </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12}>
             {other_training.length > 1 && (
-              <Grid item xs={12}>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => removeTrainingHistory(index)}
-                >
-                  Remove Entry
-                </Button>
-              </Grid>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => removeTrainingHistory(index)}
+              >
+                Remove Entry
+              </Button>
             )}
           </Grid>
         </Grid>

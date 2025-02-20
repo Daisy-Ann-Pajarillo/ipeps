@@ -140,7 +140,7 @@ const JobPreference = ({
       setSelectedIndustry(industry);
     }
   }, [errors]);
-  
+
   if (loading) {
     return <p>Loading...</p>; // Prevent rendering until data is ready
   }
@@ -247,6 +247,7 @@ const JobPreference = ({
                 label="Industry"
                 variant="outlined"
                 fullWidth
+                {...register("industry")}
                 error={formErrors.industry}
                 helperText={formErrors.industry}
               />

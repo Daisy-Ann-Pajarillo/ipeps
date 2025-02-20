@@ -149,7 +149,7 @@ const App = (props) => {
             element={
               <UserApplicationForm
                 //user_type = {props.auth.user.user_type}
-                user_type="STUDENT"
+                user_type="ACADEME"
               />
             }
           />
