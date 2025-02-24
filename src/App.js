@@ -19,6 +19,7 @@ import { connect } from "react-redux";
 
 import HelloStudent from "./hello-student";
 import HelloJobseeker from "./hello-jobseeker";
+import Dashboard from "./containers/Dashboard/Dashboard";
 
 const loading = (
   <div className="pt-3 text-center">
@@ -152,6 +153,10 @@ const App = (props) => {
                 user_type="JOBSEEKER"
               />
             }
+          />
+          <Route
+            path="dashboard/*"
+            element={<Dashboard user_type={"EMPLOYER"} />}
           />
           {/* <Route
             path="/employer-application-form"
