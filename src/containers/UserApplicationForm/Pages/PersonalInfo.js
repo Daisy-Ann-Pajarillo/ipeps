@@ -31,7 +31,6 @@ import {
   employerAcademeSchema,
   jobseekerSchema,
 } from "../schema/schema";
-import validateForm from "../schema/validateForm";
 import axios from "../../../axios";
 
 // Dynamic Schema Based on User Type
@@ -101,7 +100,6 @@ const PersonalInfo = ({
     watch,
   } = formMethods;
 
-  const [formErrors, setFormErrors] = useState({});
 
   const formData = watch();
 
@@ -175,6 +173,10 @@ const PersonalInfo = ({
       return [];
     }
 
+    const toTitleCase = (str) => {
+      return str.replace(/\b\w/g, (char) => char.toUpperCase());
+    };
+
     const municipalities = Object.values(completePHAddressOption).flatMap(
       (region) => {
         const provinceData = region.province_list?.[selectedProvince];
@@ -183,14 +185,19 @@ const PersonalInfo = ({
         }
 
         return provinceData.municipality_list.map((municipalityObj) => {
-          const municipalityName = Object.keys(municipalityObj)[0];
+          let municipalityName = Object.keys(municipalityObj)[0];
+
+          // Convert to Title Case (capitalize first letter of each word)
+          municipalityName = toTitleCase(municipalityName.toLowerCase());
+
           return { municipality: municipalityName };
         });
       }
     );
 
-    return municipalities;
+    return municipalities.sort((a, b) => a.municipality.localeCompare(b.municipality));
   };
+
 
   const getBarangays = (selectedMunicipality) => {
     if (!selectedMunicipality) {
@@ -236,8 +243,8 @@ const PersonalInfo = ({
     // Get data for permanent address
     const permanentMunicipalities = selectedPermanentProvince
       ? getMunicipalities(selectedPermanentProvince).map(
-          (item) => item.municipality
-        )
+        (item) => item.municipality
+      )
       : [];
 
     const permanentBarangays = selectedPermanentMunicipality
@@ -346,7 +353,6 @@ const PersonalInfo = ({
         shouldDirty: true,
         shouldTouch: true,
       });
-      validateForm(getSchema(user_type), watch(), setIsValid, setFormErrors);
     }
   };
 
@@ -356,9 +362,6 @@ const PersonalInfo = ({
   return (
     <Box
       sx={{ p: 3 }}
-      onClick={() => {
-        validateForm(getSchema(user_type), formData, setIsValid, setFormErrors);
-      }}
     >
       <Grid container spacing={2}>
         {/* Basic Information */}
@@ -378,8 +381,8 @@ const PersonalInfo = ({
                   variant="outlined"
                   required
                   {...register("prefix")}
-                  error={formErrors.prefix}
-                  helperText={formErrors.prefix}
+                  error={!!errors?.prefix}
+                  helperText={errors?.prefix?.message}
                 />
               )}
             />
@@ -390,8 +393,8 @@ const PersonalInfo = ({
               required
               label="First Name"
               {...register("first_name")}
-              error={formErrors.first_name}
-              helperText={formErrors.first_name}
+              error={!!errors?.first_name}
+              helperText={errors?.first_name?.message}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -399,8 +402,8 @@ const PersonalInfo = ({
               fullWidth
               label="Middle Name"
               {...register("middle_name")}
-              error={formErrors.middle_name}
-              helperText={formErrors.middle_name}
+              error={!!errors?.middle_name}
+              helperText={errors?.middle_name?.message}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -409,8 +412,8 @@ const PersonalInfo = ({
               required
               label="Last Name"
               {...register("last_name")}
-              error={formErrors.last_name}
-              helperText={formErrors.last_name}
+              error={!!errors?.last_name}
+              helperText={errors?.last_name?.message}
             />
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -427,8 +430,8 @@ const PersonalInfo = ({
                 label="Company / Agency Affiliation"
                 {...register("company_name")}
                 required
-                error={formErrors.company_name}
-                helperText={formErrors.company_name}
+                error={!!errors?.company_name}
+                helperText={errors?.company_name?.message}
               />
             </Grid>
 
@@ -447,8 +450,8 @@ const PersonalInfo = ({
                     variant="outlined"
                     required
                     {...register("company_type")}
-                    error={formErrors.company_type}
-                    helperText={formErrors.company_type}
+                    error={!!errors?.company_type}
+                    helperText={errors?.company_type?.message}
                   />
                 )}
               />
@@ -468,8 +471,8 @@ const PersonalInfo = ({
                     variant="outlined"
                     required
                     {...register("company_classification")}
-                    error={formErrors.company_classification}
-                    helperText={formErrors.company_classification}
+                    error={!!errors?.company_classification}
+                    helperText={errors?.company_classification?.message}
                   />
                 )}
               />
@@ -489,8 +492,8 @@ const PersonalInfo = ({
                     required
                     variant="outlined"
                     {...register("company_industry")}
-                    error={formErrors.company_industry}
-                    helperText={formErrors.company_industry}
+                    error={!!errors?.company_industry}
+                    helperText={errors?.company_industry?.message}
                   />
                 )}
               />
@@ -515,8 +518,8 @@ const PersonalInfo = ({
                     label="Workforce"
                     variant="outlined"
                     {...register("company_workforce")}
-                    error={formErrors.company_workforce}
-                    helperText={formErrors.company_workforce}
+                    error={!!errors?.company_workforce}
+                    helperText={errors?.company_workforce?.message}
                   />
                 )}
               />
@@ -534,8 +537,8 @@ const PersonalInfo = ({
                 label="Institution Name"
                 {...register("institution_name")}
                 required
-                error={formErrors.institution_name}
-                helperText={formErrors.institution_name}
+                error={!!errors?.institution_name}
+                helperText={errors?.institution_name?.message}
               />
             </Grid>
 
@@ -563,8 +566,8 @@ const PersonalInfo = ({
                     variant="outlined"
                     required
                     {...register("institution_type")}
-                    error={formErrors.institution_type}
-                    helperText={formErrors.institution_type}
+                    error={!!errors?.institution_type}
+                    helperText={errors?.institution_type?.message}
                   />
                 )}
               />
@@ -580,8 +583,8 @@ const PersonalInfo = ({
                 type="email"
                 label="Email Address"
                 {...register("email")}
-                error={formErrors.email}
-                helperText={formErrors.email}
+                error={!!errors?.email}
+                helperText={errors?.email?.message}
               />
             </Grid>
             <Grid item xs={12}>
@@ -590,8 +593,8 @@ const PersonalInfo = ({
                 required
                 label="Employer's Position / Designation"
                 {...register("employer_position")}
-                error={formErrors.employer_position}
-                helperText={formErrors.employer_position}
+                error={!!errors?.employer_position}
+                helperText={errors?.employer_position?.message}
               />
             </Grid>
             <Grid item xs={12}>
@@ -600,8 +603,8 @@ const PersonalInfo = ({
                 required
                 label="Employer's ID Number"
                 {...register("employer_id_number")}
-                error={formErrors.employer_id_number}
-                helperText={formErrors.employer_id_number}
+                error={!!errors?.employer_id_number}
+                helperText={errors?.employer_id_number?.message}
               />
             </Grid>
           </>
@@ -624,8 +627,8 @@ const PersonalInfo = ({
                     variant="outlined"
                     required
                     {...register("sex")}
-                    error={formErrors.sex}
-                    helperText={formErrors.sex}
+                    error={!!errors?.sex}
+                    helperText={errors?.sex?.message}
                   />
                 )}
               />
@@ -638,8 +641,8 @@ const PersonalInfo = ({
                 type="date"
                 {...register("date_of_birth")}
                 InputLabelProps={{ shrink: true }}
-                error={formErrors.date_of_birth}
-                helperText={formErrors.date_of_birth}
+                error={!!errors?.date_of_birth}
+                helperText={errors?.date_of_birth?.message}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -648,8 +651,8 @@ const PersonalInfo = ({
                 required
                 label="Place of Birth"
                 {...register("place_of_birth")}
-                error={formErrors.place_of_birth}
-                helperText={formErrors.place_of_birth}
+                error={!!errors?.place_of_birth}
+                helperText={errors?.place_of_birth?.message}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -667,8 +670,8 @@ const PersonalInfo = ({
                     variant="outlined"
                     required
                     {...register("civil_status")}
-                    error={formErrors.civil_status}
-                    helperText={formErrors.civil_status}
+                    error={!!errors?.civil_status}
+                    helperText={errors?.civil_status?.message}
                   />
                 )}
               />
@@ -679,8 +682,8 @@ const PersonalInfo = ({
                 required
                 label="Height (cm)"
                 {...register("height")}
-                error={formErrors.height}
-                helperText={formErrors.height}
+                error={!!errors?.height}
+                helperText={errors?.height?.message}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -689,8 +692,8 @@ const PersonalInfo = ({
                 required
                 label="Weight (kg)"
                 {...register("weight")}
-                error={formErrors.weight}
-                helperText={formErrors.weight}
+                error={!!errors?.weight}
+                helperText={errors?.weight?.message}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -707,8 +710,8 @@ const PersonalInfo = ({
                     label="Select Religion"
                     variant="outlined"
                     {...register("religion")}
-                    error={formErrors.religion}
-                    helperText={formErrors.religion}
+                    error={!!errors?.religion}
+                    helperText={errors?.religion?.message}
                   />
                 )}
               />
@@ -853,8 +856,8 @@ const PersonalInfo = ({
                     {...params}
                     required
                     label="Country"
-                    error={formErrors.permanent_country}
-                    helperText={formErrors.permanent_country}
+                    error={!!errors?.permanent_country}
+                    helperText={errors?.permanent_country?.message}
                   />
                 )}
               />
@@ -875,8 +878,8 @@ const PersonalInfo = ({
                     {...register("permanent_province")}
                     {...params}
                     label="Province"
-                    error={formErrors.permanent_province}
-                    helperText={formErrors.permanent_province}
+                    error={!!errors?.permanent_province}
+                    helperText={errors?.permanent_province?.message}
                   />
                 )}
                 disabled={selectedPermanentCountry !== "Philippines"}
@@ -896,8 +899,8 @@ const PersonalInfo = ({
                     required={selectedPermanentProvince}
                     {...params}
                     label="Municipality"
-                    error={formErrors.permanent_municipality}
-                    helperText={formErrors.permanent_municipality}
+                    error={!!errors?.permanent_municipality}
+                    helperText={errors?.permanent_municipality?.message}
                   />
                 )}
                 disabled={!selectedPermanentProvince} // Disable if no province is selected
@@ -910,8 +913,8 @@ const PersonalInfo = ({
                 disabled={!selectedPermanentMunicipality}
                 label="Zip Code"
                 {...register("permanent_zip_code")}
-                error={formErrors.permanent_zip_code}
-                helperText={formErrors.permanent_zip_code}
+                error={!!errors?.permanent_zip_code}
+                helperText={errors?.permanent_zip_code?.message}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -927,8 +930,8 @@ const PersonalInfo = ({
                     {...register("permanent_barangay")}
                     required={selectedPermanentMunicipality}
                     {...params}
-                    error={formErrors.permanent_barangay}
-                    helperText={formErrors.permanent_barangay}
+                    error={!!errors?.permanent_barangay}
+                    helperText={errors?.permanent_barangay?.message}
                     label="Barangay"
                   />
                 )}
@@ -941,8 +944,8 @@ const PersonalInfo = ({
                 value={formData.permanent_house_no_street_village}
                 disabled={!selectedPermanentMunicipality}
                 label="House No./Street Village"
-                error={formErrors.permanent_house_no_street_village}
-                helperText={formErrors.permanent_house_no_street_village}
+                error={!!errors?.permanent_house_no_street_village}
+                helperText={errors?.permanent_house_no_street_village?.message}
                 {...register("permanent_house_no_street_village")}
               />
             </Grid>
@@ -956,8 +959,8 @@ const PersonalInfo = ({
             required
             label="Cellphone Number"
             {...register("cellphone_number")}
-            error={formErrors.cellphone_number}
-            helperText={formErrors.cellphone_number}
+            error={!!errors?.cellphone_number}
+            helperText={errors?.cellphone_number?.message}
           />
         </Grid>
         <Grid item xs={12} sm={6}>
@@ -965,8 +968,8 @@ const PersonalInfo = ({
             fullWidth
             label="Landline Number"
             {...register("landline_number")}
-            error={formErrors.landline_number}
-            helperText={formErrors.landline_number}
+            error={!!errors?.landline_number}
+            helperText={errors?.landline_number?.message}
           />
         </Grid>
         {/* Employer-Specific Fields */}
@@ -978,8 +981,8 @@ const PersonalInfo = ({
                 required
                 label="TIN"
                 {...register("tin")}
-                error={formErrors.tin}
-                helperText={formErrors.tin}
+                error={!!errors?.tin}
+                helperText={errors?.tin?.message}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -988,8 +991,8 @@ const PersonalInfo = ({
                 required
                 label="SSS/GSIS Number"
                 {...register("sss_gsis_number")}
-                error={formErrors.sss_gsis_number}
-                helperText={formErrors.sss_gsis_number}
+                error={!!errors?.sss_gsis_number}
+                helperText={errors?.sss_gsis_number?.message}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -998,8 +1001,8 @@ const PersonalInfo = ({
                 required
                 label="Pag-IBIG Number"
                 {...register("pag_ibig_number")}
-                error={formErrors.pag_ibig_number}
-                helperText={formErrors.pag_ibig_number}
+                error={!!errors?.pag_ibig_number}
+                helperText={errors?.pag_ibig_number?.message}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -1008,8 +1011,8 @@ const PersonalInfo = ({
                 required
                 label="PhilHealth Number"
                 {...register("phil_health_no")}
-                error={formErrors.phil_health_no}
-                helperText={formErrors.phil_health_no}
+                error={!!errors?.phil_health_no}
+                helperText={errors?.phil_health_no?.message}
               />
             </Grid>
 
@@ -1059,8 +1062,8 @@ const PersonalInfo = ({
                     variant="outlined"
                     required
                     {...register("employment_status")}
-                    error={formErrors.employment_status}
-                    helperText={formErrors.employment_status}
+                    error={!!errors?.employment_status}
+                    helperText={errors?.employment_status?.message}
                   />
                 )}
               />
@@ -1081,8 +1084,8 @@ const PersonalInfo = ({
                     variant="outlined"
                     required
                     {...register("is_looking_for_work")}
-                    error={formErrors.is_looking_for_work}
-                    helperText={formErrors.is_looking_for_work}
+                    error={!!errors?.is_looking_for_work}
+                    helperText={errors?.is_looking_for_work?.message}
                   />
                 )}
               />
@@ -1096,8 +1099,8 @@ const PersonalInfo = ({
                   {...register("since_when_looking_for_work")}
                   required={lookingForAWork === "YES"}
                   InputLabelProps={{ shrink: true }}
-                  error={formErrors.since_when_looking_for_work}
-                  helperText={formErrors.since_when_looking_for_work}
+                  error={!!errors?.since_when_looking_for_work}
+                  helperText={errors?.since_when_looking_for_work?.message}
                 />
               </Grid>
             )}
@@ -1116,8 +1119,8 @@ const PersonalInfo = ({
                     variant="outlined"
                     required
                     {...register("is_willing_to_work_immediately")}
-                    error={formErrors.is_willing_to_work_immediately}
-                    helperText={formErrors.is_willing_to_work_immediately}
+                    error={!!errors?.is_willing_to_work_immediately}
+                    helperText={errors?.is_willing_to_work_immediately?.message}
                   />
                 )}
               />
@@ -1145,8 +1148,8 @@ const PersonalInfo = ({
                       variant="outlined"
                       required
                       {...register("is_ofw")}
-                      error={formErrors.is_ofw}
-                      helperText={formErrors.is_ofw}
+                      error={!!errors?.is_ofw}
+                      helperText={errors?.is_ofw?.message}
                     />
                   )}
                 />
@@ -1166,8 +1169,8 @@ const PersonalInfo = ({
                         {...params}
                         label="Specify Country"
                         required={anOfw === "YES"}
-                        error={formErrors.ofw_country}
-                        helperText={formErrors.ofw_country}
+                        error={!!errors?.ofw_country}
+                        helperText={errors?.ofw_country?.message}
                       />
                     )}
                   />
@@ -1195,8 +1198,8 @@ const PersonalInfo = ({
                       variant="outlined"
                       {...register("is_former_ofw")}
                       required
-                      error={formErrors.is_former_ofw}
-                      helperText={formErrors.is_former_ofw}
+                      error={!!errors?.is_former_ofw}
+                      helperText={errors?.is_former_ofw?.message}
                     />
                   )}
                 />
@@ -1217,8 +1220,8 @@ const PersonalInfo = ({
                           {...params}
                           required={formerOfw === "YES"}
                           label="Previous Country of Deployment"
-                          error={formErrors.former_ofw_country}
-                          helperText={formErrors.former_ofw_country}
+                          error={!!errors?.former_ofw_country}
+                          helperText={errors?.former_ofw_country?.message}
                         />
                       )}
                     />
@@ -1231,8 +1234,8 @@ const PersonalInfo = ({
                       type="date"
                       {...register("former_ofw_country_date_return")}
                       InputLabelProps={{ shrink: true }}
-                      error={formErrors.former_ofw_country_date_return}
-                      helperText={formErrors.former_ofw_country_date_return}
+                      error={!!errors?.former_ofw_country_date_return}
+                      helperText={errors?.former_ofw_country_date_return?.message}
                     />
                   </Grid>
                 </>
@@ -1256,8 +1259,8 @@ const PersonalInfo = ({
                     variant="outlined"
                     required
                     {...register("is_4ps_beneficiary")}
-                    error={formErrors.is_4ps_beneficiary}
-                    helperText={formErrors.is_4ps_beneficiary}
+                    error={!!errors?.is_4ps_beneficiary}
+                    helperText={errors?.is_4ps_beneficiary?.message}
                   />
                 )}
               />
@@ -1269,8 +1272,8 @@ const PersonalInfo = ({
                   required={fourPs === "YES"}
                   label="Household ID no."
                   {...register("_4ps_household_id_no")}
-                  error={formErrors._4ps_household_id_no}
-                  helperText={formErrors._4ps_household_id_no}
+                  error={!!errors?._4ps_household_id_no}
+                  helperText={errors?._4ps_household_id_no?.message}
                 />
               </Grid>
             )}
@@ -1299,8 +1302,8 @@ const PersonalInfo = ({
         {fileName && (
           <Typography variant="body2">Selected file: {fileName}</Typography>
         )}
-        {formErrors.id && (
-          <FormHelperText error>{formErrors.id}</FormHelperText>
+        {!!errors.id && (
+          <FormHelperText error>{errors.id.message}</FormHelperText>
         )}
       </Grid>
       <BackNextButton

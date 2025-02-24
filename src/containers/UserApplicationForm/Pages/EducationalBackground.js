@@ -77,6 +77,8 @@ const degreeOptions = [
   "Bachelor",
   "Master's",
   "PhD",
+  "ALS",
+  "TESDA"
 ];
 
 // Sample list of schools for autocomplete

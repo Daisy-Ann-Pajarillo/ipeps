@@ -14,7 +14,6 @@ import BackNextButton from "../backnextButton";
 import countriesList from "../../../reusable/constants/countriesList";
 import userIndustryOptionTypes from "../../../reusable/constants/userIndustryOptionTypes";
 import completePHAddressOption from "../../../reusable/constants/completePHAddressOption";
-import validateForm from "../schema/validateForm";
 import { jobPreferenceSchema } from "../schema/schema";
 import fetchData from "../api/fetchData";
 import axios from "../../../axios";
@@ -30,7 +29,6 @@ const JobPreference = ({
 }) => {
   const [jobPreferred, setJobPreferred] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [formErrors, setFormErrors] = useState({});
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedProvince, setSelectedProvince] = useState(null);
   const [selectedMunicipality, setSelectedMunicipality] = useState(null);
@@ -149,9 +147,6 @@ const JobPreference = ({
   return (
     <Box
       sx={{ p: 3 }}
-      onClick={() => {
-        validateForm(jobPreferenceSchema, formData, setIsValid, setFormErrors);
-      }}
     >
       <Grid container spacing={3}>
         <Grid item xs={12}>
@@ -174,8 +169,8 @@ const JobPreference = ({
                 {...params}
                 required
                 label="Country"
-                error={formErrors.country}
-                helperText={formErrors.country}
+                error={!!errors?.country}
+                helperText={errors?.country?.message}
               />
             )}
           />
@@ -199,8 +194,8 @@ const JobPreference = ({
               />
             )}
             disabled={selectedCountry !== "Philippines"}
-            error={formErrors.province}
-            helperText={formErrors.province}
+            error={!!errors?.province}
+            helperText={errors?.province?.message}
           />
         </Grid>
 
@@ -216,8 +211,8 @@ const JobPreference = ({
                 required={selectedProvince}
                 {...params}
                 label="Municipality"
-                error={formErrors.country}
-                helperText={formErrors.country}
+                error={!!errors?.country}
+                helperText={errors?.country?.message}
               />
             )}
             disabled={!selectedProvince} // Disable if no province is selected
@@ -249,8 +244,8 @@ const JobPreference = ({
                 variant="outlined"
                 fullWidth
                 {...register("industry")}
-                error={formErrors.industry}
-                helperText={formErrors.industry}
+                error={!!errors?.industry}
+                helperText={errors?.industry?.message}
               />
             )}
           />
@@ -262,8 +257,8 @@ const JobPreference = ({
             fullWidth
             label="Preferred Occupation"
             {...register("preferred_occupation")}
-            error={formErrors.preferred_occupation}
-            helperText={formErrors.preferred_occupation}
+            error={!!errors?.preferred_occupation}
+            helperText={errors?.preferred_occupation?.message}
           />
           <Divider sx={{ marginBottom: 2 }} />
         </Grid>
@@ -279,8 +274,8 @@ const JobPreference = ({
             label="From"
             type="number"
             {...register("salary_from")}
-            error={formErrors.salary_from}
-            helperText={formErrors.salary_from}
+            error={!!errors?.salary_from}
+            helperText={errors?.salary_from?.message}
           />
         </Grid>
 
@@ -291,8 +286,8 @@ const JobPreference = ({
             label="To"
             type="number"
             {...register("salary_to")}
-            error={formErrors.salary_to}
-            helperText={formErrors.salary_to}
+            error={!!errors?.salary_to}
+            helperText={errors?.salary_to?.message}
           />
         </Grid>
       </Grid>
