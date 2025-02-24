@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-
+import { Autocomplete } from "@mui/material";
 import {
   Button,
   TextField,
@@ -17,8 +17,8 @@ import {
 } from "@mui/material";
 import BackNextButton from "../backnextButton";
 import fieldOfStudyTypes from "../../../reusable/constants/fieldOfStudyTypes";
+import fetchData from "../api/fetchData";
 
-// Updated validation schema to match form fields
 const schema = yup.object().shape({
   educationHistory: yup.array().of(
     yup.object().shape({
@@ -35,19 +35,19 @@ const schema = yup.object().shape({
         .max(new Date(), "Start date cannot be in the future"),
       dateTo: yup
         .date()
-        .nullable() // ✅ Allows null values
-        .notRequired() // ✅ Ensures it's not required in validation
+        .nullable()
+        .notRequired()
         .when("dateFrom", (dateFrom, schema) =>
           dateFrom
             ? schema
-                .test(
-                  "end-date-after-start",
-                  "End date must be after start date",
-                  (dateTo) =>
-                    !dateTo ||
-                    (dateFrom && new Date(dateTo) > new Date(dateFrom))
-                )
-                .max(new Date(), "End date cannot be in the future")
+              .test(
+                "end-date-after-start",
+                "End date must be after start date",
+                (dateTo) =>
+                  !dateTo ||
+                  (dateFrom && new Date(dateTo) > new Date(dateFrom))
+              )
+              .max(new Date(), "End date cannot be in the future")
             : schema
         )
         .transform((value, originalValue) =>
@@ -56,11 +56,10 @@ const schema = yup.object().shape({
       isCurrent: yup.boolean().default(false),
       fieldOfStudy: yup
         .string()
-        .nullable() // ✅ Made optional (no required rule)
+        .nullable()
         .transform((value, originalValue) =>
           originalValue === "" ? null : value
-        ), // Optional and handles empty strings
-      major: yup.string().nullable(),
+        ),
       programDuration: yup
         .number()
         .typeError("Program duration must be a number")
@@ -80,6 +79,16 @@ const degreeOptions = [
   "PhD",
 ];
 
+// Sample list of schools for autocomplete
+const schoolsList = [
+  "University of the Philippines",
+  "Ateneo de Manila University",
+  "De La Salle University",
+  "ISATU",
+  "TIONCO",
+  // Add more schools as needed
+];
+
 const EducationalBackground = ({
   activeStep,
   steps,
@@ -89,38 +98,53 @@ const EducationalBackground = ({
   setIsValid,
   user_type,
 }) => {
+  const [loading, setLoading] = useState(true);
+  const [educationHistory, setEducationHistory] = useState([]);
+
   const {
     register,
     setValue,
     getValues,
     watch,
+    control,
     formState: { errors, isValid: formIsValid },
   } = useForm({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      educationHistory: [
-        {
-          schoolName: "",
-          degreeQualification: "",
-          dateFrom: "",
-          dateTo: "",
-          isCurrent: false,
-          fieldOfStudy: "",
-          programDuration: "",
-        },
-      ],
+      educationHistory: [],
     },
   });
 
-  const [educationHistory, setEducationHistory] = useState(
-    getValues("educationHistory")
-  );
+  // Fetch and transform data
+  useEffect(() => {
+    const fetchEducationalBackground = async () => {
+      try {
+        const response = await fetchData("api/get-user-info");
+        if (response.educational_background) {
+          const transformedData = response.educational_background.map(edu => ({
+            schoolName: edu.school_name,
+            degreeQualification: edu.degree_or_qualification,
+            dateFrom: new Date(edu.date_from).toISOString().split('T')[0],
+            dateTo: new Date(edu.date_to).toISOString().split('T')[0],
+            isCurrent: false,
+            fieldOfStudy: edu.field_of_study,
+            programDuration: edu.program_duration
+          }));
+          setEducationHistory(transformedData);
+          setValue("educationHistory", transformedData);
+        }
+      } catch (error) {
+        console.error("Error fetching educational background:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEducationalBackground();
+  }, [setValue]);
 
-  // Watch for changes in the form
   const watchEducationHistory = watch("educationHistory");
 
-  // Update state when form values change
   useEffect(() => {
     setEducationHistory(watchEducationHistory || []);
   }, [watchEducationHistory]);
@@ -153,7 +177,6 @@ const EducationalBackground = ({
     });
   };
 
-  // Handle "Currently Attending" checkbox
   const handleCurrentCheckbox = (index, checked) => {
     const updatedHistory = [...educationHistory];
     updatedHistory[index].isCurrent = checked;
@@ -169,6 +192,10 @@ const EducationalBackground = ({
     setIsValid(formIsValid && educationHistory.length > 0);
   }, [formIsValid, setIsValid, educationHistory]);
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       {errors.educationHistory?.message && (
@@ -180,13 +207,25 @@ const EducationalBackground = ({
       {educationHistory.map((item, index) => (
         <Grid container spacing={2} key={index} sx={{ marginBottom: 5 }}>
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              required
-              label="School Name"
-              {...register(`educationHistory.${index}.schoolName`)}
-              error={!!errors.educationHistory?.[index]?.schoolName}
-              helperText={errors.educationHistory?.[index]?.schoolName?.message}
+            <Autocomplete
+              freeSolo
+              options={schoolsList}
+              value={item.schoolName}
+              onChange={(_, newValue) => {
+                setValue(`educationHistory.${index}.schoolName`, newValue, {
+                  shouldValidate: true,
+                });
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  {...register(`educationHistory.${index}.schoolName`)}
+                  label="School Name"
+                  required
+                  error={!!errors.educationHistory?.[index]?.schoolName}
+                  helperText={errors.educationHistory?.[index]?.schoolName?.message}
+                />
+              )}
             />
           </Grid>
 
@@ -236,6 +275,7 @@ const EducationalBackground = ({
               <Select
                 {...register(`educationHistory.${index}.degreeQualification`)}
                 error={!!errors.educationHistory?.[index]?.degreeQualification}
+                value={item.degreeQualification || ""}
               >
                 {degreeOptions.map((option) => (
                   <MenuItem key={option} value={option}>
@@ -255,6 +295,7 @@ const EducationalBackground = ({
               <Select
                 {...register(`educationHistory.${index}.fieldOfStudy`)}
                 error={!!errors.educationHistory?.[index]?.fieldOfStudy}
+                value={item.fieldOfStudy || ""}
               >
                 {fieldOfStudyTypes.map((option) => (
                   <MenuItem key={option} value={option}>
@@ -275,12 +316,14 @@ const EducationalBackground = ({
               {...register(`educationHistory.${index}.programDuration`)}
               label="Program Duration (Years)"
               type="number"
+              value={item.programDuration || ""}
               error={!!errors.educationHistory?.[index]?.programDuration}
               helperText={
                 errors.educationHistory?.[index]?.programDuration?.message
               }
             />
           </Grid>
+
           {educationHistory.length > 1 && (
             <Grid item xs={12}>
               <Button
@@ -294,6 +337,7 @@ const EducationalBackground = ({
           )}
         </Grid>
       ))}
+
       <div className="mb-4 text-center">
         <Button
           variant="contained"
@@ -304,6 +348,7 @@ const EducationalBackground = ({
           Add Education
         </Button>
       </div>
+
       <BackNextButton
         activeStep={activeStep}
         steps={steps}
