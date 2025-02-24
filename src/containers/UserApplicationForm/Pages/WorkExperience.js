@@ -13,6 +13,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import BackNextButton from "../backnextButton";
 import { workExperienceSchema } from "../schema/schema";
 import fetchData from "../api/fetchData"; // Assuming this function handles API calls
+import axios from "../../../axios";
 
 const WorkExperience = ({
   activeStep,
@@ -30,8 +31,8 @@ const WorkExperience = ({
   useEffect(() => {
     const fetchWorkExperiences = async () => {
       try {
-        const response = await fetchData("api/get-user-info");
-        setWorkExperiences(response.work_experience || []);
+        const response = await axios.get("api/get-user-info");
+        setWorkExperiences(response.data.work_experience);
       } catch (error) {
         console.error("Error fetching user work experience:", error);
       } finally {
@@ -72,7 +73,6 @@ const WorkExperience = ({
     }
   }, [loading, workExperiences, setValue]);
 
-
   useEffect(() => {
     setIsValid(formIsValid && work_experience.length > 0);
   }, [formIsValid, setIsValid, work_experience]);
@@ -97,13 +97,15 @@ const WorkExperience = ({
     const updatedWorkExperience = work_experience.filter(
       (_, idx) => idx !== index
     );
-    setValue("work_experience", updatedWorkExperience, { shouldValidate: true });
+    setValue("work_experience", updatedWorkExperience, {
+      shouldValidate: true,
+    });
   };
 
   // Save work experience data to API
   const saveWorkExperience = async () => {
     try {
-      const response = await fetchData("api/save-work-experience", {
+      const response = await fetchData("zzapi/save-work-experience", {
         method: "POST",
         body: JSON.stringify(work_experience),
       });
@@ -133,7 +135,9 @@ const WorkExperience = ({
               label="Company Name"
               required
               error={!!errors?.work_experience?.[index]?.company_name}
-              helperText={errors?.work_experience?.[index]?.company_name?.message}
+              helperText={
+                errors?.work_experience?.[index]?.company_name?.message
+              }
               {...register(`work_experience.${index}.company_name`)}
             />
           </Grid>

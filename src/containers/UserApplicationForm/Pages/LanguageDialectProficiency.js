@@ -16,6 +16,7 @@ import languagesList from "../../../reusable/constants/languages";
 import BackNextButton from "../backnextButton";
 import { languageProficiencySchema } from "../schema/schema";
 import fetchData from "../api/fetchData";
+import axios from "../../../axios";
 
 const LanguageDialectProficiency = ({
   activeStep,
@@ -26,7 +27,7 @@ const LanguageDialectProficiency = ({
   setIsValid,
   user_type,
 }) => {
-  const [languageProficiency, setLanguageProficiency] = useState(null);
+  const [languageProficiency, setLanguageProficiency] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const [availableLanguages, setAvailableLanguages] = useState(languagesList);
@@ -35,8 +36,9 @@ const LanguageDialectProficiency = ({
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
-        const response = await fetchData("api/get-user-info");
-        setLanguageProficiency(response.language_proficiency);
+        const response = await axios.get("api/get-user-info");
+        console.log(response.data.language_proficiency);
+        setLanguageProficiency(response.data.language_proficiency);
       } catch (error) {
         console.error("Error fetching user info:", error);
       } finally {
@@ -125,8 +127,8 @@ const LanguageDialectProficiency = ({
   useEffect(() => {
     setIsValid(
       Array.isArray(languageProficiency) &&
-      language_proficiency.length > 0 &&
-      formIsValid
+        language_proficiency.length > 0 &&
+        formIsValid
     );
   }, [formIsValid, language_proficiency]);
 

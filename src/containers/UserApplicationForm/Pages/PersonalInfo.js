@@ -23,7 +23,6 @@ import completePHAddressOption from "../../../reusable/constants/completePHAddre
 import countriesList from "../../../reusable/constants/countriesList";
 import religionOption from "../../../reusable/constants/religionOption";
 import companyIndustryTypes from "../../../reusable/constants/companyIndustryTypes";
-import fetchData from "../api/fetchData";
 
 import {
   baseSchema,
@@ -33,6 +32,7 @@ import {
   jobseekerSchema,
 } from "../schema/schema";
 import validateForm from "../schema/validateForm";
+import axios from "../../../axios";
 
 // Dynamic Schema Based on User Type
 const getSchema = (userType) => {
@@ -64,8 +64,10 @@ const PersonalInfo = ({
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetchData("api/get-user-info");
-        setUserInfo(response.personal_info[0]);
+        const response = await axios.get("/api/get-user-info");
+
+        console.log("Response Data: ", response.data.personal_information[0]);
+        setUserInfo(response.data.personal_information[0]);
       } catch (error) {
         console.error("Error fetching user info:", error);
       } finally {
@@ -234,8 +236,8 @@ const PersonalInfo = ({
     // Get data for permanent address
     const permanentMunicipalities = selectedPermanentProvince
       ? getMunicipalities(selectedPermanentProvince).map(
-        (item) => item.municipality
-      )
+          (item) => item.municipality
+        )
       : [];
 
     const permanentBarangays = selectedPermanentMunicipality

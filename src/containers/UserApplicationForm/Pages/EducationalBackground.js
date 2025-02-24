@@ -1,18 +1,86 @@
 import React, { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { Box, Grid, TextField, Button, Autocomplete } from "@mui/material";
-import BackNextButton from "../backnextButton";
-import fetchData from "../api/fetchData";
-import { professionalEligibilitySchema } from "../schema/schema";
-import validateForm from "../schema/validateForm";
+import * as yup from "yup";
 
-const eligibilityTypeOptions = [
-  "Civil Service Eligibility",
-  "PRC Professional License",
+import {
+  Button,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+} from "@mui/material";
+import BackNextButton from "../backnextButton";
+import fieldOfStudyTypes from "../../../reusable/constants/fieldOfStudyTypes";
+
+// Updated validation schema to match form fields
+const schema = yup.object().shape({
+  educationHistory: yup.array().of(
+    yup.object().shape({
+      schoolName: yup
+        .string()
+        .min(3, "School Name should be at least 3 characters long")
+        .required("School name is required"),
+      degreeQualification: yup
+        .string()
+        .required("Degree qualification is required"),
+      dateFrom: yup
+        .date()
+        .required("Start date is required")
+        .max(new Date(), "Start date cannot be in the future"),
+      dateTo: yup
+        .date()
+        .nullable() // ✅ Allows null values
+        .notRequired() // ✅ Ensures it's not required in validation
+        .when("dateFrom", (dateFrom, schema) =>
+          dateFrom
+            ? schema
+                .test(
+                  "end-date-after-start",
+                  "End date must be after start date",
+                  (dateTo) =>
+                    !dateTo ||
+                    (dateFrom && new Date(dateTo) > new Date(dateFrom))
+                )
+                .max(new Date(), "End date cannot be in the future")
+            : schema
+        )
+        .transform((value, originalValue) =>
+          originalValue === "" ? null : value
+        ),
+      isCurrent: yup.boolean().default(false),
+      fieldOfStudy: yup
+        .string()
+        .nullable() // ✅ Made optional (no required rule)
+        .transform((value, originalValue) =>
+          originalValue === "" ? null : value
+        ), // Optional and handles empty strings
+      major: yup.string().nullable(),
+      programDuration: yup
+        .number()
+        .typeError("Program duration must be a number")
+        .positive("Must be a positive number")
+        .integer("Must be an integer"),
+    })
+  ),
+});
+
+const degreeOptions = [
+  "Elementary",
+  "Secondary (Non-K12)",
+  "Secondary (K-12)",
+  "Associates",
+  "Bachelor",
+  "Master's",
+  "PhD",
 ];
 
-const EligibilityProfessionalLicense = ({
+const EducationalBackground = ({
   activeStep,
   steps,
   handleBack,
@@ -21,224 +89,221 @@ const EligibilityProfessionalLicense = ({
   setIsValid,
   user_type,
 }) => {
-  const [professionalLicenses, setProfessionalLicenses] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [formErrors, setFormErrors] = useState({});
-
-  // Fetch user data first
-  useEffect(() => {
-    const fetchProfessionalLicenses = async () => {
-      try {
-        const response = await fetchData("api/get-user-info");
-        setProfessionalLicenses(response.professional_license || []);
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfessionalLicenses();
-  }, []);
-
   const {
     register,
-    watch,
     setValue,
     getValues,
-    control,
+    watch,
     formState: { errors, isValid: formIsValid },
   } = useForm({
-    resolver: yupResolver(professionalEligibilitySchema),
+    resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
-      professional_license: [],
+      educationHistory: [
+        {
+          schoolName: "",
+          degreeQualification: "",
+          dateFrom: "",
+          dateTo: "",
+          isCurrent: false,
+          fieldOfStudy: "",
+          programDuration: "",
+        },
+      ],
     },
   });
 
-  const professional_license = watch("professional_license");
+  const [educationHistory, setEducationHistory] = useState(
+    getValues("educationHistory")
+  );
 
-  // Update form values with fetched data when loading is done
+  // Watch for changes in the form
+  const watchEducationHistory = watch("educationHistory");
+
+  // Update state when form values change
   useEffect(() => {
-    if (professionalLicenses && !loading) {
-      setValue("professional_license", professionalLicenses, {
-        shouldValidate: true,
-      });
-    }
-  }, [loading, professionalLicenses, setValue]);
+    setEducationHistory(watchEducationHistory || []);
+  }, [watchEducationHistory]);
 
-  // Validate form when license history changes
-  useEffect(() => {
-    if (!loading) {
-      validateForm(
-        professionalEligibilitySchema,
-        { professional_license },
-        setIsValid,
-        setFormErrors
-      );
-    }
-  }, [professional_license, loading, setIsValid]);
-
-  const addEligibility = () => {
-    const newEligibility = {
-      license: null,
-      name: "",
-      date: "",
-      rating: null,
-      valid_until: null,
+  const addEducation = () => {
+    const newEntry = {
+      schoolName: "",
+      degreeQualification: "",
+      dateFrom: "",
+      dateTo: "",
+      isCurrent: false,
+      fieldOfStudy: "",
+      programDuration: "",
     };
-    const updatedLicenses = [...professional_license, newEligibility];
-    setValue("professional_license", updatedLicenses, {
+
+    const updatedEducationHistory = [...educationHistory, newEntry];
+    setEducationHistory(updatedEducationHistory);
+    setValue("educationHistory", updatedEducationHistory, {
+      shouldValidate: false,
+    });
+  };
+
+  const removeEducation = (index) => {
+    const updatedEducationHistory = educationHistory.filter(
+      (_, idx) => idx !== index
+    );
+    setEducationHistory(updatedEducationHistory);
+    setValue("educationHistory", updatedEducationHistory, {
       shouldValidate: true,
     });
   };
 
-  const removeEligibility = (index) => {
-    const updatedLicenses = professional_license.filter((_, idx) => idx !== index);
-    setValue("professional_license", updatedLicenses, { shouldValidate: true });
-  };
-
-  // Handle license type change
-  const handleLicenseTypeChange = (index, newValue) => {
-    const updatedLicenses = [...professional_license];
-    updatedLicenses[index].license = newValue;
-
-    // Reset conditional fields when switching license types
-    if (newValue === "Civil Service Eligibility") {
-      updatedLicenses[index].rating = null;
-      updatedLicenses[index].valid_until = null;
-    } else if (newValue === "PRC Professional License") {
-      updatedLicenses[index].valid_until = null;
-      updatedLicenses[index].rating = null;
+  // Handle "Currently Attending" checkbox
+  const handleCurrentCheckbox = (index, checked) => {
+    const updatedHistory = [...educationHistory];
+    updatedHistory[index].isCurrent = checked;
+    if (checked) {
+      updatedHistory[index].dateTo = null;
     }
-
-    setValue("professional_license", updatedLicenses, { shouldValidate: true });
+    setEducationHistory(updatedHistory);
+    setValue(`educationHistory.${index}.isCurrent`, checked);
+    setValue(`educationHistory.${index}.dateTo`, null);
   };
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
+  useEffect(() => {
+    setIsValid(formIsValid && educationHistory.length > 0);
+  }, [formIsValid, setIsValid, educationHistory]);
 
   return (
-    <Box sx={{ p: 3 }} onChange={() => validateForm(professionalEligibilitySchema, { professional_license }, setIsValid, setFormErrors)}>
-      <Grid container>
-        {professional_license.map((eligibility, index) => (
-          <Box key={index} sx={{ marginBottom: 5, width: "100%" }}>
-            <Grid container spacing={3}>
-              {/* Select License - Using Controller for Autocomplete */}
-              <Grid item xs={12}>
-                <Controller
-                  name={`professional_license.${index}.license`}
-                  control={control}
-                  render={({ field }) => (
-                    <Autocomplete
-                      options={eligibilityTypeOptions}
-                      getOptionLabel={(option) => option || ""}
-                      value={field.value || null}
-                      onChange={(_, newValue) => {
-                        field.onChange(newValue);
-                        handleLicenseTypeChange(index, newValue);
-                      }}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Select License"
-                          required
-                          error={Boolean(formErrors?.[index]?.license)}
-                          helperText={formErrors?.[index]?.license || ""}
-                        />
-                      )}
-                    />
-                  )}
+    <Box sx={{ p: 3 }}>
+      {errors.educationHistory?.message && (
+        <div style={{ color: "red", marginBottom: "1rem" }}>
+          {errors.educationHistory.message}
+        </div>
+      )}
+
+      {educationHistory.map((item, index) => (
+        <Grid container spacing={2} key={index} sx={{ marginBottom: 5 }}>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              required
+              label="School Name"
+              {...register(`educationHistory.${index}.schoolName`)}
+              error={!!errors.educationHistory?.[index]?.schoolName}
+              helperText={errors.educationHistory?.[index]?.schoolName?.message}
+            />
+          </Grid>
+
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              {...register(`educationHistory.${index}.dateFrom`)}
+              label="Date From"
+              type="date"
+              required
+              InputLabelProps={{ shrink: true }}
+              error={!!errors.educationHistory?.[index]?.dateFrom}
+              helperText={errors.educationHistory?.[index]?.dateFrom?.message}
+            />
+          </Grid>
+
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              {...register(`educationHistory.${index}.dateTo`)}
+              label="Date To"
+              type="date"
+              disabled={item.isCurrent}
+              InputLabelProps={{ shrink: true }}
+              error={!!errors.educationHistory?.[index]?.dateTo}
+              helperText={errors.educationHistory?.[index]?.dateTo?.message}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={item.isCurrent}
+                  onChange={(e) =>
+                    handleCurrentCheckbox(index, e.target.checked)
+                  }
                 />
-              </Grid>
+              }
+              label="Currently Attending"
+            />
+          </Grid>
 
-              {/* Name Field */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Name"
-                  {...register(`professional_license.${index}.name`)}
-                  error={Boolean(formErrors?.[index]?.name)}
-                  helperText={formErrors?.[index]?.name || ""}
-                />
-              </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth required>
+              <InputLabel>Degree or Qualification</InputLabel>
+              <Select
+                {...register(`educationHistory.${index}.degreeQualification`)}
+                error={!!errors.educationHistory?.[index]?.degreeQualification}
+              >
+                {degreeOptions.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+              <p className="text-red-500 text-sm">
+                {errors.educationHistory?.[index]?.degreeQualification?.message}
+              </p>
+            </FormControl>
+          </Grid>
 
-              {/* Date Field */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Date"
-                  type="date"
-                  InputLabelProps={{ shrink: true }}
-                  {...register(`professional_license.${index}.date`)}
-                  error={Boolean(formErrors?.[index]?.date)}
-                  helperText={formErrors?.[index]?.date || ""}
-                />
-              </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel>Field of Study</InputLabel>
+              <Select
+                {...register(`educationHistory.${index}.fieldOfStudy`)}
+                error={!!errors.educationHistory?.[index]?.fieldOfStudy}
+              >
+                {fieldOfStudyTypes.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+              <p className="text-red-500 text-sm">
+                {errors.educationHistory?.[index]?.fieldOfStudy?.message}
+              </p>
+            </FormControl>
+          </Grid>
 
-              {/* Rating Field for Civil Service Eligibility */}
-              {eligibility.license === "Civil Service Eligibility" && (
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    required
-                    label="Rating"
-                    type="number"
-                    inputProps={{ step: "0.01" }}
-                    {...register(`professional_license.${index}.rating`)}
-                    error={Boolean(formErrors?.[index]?.rating)}
-                    helperText={formErrors?.[index]?.rating || ""}
-                  />
-                </Grid>
-              )}
-
-              {/* Valid Until Field for PRC Professional License */}
-              {eligibility.license === "PRC Professional License" && (
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    required
-                    label="Valid Until"
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    {...register(`professional_license.${index}.valid_until`)}
-                    error={Boolean(formErrors?.[index]?.valid_until)}
-                    helperText={formErrors?.[index]?.valid_until || ""}
-                  />
-                </Grid>
-              )}
-
-              {/* Remove Button */}
-              {professional_license.length > 1 && (
-                <Grid item xs={12}>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => removeEligibility(index)}
-                  >
-                    Remove
-                  </Button>
-                </Grid>
-              )}
+          <Grid item xs={6}>
+            <TextField
+              fullWidth
+              required
+              {...register(`educationHistory.${index}.programDuration`)}
+              label="Program Duration (Years)"
+              type="number"
+              error={!!errors.educationHistory?.[index]?.programDuration}
+              helperText={
+                errors.educationHistory?.[index]?.programDuration?.message
+              }
+            />
+          </Grid>
+          {educationHistory.length > 1 && (
+            <Grid item xs={12}>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => removeEducation(index)}
+              >
+                Remove
+              </Button>
             </Grid>
-          </Box>
-        ))}
-      </Grid>
-
-      {/* Add Eligibility Button */}
+          )}
+        </Grid>
+      ))}
       <div className="mb-4 text-center">
         <Button
           variant="contained"
-          onClick={addEligibility}
           color="primary"
+          onClick={addEducation}
           sx={{ marginBottom: 2 }}
         >
-          Add Eligibility
+          Add Education
         </Button>
       </div>
-
       <BackNextButton
         activeStep={activeStep}
         steps={steps}
@@ -246,14 +311,13 @@ const EligibilityProfessionalLicense = ({
         handleNext={handleNext}
         isValid={isValid}
         setIsValid={setIsValid}
-        schema={professionalEligibilitySchema}
-        canSkip={true}
-        formData={professional_license}
+        schema={schema}
+        formData={educationHistory}
         user_type={user_type}
-        api={"professional-license"}
+        api={"educational-background"}
       />
     </Box>
   );
 };
 
-export default EligibilityProfessionalLicense;
+export default EducationalBackground;

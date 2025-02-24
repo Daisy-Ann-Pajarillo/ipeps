@@ -5,6 +5,7 @@ import { Box, Grid, TextField, Button, Autocomplete } from "@mui/material";
 import BackNextButton from "../backnextButton";
 import fetchData from "../api/fetchData";
 import { professionalEligibilitySchema } from "../schema/schema";
+import axios from "../../../axios";
 
 const eligibilityTypeOptions = [
   "Civil Service Eligibility",
@@ -27,8 +28,8 @@ const EligibilityProfessionalLicense = ({
   useEffect(() => {
     const fetchProfessionalLicenses = async () => {
       try {
-        const response = await fetchData("api/get-user-info");
-        setProfessionalLicenses(response.professional_license || []);
+        const response = await axios.get("api/get-user-info");
+        setProfessionalLicenses(response.data.professional_license);
       } catch (error) {
         console.error("Error fetching user info:", error);
       } finally {
@@ -85,7 +86,9 @@ const EligibilityProfessionalLicense = ({
   };
 
   const removeEligibility = (index) => {
-    const updatedLicenses = professional_license.filter((_, idx) => idx !== index);
+    const updatedLicenses = professional_license.filter(
+      (_, idx) => idx !== index
+    );
     setValue("professional_license", updatedLicenses, { shouldValidate: true });
   };
 
@@ -135,8 +138,13 @@ const EligibilityProfessionalLicense = ({
                           {...params}
                           label="Select License"
                           required
-                          error={!!errors?.professional_license?.[index]?.license}
-                          helperText={errors?.professional_license?.[index]?.license?.message || ""}
+                          error={
+                            !!errors?.professional_license?.[index]?.license
+                          }
+                          helperText={
+                            errors?.professional_license?.[index]?.license
+                              ?.message || ""
+                          }
                         />
                       )}
                     />
@@ -152,7 +160,9 @@ const EligibilityProfessionalLicense = ({
                   label="Name"
                   {...register(`professional_license.${index}.name`)}
                   error={!!errors?.professional_license?.[index]?.name}
-                  helperText={errors?.professional_license?.[index]?.name?.message || ""}
+                  helperText={
+                    errors?.professional_license?.[index]?.name?.message || ""
+                  }
                 />
               </Grid>
 
@@ -166,7 +176,9 @@ const EligibilityProfessionalLicense = ({
                   InputLabelProps={{ shrink: true }}
                   {...register(`professional_license.${index}.date`)}
                   error={!!errors?.professional_license?.[index]?.date}
-                  helperText={errors?.professional_license?.[index]?.date?.message || ""}
+                  helperText={
+                    errors?.professional_license?.[index]?.date?.message || ""
+                  }
                 />
               </Grid>
 
@@ -181,7 +193,10 @@ const EligibilityProfessionalLicense = ({
                     inputProps={{ step: "0.01" }}
                     {...register(`professional_license.${index}.rating`)}
                     error={!!errors?.professional_license?.[index]?.rating}
-                    helperText={errors?.professional_license?.[index]?.rating?.message || ""}
+                    helperText={
+                      errors?.professional_license?.[index]?.rating?.message ||
+                      ""
+                    }
                   />
                 </Grid>
               )}
@@ -197,7 +212,10 @@ const EligibilityProfessionalLicense = ({
                     InputLabelProps={{ shrink: true }}
                     {...register(`professional_license.${index}.valid_until`)}
                     error={!!errors?.professional_license?.[index]?.valid_until}
-                    helperText={errors?.professional_license?.[index]?.valid_until?.message || ""}
+                    helperText={
+                      errors?.professional_license?.[index]?.valid_until
+                        ?.message || ""
+                    }
                   />
                 </Grid>
               )}

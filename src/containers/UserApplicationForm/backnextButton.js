@@ -64,7 +64,7 @@ const BackNextButton = ({
       isConfirmed = true;
     } else if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
       console.log("JOBSEEKER");
-      user_type = user_type.toLowerCase();
+      console.log("api: ", api);
 
       if (api === "personal-info") {
         console.log("Data: ", formData);
@@ -89,9 +89,12 @@ const BackNextButton = ({
           });
       }
       if (api === "language-proficiency") {
-        console.log("Data: ", formData);
+        console.log("Data: ", formData.language_proficiency);
         axios
-          .post("/api/add-jobseeker-student-language-proficiency", formData)
+          .post(
+            "/api/add-jobseeker-student-language-proficiency",
+            formData.language_proficiency
+          )
           .then((response) => {
             console.log("Response:", response.data);
           })
@@ -133,9 +136,12 @@ const BackNextButton = ({
           });
       }
       if (api === "professional-license") {
-        console.log("Data: ", formData);
+        console.log("Data: ", formData.professional_license);
         axios
-          .post("/api/add-jobseeker-student-professional-license", formData)
+          .post(
+            "/api/add-jobseeker-student-professional-license",
+            formData.professional_license
+          )
           .then((response) => {
             console.log("Response:", response.data);
           })
@@ -145,9 +151,12 @@ const BackNextButton = ({
       }
 
       if (api === "work-experience") {
-        console.log("Data: ", formData);
+        console.log("Data: ", formData.work_experience);
         axios
-          .post("/api/add-jobseeker-student-work-experience", formData)
+          .post(
+            "/api/add-jobseeker-student-work-experience",
+            formData.work_experience
+          )
           .then((response) => {
             console.log("Response:", response.data);
           })

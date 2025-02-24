@@ -17,6 +17,7 @@ import completePHAddressOption from "../../../reusable/constants/completePHAddre
 import validateForm from "../schema/validateForm";
 import { jobPreferenceSchema } from "../schema/schema";
 import fetchData from "../api/fetchData";
+import axios from "../../../axios";
 
 const JobPreference = ({
   activeStep,
@@ -43,8 +44,8 @@ const JobPreference = ({
   useEffect(() => {
     const fetchJobPreferred = async () => {
       try {
-        const response = await fetchData("api/get-user-info");
-        setJobPreferred(response.job_preference[0]);
+        const response = await axios.get("api/get-user-info");
+        setJobPreferred(response.data.job_preference[0]);
       } catch (error) {
         console.error("Error fetching user info:", error);
       } finally {

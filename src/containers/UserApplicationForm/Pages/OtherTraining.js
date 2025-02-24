@@ -5,6 +5,7 @@ import { TextField, Button, Grid, Box } from "@mui/material";
 import { otherTrainingsSchema } from "../schema/schema";
 import fetchData from "../api/fetchData";
 import BackNextButton from "../backnextButton";
+import axios from "../../../axios";
 
 const OtherTraining = ({
   activeStep,
@@ -22,8 +23,8 @@ const OtherTraining = ({
   useEffect(() => {
     const fetchOtherTrainings = async () => {
       try {
-        const response = await fetchData("api/get-user-info");
-        setOtherTrainings(response.other_training || []);
+        const response = await axios.get("api/get-user-info");
+        setOtherTrainings(response.data.other_training);
       } catch (error) {
         console.error("Error fetching user info:", error);
       } finally {
@@ -111,7 +112,9 @@ const OtherTraining = ({
                   fullWidth
                   required
                   error={!!errors?.other_training?.[index]?.course_name}
-                  helperText={errors?.other_training?.[index]?.course_name?.message}
+                  helperText={
+                    errors?.other_training?.[index]?.course_name?.message
+                  }
                 />
               </Grid>
               <Grid item xs={6}>
@@ -123,7 +126,9 @@ const OtherTraining = ({
                   required
                   InputLabelProps={{ shrink: true }}
                   error={!!errors?.other_training?.[index]?.start_date}
-                  helperText={errors?.other_training?.[index]?.start_date?.message}
+                  helperText={
+                    errors?.other_training?.[index]?.start_date?.message
+                  }
                 />
               </Grid>
               <Grid item xs={6}>
@@ -134,7 +139,9 @@ const OtherTraining = ({
                   fullWidth
                   InputLabelProps={{ shrink: true }}
                   error={!!errors?.other_training?.[index]?.end_date}
-                  helperText={errors?.other_training?.[index]?.end_date?.message}
+                  helperText={
+                    errors?.other_training?.[index]?.end_date?.message
+                  }
                 />
               </Grid>
               <Grid item xs={12}>
@@ -143,8 +150,13 @@ const OtherTraining = ({
                   label="Training Institution"
                   fullWidth
                   required
-                  error={!!errors?.other_training?.[index]?.training_institution}
-                  helperText={errors?.other_training?.[index]?.training_institution?.message}
+                  error={
+                    !!errors?.other_training?.[index]?.training_institution
+                  }
+                  helperText={
+                    errors?.other_training?.[index]?.training_institution
+                      ?.message
+                  }
                 />
               </Grid>
               <Grid item xs={6}>
@@ -153,8 +165,13 @@ const OtherTraining = ({
                   label="Certificates Received"
                   fullWidth
                   required
-                  error={!!errors?.other_training?.[index]?.certificates_received}
-                  helperText={errors?.other_training?.[index]?.certificates_received?.message}
+                  error={
+                    !!errors?.other_training?.[index]?.certificates_received
+                  }
+                  helperText={
+                    errors?.other_training?.[index]?.certificates_received
+                      ?.message
+                  }
                 />
               </Grid>
               <Grid item xs={6}>
@@ -165,7 +182,9 @@ const OtherTraining = ({
                   fullWidth
                   required
                   error={!!errors?.other_training?.[index]?.hours_of_training}
-                  helperText={errors?.other_training?.[index]?.hours_of_training?.message}
+                  helperText={
+                    errors?.other_training?.[index]?.hours_of_training?.message
+                  }
                 />
               </Grid>
               <Grid item xs={12}>
@@ -174,7 +193,9 @@ const OtherTraining = ({
                   label="Skills Acquired"
                   fullWidth
                   error={!!errors?.other_training?.[index]?.skills_acquired}
-                  helperText={errors?.other_training?.[index]?.skills_acquired?.message}
+                  helperText={
+                    errors?.other_training?.[index]?.skills_acquired?.message
+                  }
                 />
               </Grid>
               <Grid item xs={6}>
@@ -190,7 +211,9 @@ const OtherTraining = ({
                   label="Credential URL"
                   fullWidth
                   error={!!errors?.other_training?.[index]?.credential_url}
-                  helperText={errors?.other_training?.[index]?.credential_url?.message}
+                  helperText={
+                    errors?.other_training?.[index]?.credential_url?.message
+                  }
                 />
               </Grid>
             </Grid>

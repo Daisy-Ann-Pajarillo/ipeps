@@ -12,8 +12,9 @@ import {
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import BackNextButton from "../backnextButton";
-import { otherSkillsSchema } from "../schema/schema"
+import { otherSkillsSchema } from "../schema/schema";
 import fetchData from "../api/fetchData";
+import axios from "../../../axios";
 const OtherSkills = ({
   activeStep,
   steps,
@@ -30,8 +31,8 @@ const OtherSkills = ({
   useEffect(() => {
     const fetchOtherSkills = async () => {
       try {
-        const response = await fetchData("api/get-user-info");
-        setOtherSkills(response.other_skills || []);
+        const response = await axios.get("api/get-user-info");
+        setOtherSkills(response.data.other_skills || []);
       } catch (error) {
         console.error("Error fetching user work experience:", error);
       } finally {
@@ -40,7 +41,6 @@ const OtherSkills = ({
     };
     fetchOtherSkills();
   }, []);
-
 
   const { register, setValue, watch } = useForm({
     resolver: yupResolver(otherSkillsSchema),
@@ -81,7 +81,7 @@ const OtherSkills = ({
     "plumbing",
     "sewing dresses",
     "stenography",
-    "tailoring"
+    "tailoring",
   ];
 
   const handleSkillChange = (skill) => (event) => {
@@ -103,18 +103,20 @@ const OtherSkills = ({
 
     // Check if the skill exists in predefined skills
     const existingSkill = predefinedSkills.find(
-      skill => skill.toLowerCase() === newSkill
+      (skill) => skill.toLowerCase() === newSkill
     );
 
     if (existingSkill) {
       // If skill exists in predefined list, check its checkbox
       if (!skills.includes(existingSkill)) {
-        setValue("skills", [...skills, existingSkill], { shouldValidate: true });
+        setValue("skills", [...skills, existingSkill], {
+          shouldValidate: true,
+        });
       }
     } else {
       // If skill doesn't exist in predefined list, add to other_skills
       const skillExists = other_skills.some(
-        item => item.skills.toLowerCase() === newSkill
+        (item) => item.skills.toLowerCase() === newSkill
       );
 
       if (!skillExists && other_skills.length < 50) {
@@ -146,14 +148,16 @@ const OtherSkills = ({
 
   // Check if a predefined skill is also in other_skills
   const isSkillInOtherSkills = (skill) => {
-    return other_skills.some(item => item.skills.toLowerCase() === skill.toLowerCase());
+    return other_skills.some(
+      (item) => item.skills.toLowerCase() === skill.toLowerCase()
+    );
   };
 
   // Initialize checkboxes based on other_skills
   React.useEffect(() => {
     const initialSkills = other_skills
-      .map(item => item.skills)
-      .filter(skill => predefinedSkills.includes(skill.toLowerCase()));
+      .map((item) => item.skills)
+      .filter((skill) => predefinedSkills.includes(skill.toLowerCase()));
 
     if (initialSkills.length > 0) {
       setValue("skills", initialSkills, { shouldValidate: true });
@@ -164,7 +168,7 @@ const OtherSkills = ({
   if (loading) {
     return <p>Loading...</p>;
   }
-  
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>
@@ -184,7 +188,9 @@ const OtherSkills = ({
                   key={skill}
                   control={
                     <Checkbox
-                      checked={skills.includes(skill) || isSkillInOtherSkills(skill)}
+                      checked={
+                        skills.includes(skill) || isSkillInOtherSkills(skill)
+                      }
                       onChange={handleSkillChange(skill)}
                     />
                   }
@@ -204,7 +210,7 @@ const OtherSkills = ({
               label="Add other skills..."
               {...register("newSkill")}
               onKeyPress={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   handleAddSkill();
                 }
@@ -244,7 +250,7 @@ const OtherSkills = ({
         schema={otherSkillsSchema}
         canSkip={true}
         user_type={user_type}
-        formData={[...skills, ...other_skills.map(item => item.skills)]}
+        formData={[...skills, ...other_skills.map((item) => item.skills)]}
         api="other-skills"
       />
     </Box>
