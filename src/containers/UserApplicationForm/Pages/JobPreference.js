@@ -13,11 +13,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import BackNextButton from "../backnextButton";
 import countriesList from "../../../reusable/constants/countriesList";
 import userIndustryOptionTypes from "../../../reusable/constants/userIndustryOptionTypes";
-import completePHAddressOption from "../../../reusable/constants/completePHAddressOption";
-import { jobPreferenceSchema } from "../schema/schema";
-import fetchData from "../api/fetchData";
+import { jobPreferenceSchema } from "../components/schema";
 import axios from "../../../axios";
-
+import {
+  getMunicipalities,
+  getProvinces,
+} from "../components/getSpecificAddress";
 const JobPreference = ({
   activeStep,
   steps,
@@ -77,38 +78,6 @@ const JobPreference = ({
   } = formMethods;
   const formData = watch();
 
-  // Helper functions to fetch provinces, municipalities, and barangays
-  const getProvinces = () => {
-    return Object.keys(completePHAddressOption)
-      .map((regionId) =>
-        Object.keys(completePHAddressOption[regionId].province_list)
-      )
-      .flat();
-  };
-
-  const getMunicipalities = (selectedProvince) => {
-    if (!selectedProvince) {
-      console.log("No selected province");
-      return [];
-    }
-
-    // Find the province from the completePHAddressOption
-    const municipalities = Object.values(completePHAddressOption).flatMap(
-      (region) => {
-        const provinceData = region.province_list?.[selectedProvince];
-        if (!provinceData) {
-          console.log(`No province data found for ${selectedProvince}`);
-          return [];
-        }
-        return provinceData.municipality_list.map((municipalityObj) => {
-          const municipalityName = Object.keys(municipalityObj)[0]; // Get municipality name
-          return { municipality: municipalityName };
-        });
-      }
-    );
-    return municipalities;
-  };
-
   // useEffect to update the addressData state based on selected province/municipality
   useEffect(() => {
     if (!selectedProvince) {
@@ -145,9 +114,7 @@ const JobPreference = ({
   }
 
   return (
-    <Box
-      sx={{ p: 3 }}
-    >
+    <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Typography variant="h6" sx={{ marginTop: 2 }}>

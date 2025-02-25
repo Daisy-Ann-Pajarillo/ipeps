@@ -12,7 +12,7 @@ import {
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import BackNextButton from "../backnextButton";
-import { otherSkillsSchema } from "../schema/schema";
+import { otherSkillsSchema } from "../components/schema";
 import fetchData from "../api/fetchData";
 import axios from "../../../axios";
 const OtherSkills = ({

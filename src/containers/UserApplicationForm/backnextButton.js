@@ -226,11 +226,17 @@ const BackNextButton = ({
       )}
       <Button
         type="button"
-        variant="contained"
-        onClick={pushToDataBase}
-        disabled={!isValid || activeStep === steps.length - 1}
+        variant={isValid ? "contained" : "text"}
+        className={isValid ? "" : "text-red-500 pointer-events-none"}
+        onClick={() => {
+          if (isValid) pushToDataBase();
+        }}
       >
-        {activeStep === steps.length - 2 ? "Finish" : "Next"}
+        {!isValid
+          ? "Please fill all fields with *"
+          : activeStep === steps.length - 2
+          ? "Finish"
+          : "Next"}
       </Button>
     </div>
   );

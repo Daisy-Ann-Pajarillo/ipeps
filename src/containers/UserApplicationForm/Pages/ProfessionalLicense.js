@@ -4,7 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, Grid, TextField, Button, Autocomplete } from "@mui/material";
 import BackNextButton from "../backnextButton";
 import fetchData from "../api/fetchData";
-import { professionalEligibilitySchema } from "../schema/schema";
+import { professionalEligibilitySchema } from "../components/schema";
 import axios from "../../../axios";
 
 const eligibilityTypeOptions = [

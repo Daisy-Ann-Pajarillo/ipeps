@@ -14,7 +14,7 @@ import {
 
 import languagesList from "../../../reusable/constants/languages";
 import BackNextButton from "../backnextButton";
-import { languageProficiencySchema } from "../schema/schema";
+import { languageProficiencySchema } from "../components/schema";
 import fetchData from "../api/fetchData";
 import axios from "../../../axios";
 

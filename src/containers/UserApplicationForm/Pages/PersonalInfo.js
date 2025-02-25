@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 
@@ -15,14 +15,26 @@ import {
   Switch,
   Button,
   FormHelperText,
+  Paper,
+  IconButton,
 } from "@mui/material";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import {
+  CloudUpload as CloudUploadIcon,
+  InsertDriveFile as InsertDriveFileIcon,
+  Clear as ClearIcon,
+} from "@mui/icons-material";
+
 import ApplicationDivider from "../components/ApplicationDivider";
 import BackNextButton from "../backnextButton";
-import completePHAddressOption from "../../../reusable/constants/completePHAddressOption";
 import countriesList from "../../../reusable/constants/countriesList";
 import religionOption from "../../../reusable/constants/religionOption";
 import companyIndustryTypes from "../../../reusable/constants/companyIndustryTypes";
+import determineChangedFields from "../components/determineChangedFields";
+import {
+  getBarangays,
+  getMunicipalities,
+  getProvinces,
+} from "../components/getSpecificAddress";
 
 import {
   baseSchema,
@@ -30,7 +42,7 @@ import {
   employerSchema,
   employerAcademeSchema,
   jobseekerSchema,
-} from "../schema/schema";
+} from "../components/schema";
 import axios from "../../../axios";
 
 // Dynamic Schema Based on User Type
@@ -96,10 +108,10 @@ const PersonalInfo = ({
   const {
     register,
     setValue,
+    trigger,
     formState: { errors },
     watch,
   } = formMethods;
-
 
   const formData = watch();
 
@@ -159,112 +171,73 @@ const PersonalInfo = ({
     permanentBarangays: [],
   });
 
-  // Address helper functions
-  const getProvinces = () => {
-    return Object.keys(completePHAddressOption)
-      .map((regionId) =>
-        Object.keys(completePHAddressOption[regionId].province_list)
-      )
-      .flat();
-  };
+  // Get provinces once on component mount
+  useEffect(() => {
+    const provinces = getProvinces();
+    setAddressData((prevData) => ({
+      ...prevData,
+      provinces,
+      permanentProvinces: provinces, // Same data for both
+    }));
+  }, []); // Empty dependency array - run once
 
-  const getMunicipalities = (selectedProvince) => {
-    if (!selectedProvince) {
-      return [];
-    }
+  // Handle municipality changes for temporary address
+  useEffect(() => {
+    if (!selectedProvince) return;
 
-    const toTitleCase = (str) => {
-      return str.replace(/\b\w/g, (char) => char.toUpperCase());
-    };
-
-    const municipalities = Object.values(completePHAddressOption).flatMap(
-      (region) => {
-        const provinceData = region.province_list?.[selectedProvince];
-        if (!provinceData) {
-          return [];
-        }
-
-        return provinceData.municipality_list.map((municipalityObj) => {
-          let municipalityName = Object.keys(municipalityObj)[0];
-
-          // Convert to Title Case (capitalize first letter of each word)
-          municipalityName = toTitleCase(municipalityName.toLowerCase());
-
-          return { municipality: municipalityName };
-        });
-      }
+    const municipalities = getMunicipalities(selectedProvince).map(
+      (item) => item.municipality
     );
 
-    return municipalities.sort((a, b) => a.municipality.localeCompare(b.municipality));
-  };
-
-
-  const getBarangays = (selectedMunicipality) => {
-    if (!selectedMunicipality) {
-      return [];
-    }
-
-    let barangays = [];
-
-    Object.values(completePHAddressOption).forEach((region) => {
-      Object.values(region.province_list || {}).forEach((province) => {
-        province.municipality_list.forEach((municipalityObj) => {
-          const municipalityName = Object.keys(municipalityObj)[0];
-          if (municipalityName === selectedMunicipality) {
-            barangays = municipalityObj[municipalityName].barangay_list;
-          }
-        });
-      });
-    });
-    return barangays;
-  };
-
-  // Address data effect - optimized with conditions
-  useEffect(() => {
-    // Skip if no address selections yet
-    if (
-      (!selectedProvince && !selectedPermanentProvince) ||
-      (!selectedMunicipality && !selectedPermanentMunicipality)
-    )
-      return;
-
-    // Get all provinces once
-    const provinces = getProvinces();
-
-    // Get data for temporary address
-    const municipalities = selectedProvince
-      ? getMunicipalities(selectedProvince).map((item) => item.municipality)
-      : [];
-
-    const barangays = selectedMunicipality
-      ? getBarangays(selectedMunicipality)
-      : [];
-
-    // Get data for permanent address
-    const permanentMunicipalities = selectedPermanentProvince
-      ? getMunicipalities(selectedPermanentProvince).map(
-        (item) => item.municipality
-      )
-      : [];
-
-    const permanentBarangays = selectedPermanentMunicipality
-      ? getBarangays(selectedPermanentMunicipality)
-      : [];
-
-    setAddressData({
-      provinces,
+    setAddressData((prevData) => ({
+      ...prevData,
       municipalities,
+      // Clear barangays when province changes
+      ...(prevData.municipalities !== municipalities && { barangays: [] }),
+    }));
+  }, [selectedProvince]);
+
+  // Handle barangay changes for temporary address
+  useEffect(() => {
+    if (!selectedMunicipality) return;
+
+    const barangays = getBarangays(selectedMunicipality);
+
+    setAddressData((prevData) => ({
+      ...prevData,
       barangays,
-      permanentProvinces: provinces, // Reuse provinces data
+    }));
+  }, [selectedMunicipality]);
+
+  // Handle municipality changes for permanent address
+  useEffect(() => {
+    if (!selectedPermanentProvince) return;
+
+    const permanentMunicipalities = getMunicipalities(
+      selectedPermanentProvince
+    ).map((item) => item.municipality);
+
+    setAddressData((prevData) => ({
+      ...prevData,
       permanentMunicipalities,
+      // Clear barangays when province changes
+      ...(prevData.permanentMunicipalities !== permanentMunicipalities && {
+        permanentBarangays: [],
+      }),
+    }));
+  }, [selectedPermanentProvince]);
+
+  // Handle barangay changes for permanent address
+  useEffect(() => {
+    if (!selectedPermanentMunicipality) return;
+
+    const permanentBarangays = getBarangays(selectedPermanentMunicipality);
+
+    setAddressData((prevData) => ({
+      ...prevData,
       permanentBarangays,
-    });
-  }, [
-    selectedProvince,
-    selectedMunicipality,
-    selectedPermanentProvince,
-    selectedPermanentMunicipality,
-  ]);
+    }));
+  }, [selectedPermanentMunicipality]);
 
   // Form validation and data sync effect
   useEffect(() => {
@@ -356,13 +329,29 @@ const PersonalInfo = ({
     }
   };
 
+  const prevFormDataRef = useRef({ ...formData });
+  useEffect(() => {
+    // Determine which fields have changed
+    const changedFields = determineChangedFields(
+      prevFormDataRef.current,
+      formData
+    );
+
+    // Only trigger validation for fields that changed
+    if (changedFields.length > 0) {
+      trigger(changedFields);
+    }
+
+    // Update the ref with current formData for next comparison
+    prevFormDataRef.current = { ...formData };
+  }, [formData, trigger]);
+
   if (loading) {
     return <p>Loading...</p>; // Prevent rendering until data is ready
   }
+
   return (
-    <Box
-      sx={{ p: 3 }}
-    >
+    <Box sx={{ p: 3 }}>
       <Grid container spacing={2}>
         {/* Basic Information */}
         <>
@@ -753,6 +742,8 @@ const PersonalInfo = ({
                         {...params}
                         required
                         label="Country"
+                        error={!!errors?.temporary_country}
+                        helperText={errors?.temporary_country?.message}
                       />
                     )}
                   />
@@ -772,6 +763,8 @@ const PersonalInfo = ({
                         {...register("temporary_province")}
                         {...params}
                         label="Province"
+                        error={!!errors?.temporary_province}
+                        helperText={errors?.temporary_province?.message}
                       />
                     )}
                     disabled={selectedCountry !== "Philippines"}
@@ -792,6 +785,8 @@ const PersonalInfo = ({
                         required={selectedProvince}
                         {...params}
                         label="Municipality"
+                        error={!!errors?.temporary_municipality}
+                        helperText={errors?.temporary_municipality?.message}
                       />
                     )}
                     disabled={!selectedProvince} // Disable if no province is selected
@@ -804,6 +799,8 @@ const PersonalInfo = ({
                     disabled={!selectedMunicipality}
                     label="Zip Code"
                     {...register("temporary_zip_code")}
+                    error={!!errors?.temporary_zip_code}
+                    helperText={errors?.temporary_zip_code?.message}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
@@ -820,6 +817,8 @@ const PersonalInfo = ({
                         required={selectedMunicipality}
                         {...params}
                         label="Barangay"
+                        error={!!errors?.temporary_barangay}
+                        helperText={errors?.temporary_barangay?.message}
                       />
                     )}
                     disabled={!selectedMunicipality} // Disable if no province is selected
@@ -849,6 +848,13 @@ const PersonalInfo = ({
                 value={selectedPermanentCountry}
                 onChange={(event, newValue) => {
                   setSelectedPermanentCountry(newValue);
+                  if (newValue !== "Philippines") {
+                    setSelectedPermanentProvince(null);
+                    setSelectedPermanentMunicipality(null);
+                    setSelectedPermanentBarangay(null);
+                    setValue("permanent_zip_code", null);
+                    setValue("permanent_house_no_street_village", null);
+                  }
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -871,6 +877,9 @@ const PersonalInfo = ({
                 onChange={(event, newValue) => {
                   setSelectedPermanentProvince(newValue);
                   setSelectedPermanentMunicipality(null);
+                  setSelectedPermanentBarangay(null);
+                  setValue("permanent_zip_code", null);
+                  setValue("permanent_house_no_street_village", null);
                 }}
                 renderInput={(params) => (
                   <TextField
@@ -890,9 +899,12 @@ const PersonalInfo = ({
                 options={addressData.permanentMunicipalities}
                 getOptionLabel={(option) => option}
                 value={selectedPermanentMunicipality}
-                onChange={(event, newValue) =>
-                  setSelectedPermanentMunicipality(newValue)
-                }
+                onChange={(event, newValue) => {
+                  setSelectedPermanentMunicipality(newValue);
+                  setSelectedPermanentBarangay(null);
+                  setValue("permanent_zip_code", null);
+                  setValue("permanent_house_no_street_village", null);
+                }}
                 renderInput={(params) => (
                   <TextField
                     {...register("permanent_municipality")}
@@ -1235,7 +1247,9 @@ const PersonalInfo = ({
                       {...register("former_ofw_country_date_return")}
                       InputLabelProps={{ shrink: true }}
                       error={!!errors?.former_ofw_country_date_return}
-                      helperText={errors?.former_ofw_country_date_return?.message}
+                      helperText={
+                        errors?.former_ofw_country_date_return?.message
+                      }
                     />
                   </Grid>
                 </>
@@ -1284,28 +1298,72 @@ const PersonalInfo = ({
       <ApplicationDivider />
       {/* File Upload */}
       <Grid item xs={12}>
+        <Box sx={{ mb: 1 }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Valid ID Upload
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Please upload a clear photo of your government-issued ID (e.g.,
+            Driver's License, Passport, SSS, etc.)
+          </Typography>
+        </Box>
+
         <input
           type="file"
           id="id"
           style={{ display: "none" }}
           onChange={handleFileChange}
+          accept="image/jpeg,image/png,image/jpg,application/pdf"
+          required
         />
-        <label htmlFor="id">
-          <Button
-            variant="contained"
-            component="span"
-            startIcon={<CloudUploadIcon />}
-          >
-            Upload Valid ID
-          </Button>
-        </label>
-        {fileName && (
-          <Typography variant="body2">Selected file: {fileName}</Typography>
-        )}
-        {!!errors.id && (
-          <FormHelperText error>{errors.id.message}</FormHelperText>
-        )}
+
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <label htmlFor="id">
+            <Button
+              variant="contained"
+              component="span"
+              startIcon={<CloudUploadIcon />}
+              fullWidth
+              sx={{ mb: 1 }}
+            >
+              {fileName ? "Change Selected ID" : "Upload Valid ID *"}
+            </Button>
+          </label>
+
+          {fileName && (
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 1.5,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                bgcolor: "background.paper",
+                borderRadius: 1,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  overflow: "hidden",
+                }}
+              >
+                <InsertDriveFileIcon color="primary" />
+                <Typography variant="body2" noWrap title={fileName}>
+                  {fileName}
+                </Typography>
+              </Box>
+            </Paper>
+          )}
+
+          {!!errors?.id && (
+            <FormHelperText error>{errors?.id?.message}</FormHelperText>
+          )}
+        </Box>
       </Grid>
+
       <BackNextButton
         activeStep={activeStep}
         steps={steps}

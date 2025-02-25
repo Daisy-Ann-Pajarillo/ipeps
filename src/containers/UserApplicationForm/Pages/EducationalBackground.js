@@ -40,14 +40,14 @@ const schema = yup.object().shape({
         .when("dateFrom", (dateFrom, schema) =>
           dateFrom
             ? schema
-              .test(
-                "end-date-after-start",
-                "End date must be after start date",
-                (dateTo) =>
-                  !dateTo ||
-                  (dateFrom && new Date(dateTo) > new Date(dateFrom))
-              )
-              .max(new Date(), "End date cannot be in the future")
+                .test(
+                  "end-date-after-start",
+                  "End date must be after start date",
+                  (dateTo) =>
+                    !dateTo ||
+                    (dateFrom && new Date(dateTo) > new Date(dateFrom))
+                )
+                .max(new Date(), "End date cannot be in the future")
             : schema
         )
         .transform((value, originalValue) =>
@@ -78,7 +78,7 @@ const degreeOptions = [
   "Master's",
   "PhD",
   "ALS",
-  "TESDA"
+  "TESDA",
 ];
 
 // Sample list of schools for autocomplete
@@ -124,15 +124,17 @@ const EducationalBackground = ({
       try {
         const response = await fetchData("api/get-user-info");
         if (response.educational_background) {
-          const transformedData = response.educational_background.map(edu => ({
-            schoolName: edu.school_name,
-            degreeQualification: edu.degree_or_qualification,
-            dateFrom: new Date(edu.date_from).toISOString().split('T')[0],
-            dateTo: new Date(edu.date_to).toISOString().split('T')[0],
-            isCurrent: false,
-            fieldOfStudy: edu.field_of_study,
-            programDuration: edu.program_duration
-          }));
+          const transformedData = response.educational_background.map(
+            (edu) => ({
+              schoolName: edu.school_name,
+              degreeQualification: edu.degree_or_qualification,
+              dateFrom: new Date(edu.date_from).toISOString().split("T")[0],
+              dateTo: new Date(edu.date_to).toISOString().split("T")[0],
+              isCurrent: false,
+              fieldOfStudy: edu.field_of_study,
+              programDuration: edu.program_duration,
+            })
+          );
           setEducationHistory(transformedData);
           setValue("educationHistory", transformedData);
         }
@@ -225,7 +227,9 @@ const EducationalBackground = ({
                   label="School Name"
                   required
                   error={!!errors.educationHistory?.[index]?.schoolName}
-                  helperText={errors.educationHistory?.[index]?.schoolName?.message}
+                  helperText={
+                    errors.educationHistory?.[index]?.schoolName?.message
+                  }
                 />
               )}
             />
@@ -318,6 +322,7 @@ const EducationalBackground = ({
               {...register(`educationHistory.${index}.programDuration`)}
               label="Program Duration (Years)"
               type="number"
+              inputProps={{ min: 0 }} // Ensures the input doesn't allow negatives
               value={item.programDuration || ""}
               error={!!errors.educationHistory?.[index]?.programDuration}
               helperText={

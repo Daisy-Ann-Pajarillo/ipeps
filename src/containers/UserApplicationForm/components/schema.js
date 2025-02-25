@@ -9,7 +9,7 @@ export const baseSchema = yup.object().shape({
     .min(10, "Must be at least 10 digits")
     .required("Cellphone number is required"),
   permanent: yup.boolean(),
-  permanent_country: yup.string().required("Province is required"),
+  permanent_country: yup.string().required("Country is required"),
   permanent_province: yup.string().when("country", {
     is: "Philippines",
     then: (schema) => schema.required("Province is required"),
@@ -73,7 +73,7 @@ export const baseSchema = yup.object().shape({
       console.log("Testing file type:", fileType);
       return supportedTypes.includes(fileType);
     })
-    .required("Company ID is required"),
+    .required("Valid ID is required"),
 });
 // Job Seeker-Specific Schema
 export const jobseekerSchema = yup.object().shape({

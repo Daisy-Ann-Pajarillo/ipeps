@@ -11,7 +11,7 @@ import {
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import BackNextButton from "../backnextButton";
-import { workExperienceSchema } from "../schema/schema";
+import { workExperienceSchema } from "../components/schema";
 import fetchData from "../api/fetchData"; // Assuming this function handles API calls
 import axios from "../../../axios";
 
