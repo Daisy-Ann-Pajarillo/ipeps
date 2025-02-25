@@ -18,7 +18,7 @@ const EmployersDashboard = () => {
         <div className="w-full flex justify-center">
             <SideBar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
             <div
-                className="w-full"
+                className="w-full h-dvh overflow-y-auto"
             >
                 <Routes>
                     <Route path="/manage-employers" element={<ManageEmployer isCollapsed={isCollapsed} />} />

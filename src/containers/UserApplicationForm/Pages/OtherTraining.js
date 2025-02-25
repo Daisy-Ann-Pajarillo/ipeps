@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { TextField, Button, Grid, Box } from "@mui/material";
 import { otherTrainingsSchema } from "../components/schema";
-import fetchData from "../api/fetchData";
 import BackNextButton from "../backnextButton";
 import axios from "../../../axios";
 

@@ -19,6 +19,7 @@ import {
   Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useSelector } from "react-redux";
 
 // Custom Components
 import PersonalInfo from "./Pages/PersonalInfo";
@@ -74,21 +75,25 @@ const UserApplicationForm = (props) => {
   const [activeStep, setActiveStep] = useState(0);
   const [pageData, setPageData] = useState({});
   const [isValid, setIsValid] = useState(false);
+
+  const userType = useSelector((state) => state.user.userType);
+
   //const [userHasValidEmail, setUserHasValidEmail] = useState(false);
   const [userRequestedEmailConfirmation, setUserRequestedEmailConfirmation] =
     useState(false);
 
   let steps = [];
 
-  if (props.user_type === "JOBSEEKER" || props.user_type === "STUDENT") {
+  if (userType === "JOBSEEKER" || userType === "STUDENT") {
     steps = stepsForJobseekers;
-  } else if (props.user_type === "EMPLOYER" || props.user_type === "ACADEME") {
+  } else if (userType === "EMPLOYER" || userType === "ACADEME") {
     steps = stepsForEmployer;
   }
 
   useEffect(() => {
     onRefresh();
   }, []);
+
 
   const onRefresh = () => {
     props.onGetAuthStorage();
@@ -179,7 +184,7 @@ const UserApplicationForm = (props) => {
         handleBack={handleBack}
         handleNext={handleNext}
         review={steps}
-        user_type={props.user_type}
+        user_type={userType}
       />
     );
   };
@@ -187,7 +192,7 @@ const UserApplicationForm = (props) => {
   const getPageDataKey = (stepIndex) => {
     let pageDataKeys = {};
 
-    if (props.user_type === "JOBSEEKER") {
+    if (userType === "JOBSEEKER") {
       pageDataKeys = {
         0: "personal_info_page",
         1: "job_preference_page",
@@ -199,7 +204,7 @@ const UserApplicationForm = (props) => {
         7: "work_experience_page", // For Other Skills
       };
     }
-    if (props.user_type === "EMPLOYER") {
+    if (userType === "EMPLOYER") {
       pageDataKeys = {
         0: "personal_info_page",
       };
@@ -239,9 +244,8 @@ const UserApplicationForm = (props) => {
         </div>
         <Card className="overflow-y-scroll">
           <CardHeader
-            title={`${steps[activeStep].label} (${activeStep + 1}/${
-              steps.length
-            })`}
+            title={`${steps[activeStep].label} (${activeStep + 1}/${steps.length
+              })`}
             className="[&_.MuiCardHeader-title]:text-md"
           />
 

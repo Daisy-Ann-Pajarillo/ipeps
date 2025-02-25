@@ -7,6 +7,8 @@ import {
 } from "react-router-dom"; // Updated imports for React Router v6
 //import { useSelector, useDispatch } from 'react-redux'; // Use hooks instead of connect
 import * as actions from "./store/actions/index";
+import { useSelector, useDispatch } from "react-redux";
+import { setUserType } from "./store/userSlice";
 
 import "./index.css"; // Updated import path
 import Home from "./containers/Home/Home";
@@ -28,9 +30,17 @@ const loading = (
 );
 
 const App = (props) => {
+
   useEffect(() => {
     props.onGetAuthStorage(); // Dispatch action to get auth storage
   }, [props.auth.token]);
+
+  const dispatch = useDispatch();
+  dispatch(setUserType("EMPLOYER"))
+
+  const userType = useSelector((state) => state.user.userType);
+
+  console.log("user type ", userType)
 
   let authRoutes = null;
   let applicationRoutes = null;
@@ -148,15 +158,12 @@ const App = (props) => {
           <Route
             path="/user-application-form"
             element={
-              <UserApplicationForm
-                //user_type = {props.auth.user.user_type}
-                user_type="JOBSEEKER"
-              />
+              <UserApplicationForm />
             }
           />
           <Route
             path="dashboard/*"
-            element={<Dashboard user_type={"EMPLOYER"} />}
+            element={<Dashboard />}
           />
           {/* <Route
             path="/employer-application-form"

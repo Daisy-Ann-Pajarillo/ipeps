@@ -1,10 +1,15 @@
 import StudentDashboard from "./StudentDashboard/StudentDashboard";
 import EmployerDashoard from "./EmployersDashboardScreen/EmployerDashboard"
-const Dashboard = ({ user_type }) => {
+import AdministratorDashboard from "./AdministratorDashboard/AdministratorDashboard";
+import { useSelector } from "react-redux";
+
+const Dashboard = () => {
+    const userType = useSelector((state) => state.user.userType);
     return (
         <>
-            {user_type === "STUDENT" && <StudentDashboard />}
-            {user_type === "EMPLOYER" && <EmployerDashoard />}
+            {(userType === "STUDENT" || userType === "JOBSEEKER") && <StudentDashboard />}
+            {userType === "EMPLOYER" && <EmployerDashoard />}
+            {userType === "ADMIN" && <AdministratorDashboard />}
         </>
 
     );

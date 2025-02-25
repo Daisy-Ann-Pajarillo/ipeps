@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Box, IconButton, InputBase, useTheme } from "@mui/material";
 
 
-import { ColorModeContext, tokens } from "../../../../../theme";
+import { ColorModeContext, tokens } from "../../../../../../gab/Ipeps-Frontend/OJT_2 WORK/ipeps-frontend/src/theme";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
@@ -14,10 +14,10 @@ const Topbar = () => {
     const colorMode = useContext(ColorModeContext);
 
     return (
-        <Box 
-            display="flex" 
-            justifyContent="space-between" 
-            alignItems="center" 
+        <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
             p={2}
             sx={{ flexWrap: "wrap" }} // Make it wrap on small screens
         >

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import StudentMenuItems from "./StudentMenuItems";
 import EmployerMenuItems from "./EmployerMenuItems";
 import { ExpandMore, ExpandLess, Menu, ChevronLeft } from "@mui/icons-material";
+import AdministratorMenuItems from "./AdminMenuItems";
 
 const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) => (
     <>
@@ -51,19 +53,21 @@ const SidebarItem = ({ title, to, icon, selected, setSelected, isCollapsed }) =>
 };
 
 const SideBar = ({ isCollapsed, setIsCollapsed }) => {
+    const userType = useSelector((state) => state.user.userType);
     const [selected, setSelected] = useState("Dashboard");
     const [profileImage, setProfileImage] = useState("https://bit.ly/40SdWk7");
     const location = useLocation();
-    const user_type = "EMPLOYER";
     const [menuItems, setMenuItems] = useState([]);
 
     useEffect(() => {
-        if (user_type === "STUDENT") {
+        if (userType === "STUDENT" || userType === "JOBSEEKER") {
             setMenuItems(StudentMenuItems);
-        } else if (user_type === "EMPLOYER") {
+        } else if (userType === "EMPLOYER") {
             setMenuItems(EmployerMenuItems);
+        } else if (userType === "ADMIN") {
+            setMenuItems(AdministratorMenuItems);
         }
-    }, [user_type]);
+    }, [userType]);
 
     const [openSections, setOpenSections] = useState({});
     useEffect(() => {
@@ -75,7 +79,7 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
             className={`
                 relative
                 ${isCollapsed ? "w-20" : "w-[280px]"}
-                bg-gray-950 h-screen pb-10 overflow-y-auto
+                bg-gray-950 h-dvh pb-10 overflow-y-auto
                 transition-all duration-300 ease-in-out
             `}
         >
@@ -108,7 +112,7 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
                         <input id="profile-upload" type="file" accept="image/*" className="hidden" />
                     </div>
                     <p className="text-white text-lg font-semibold mt-2.5">Emily Smith</p>
-                    <p className="text-white text-sm opacity-75">{user_type}</p>
+                    <p className="text-white text-sm opacity-75">{userType}</p>
                 </div>
             )}
 

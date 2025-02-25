@@ -1,22 +1,15 @@
 import React, { useState } from "react";
-import { Sidebar, Menu, MenuItem } from "react-pro-sidebar";
+import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
-import { tokens } from "../../../../../theme";
+import { tokens } from "../../../../../../gab/Ipeps-Frontend/OJT_2 WORK/ipeps-frontend/src/theme";
 import {
     HomeOutlined,
     PeopleOutlined,
     ContactsOutlined,
     ReceiptOutlined,
-    PersonOutlined,
-    CalendarTodayOutlined,
-    HelpOutlineOutlined,
-    BarChartOutlined,
-    PieChartOutlineOutlined,
-    TimelineOutlined,
     MenuOutlined,
-    MapOutlined,
 } from "@mui/icons-material";
 
 // Item Component
@@ -47,7 +40,7 @@ const SideBar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [selected, setSelected] = useState("Dashboard");
     const [profileImage, setProfileImage] = useState(
-        "https://cdn.talkie-ai.com/talkie-user-img/59477874282646/59940786655496-2.jpeg"
+        "https://st2.depositphotos.com/1003940/5526/i/450/depositphotos_55260497-stock-photo-cute-happy-baby-boy-crawling.jpg"
     );
 
     // Handle profile image change
@@ -84,7 +77,7 @@ const SideBar = () => {
                 },
             }}
         >
-            <Sidebar collapsed={isCollapsed}>
+            <ProSidebar collapsed={isCollapsed}>
                 <Menu iconShape="square">
                     {/* Sidebar Toggle Button */}
                     <MenuItem
@@ -135,7 +128,7 @@ const SideBar = () => {
                                     fontWeight="bold"
                                     sx={{ m: "10px 0 0 0" }}
                                 >
-                                    Jiraya
+                                    Baby
                                 </Typography>
                                 <Typography variant="h5" color={colors.greenAccent[500]}>
                                     ACADEME
@@ -147,96 +140,49 @@ const SideBar = () => {
                     {/* Sidebar Menu Items */}
                     <Box paddingLeft={isCollapsed ? undefined : "10%"}>
                         <Item
-                            title="Dashboard"
-                            to="/student-dashboard/dashboard"
-                            icon={<HomeOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        <Typography variant="h6" color={colors.grey[300]} sx={{ m: "15px 0 5px 20px" }}>
-                            Data
-                        </Typography>
-                        <Item
-                            title="Manage Team"
-                            to="/student-dashboard/team"
+                            title="Academic Profile"
+                            to="/academe-dashboard/academic-profile"
                             icon={<PeopleOutlined />}
                             selected={selected}
                             setSelected={setSelected}
                         />
+                        <Typography variant="h6" color={colors.grey[100]} sx={{ fontSize: 12 }}>
+                            SCHOOL RECORDS
+                        </Typography>
                         <Item
-                            title="Contacts Information"
-                            to="/student-dashboard/contacts"
-                            icon={<ContactsOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        <Item
-                            title="Invoices Balances"
-                            to="/student-dashboard/invoices"
+                            title="Manage Graduate Report"
+                            to="/academe-dashboard/manage-graduate-report"
                             icon={<ReceiptOutlined />}
                             selected={selected}
                             setSelected={setSelected}
                         />
-
-                        <Typography variant="h6" color={colors.grey[300]} sx={{ m: "15px 0 5px 20px" }}>
-                            Pages
+                        <Item
+                            title="Manage Enrollment Report"
+                            to="/academe-dashboard/manage-enrollment-report"
+                            icon={<ReceiptOutlined />}
+                            selected={selected}
+                            setSelected={setSelected}
+                        />
+                        <Typography variant="h6" color={colors.grey[100]} sx={{ fontSize: 12 }}>
+                            INFORMATION
                         </Typography>
                         <Item
-                            title="Profile Form"
-                            to="/student-dashboard/form"
-                            icon={<PersonOutlined />}
+                            title="Settings"
+                            to="/academe-dashboard/settings"
+                            icon={<ReceiptOutlined />}
                             selected={selected}
                             setSelected={setSelected}
                         />
                         <Item
-                            title="Calendar"
-                            to="/student-dashboard/calendar"
-                            icon={<CalendarTodayOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        <Item
-                            title="FAQ Page"
-                            to="/student-dashboard/faq"
-                            icon={<HelpOutlineOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-
-                        <Typography variant="h6" color={colors.grey[300]} sx={{ m: "15px 0 5px 20px" }}>
-                            Charts
-                        </Typography>
-                        <Item
-                            title="Bar Chart"
-                            to="/student-dashboard/bar"
-                            icon={<BarChartOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        <Item
-                            title="Pie Chart"
-                            to="/student-dashboard/pie"
-                            icon={<PieChartOutlineOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        <Item
-                            title="Line Chart"
-                            to="/student-dashboard/line"
-                            icon={<TimelineOutlined />}
-                            selected={selected}
-                            setSelected={setSelected}
-                        />
-                        <Item
-                            title="Geography Chart"
-                            to="/student-dashboard/geography"
-                            icon={<MapOutlined />}
+                            title="Application Settings"
+                            to="/academe-dashboard/application-settings"
+                            icon={<ReceiptOutlined />}
                             selected={selected}
                             setSelected={setSelected}
                         />
                     </Box>
                 </Menu>
-            </Sidebar>
+            </ProSidebar>
         </Box>
     );
 };

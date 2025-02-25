@@ -30,7 +30,7 @@ const StudentDashboardScreen = () => {
     return (
         <div className="w-full flex justify-center">
             <SideBar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-            <div className="w-full">
+            <div className="w-full h-dvh overflow-y-auto">
                 <Routes>
                     <Route path="/" element={<Home isCollapsed={isCollapsed} />} />
                     <Route path="/student/" element={<Home isCollapsed={isCollapsed} />} />
