@@ -1,20 +1,5 @@
-
-import{
-    Divider
-} from '@mui/material';
-
 const ApplicationDivider = () => {
-    return(
-        <Divider
-        sx={{
-          borderWidth: '1px',
-          borderStyle: 'solid',
-          borderColor: 'grey.100',
-          marginY: 5,
-          width: '100%',
+  return <div className="border-t border-gray-50 dark:border-gray-600 my-5 w-full opacity-50" />;
+};
 
-        }}
-      />
-    )
-}
-export default ApplicationDivider
+export default ApplicationDivider;

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import StudentMenuItems from "./StudentMenuItems";
 import EmployerMenuItems from "./EmployerMenuItems";
-import { ExpandMore, ExpandLess, Menu, ChevronLeft } from "@mui/icons-material";
 import AdministratorMenuItems from "./AdminMenuItems";
+import AcademeMenuItems from "./AcademeMenuItems";
+import { ExpandMore, ExpandLess, Menu, ChevronLeft, DarkMode, LightMode } from "@mui/icons-material";
+import ToggleDarkMode from "../../../../reusable/components/toggleDarkMode";
 
 const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) => (
     <>
@@ -12,19 +14,18 @@ const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) =
             <button
                 onClick={onToggle}
                 className={`flex justify-between items-center w-full px-3 py-2
-                    text-white font-bold text-xs cursor-pointer
-                    hover:bg-gray-900 transition-all duration-300 ease-in-out
-                    ${isOpen ? "bg-gray-800" : "bg-transparent"}
+                    text-gray-900 dark:text-white font-bold text-xs cursor-pointer
+                    hover:bg-gray-300 dark:hover:bg-gray-900 transition-all duration-300 ease-in-out
+                    ${isOpen ? "bg-gray-200 dark:bg-gray-800" : "bg-transparent"}
                 `}
             >
                 <span>{title}</span>
-                {isOpen ? <ExpandLess className="text-white" /> : <ExpandMore className="text-white" />}
+                {isOpen ? <ExpandLess /> : <ExpandMore />}
             </button>
         )}
 
         {(isCollapsed || (!isCollapsed && isOpen)) && (
-            <div className={`pl-4 flex flex-col ${isCollapsed ? "gap-5" : ""} 
-                transition-all duration-300 ease-in-out`}>
+            <div className={`pl-4 flex flex-col ${isCollapsed ? "gap-5" : ""} transition-all duration-300 ease-in-out`}>
                 {children}
             </div>
         )}
@@ -32,15 +33,13 @@ const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) =
 );
 
 const SidebarItem = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
-    const navigate = useNavigate();
-
     return (
         <Link
             to={to}
             className={`flex items-center w-full px-3 py-2 cursor-pointer no-underline rounded-md
                 ${selected === title
                     ? "bg-blue-600 text-white"
-                    : "text-gray-300 hover:bg-gray-700"}
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"}
                 transition-all duration-300 ease-in-out
                 ${isCollapsed ? "justify-center" : ""}
             `}
@@ -66,6 +65,8 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
             setMenuItems(EmployerMenuItems);
         } else if (userType === "ADMIN") {
             setMenuItems(AdministratorMenuItems);
+        } else if (userType === "ACADEME") {
+            setMenuItems(AcademeMenuItems);
         }
     }, [userType]);
 
@@ -79,10 +80,11 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
             className={`
                 relative
                 ${isCollapsed ? "w-20" : "w-[280px]"}
-                bg-gray-950 h-dvh pb-10 overflow-y-auto
+                bg-gray-100 dark:bg-gray-950 h-dvh pb-10 overflow-y-auto
                 transition-all duration-300 ease-in-out
             `}
         >
+            {/* Sidebar Toggle Button */}
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className={`
@@ -100,8 +102,9 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
             </button>
 
             {!isCollapsed && (
-                <div className="mb-6 text-center pt-6">
-                    <div className="w-24 h-24 mx-auto relative rounded-full overflow-hidden bg-red-100">
+                <div className="mb-6 text-center pt-6 relative">
+                    <ToggleDarkMode className={"absolute right-3 top-3"} />
+                    <div className="w-24 h-24 mx-auto relative rounded-full overflow-hidden bg-gray-300 dark:bg-gray-700">
                         <label htmlFor="profile-upload" className="block w-full h-full cursor-pointer">
                             <img
                                 alt="profile-user"
@@ -111,8 +114,8 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
                         </label>
                         <input id="profile-upload" type="file" accept="image/*" className="hidden" />
                     </div>
-                    <p className="text-white text-lg font-semibold mt-2.5">Emily Smith</p>
-                    <p className="text-white text-sm opacity-75">{userType}</p>
+                    <p className="text-gray-900 dark:text-white text-lg font-semibold mt-2.5">Emily Smith</p>
+                    <p className="text-gray-700 dark:text-gray-300 text-sm opacity-75">{userType}</p>
                 </div>
             )}
 

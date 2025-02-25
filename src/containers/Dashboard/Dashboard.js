@@ -1,6 +1,7 @@
 import StudentDashboard from "./StudentDashboard/StudentDashboard";
 import EmployerDashoard from "./EmployersDashboardScreen/EmployerDashboard"
 import AdministratorDashboard from "./AdministratorDashboard/AdministratorDashboard";
+import AcademeDashboard from "./AcademeDashboard/AcademicDashboard";
 import { useSelector } from "react-redux";
 
 const Dashboard = () => {
@@ -10,6 +11,7 @@ const Dashboard = () => {
             {(userType === "STUDENT" || userType === "JOBSEEKER") && <StudentDashboard />}
             {userType === "EMPLOYER" && <EmployerDashoard />}
             {userType === "ADMIN" && <AdministratorDashboard />}
+            {userType === "ACADEME" && <AcademeDashboard />}
         </>
 
     );

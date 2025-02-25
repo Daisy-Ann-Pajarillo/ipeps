@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom"; // Updated imports for React Router v6
+
 //import { useSelector, useDispatch } from 'react-redux'; // Use hooks instead of connect
 import * as actions from "./store/actions/index";
 import { useSelector, useDispatch } from "react-redux";
@@ -36,7 +37,7 @@ const App = (props) => {
   }, [props.auth.token]);
 
   const dispatch = useDispatch();
-  dispatch(setUserType("EMPLOYER"))
+  dispatch(setUserType("JOBSEEKER"))
 
   const userType = useSelector((state) => state.user.userType);
 
@@ -148,24 +149,25 @@ const App = (props) => {
   // }
 
   return (
-    <Router>
-      <React.Suspense fallback={loading}>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/logout" element={<Logout />} />
-          <Route
-            path="/user-application-form"
-            element={
-              <UserApplicationForm />
-            }
-          />
-          <Route
-            path="dashboard/*"
-            element={<Dashboard />}
-          />
-          {/* <Route
+    <>
+      <Router>
+        <React.Suspense fallback={loading}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Home />} />
+            <Route path="/logout" element={<Logout />} />
+            <Route
+              path="/user-application-form"
+              element={
+                <UserApplicationForm />
+              }
+            />
+            <Route
+              path="dashboard/*"
+              element={<Dashboard />}
+            />
+            {/* <Route
             path="/employer-application-form"
             element={<EmployerApplicationForm />}
           />
@@ -174,17 +176,18 @@ const App = (props) => {
             element={<AcademeApplicationForm />}
           /> */}
 
-          {/* Application Routes */}
-          {applicationRoutes}
+            {/* Application Routes */}
+            {applicationRoutes}
 
-          {/* Protected Routes */}
-          {authRoutes}
+            {/* Protected Routes */}
+            {authRoutes}
 
-          {/* Catch-all Route */}
-          <Route path="*" element={<div>Error</div>} />
-        </Routes>
-      </React.Suspense>
-    </Router>
+            {/* Catch-all Route */}
+            <Route path="*" element={<div>Error</div>} />
+          </Routes>
+        </React.Suspense>
+      </Router>
+    </>
   );
 };
 

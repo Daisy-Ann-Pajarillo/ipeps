@@ -31,6 +31,7 @@ import ProfessionalLicense from "./Pages/ProfessionalLicense";
 import WorkExperience from "./Pages/WorkExperience";
 import OtherSkills from "./Pages/OtherSkills";
 import ReviewApplication from "./Pages/ReviewApplication";
+import ToggleDarkMode from "../../reusable/components/toggleDarkMode";
 
 const stepsForJobseekers = [
   { label: "Personal Information", component: PersonalInfo },
@@ -231,6 +232,7 @@ const UserApplicationForm = (props) => {
 
   return (
     <div className="fixed inset-0 flex justify-center items-center gap-2 px-3">
+      <ToggleDarkMode className={"fixed bottom-0 right-0 z-50"} />
       <Container className=" max-w-[700px] h-full overflow-y-auto py-5 mx-0 flex flex-col items-start justify-center">
         <div className="mb-4 text-left">
           <Button
