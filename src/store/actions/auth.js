@@ -84,6 +84,7 @@ export const getAuthStorage = () => {
 
     try {
       const decodeToken = jwtDecode(localToken);
+      console.log(decodeToken);
       const expirationDate = localStorage.getItem("expirationDate");
       const userId = decodeToken?.id;
       const user = decodeToken;
@@ -104,6 +105,7 @@ export const getAuthStorage = () => {
 };
 
 export const auth = (username, password) => {
+  console.log("Logging in with:", username, password);
   return (dispatch) => {
     dispatch(authStart());
     axios({
@@ -116,6 +118,8 @@ export const auth = (username, password) => {
       withCredentials: false,
     })
       .then((response) => {
+        console.log("AUTH response ---------", response);
+
         const user = jwtDecode(response.data.token);
         console.log("USER  JWT", user);
         const expirationDate = new Date(
@@ -125,7 +129,8 @@ export const auth = (username, password) => {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("expirationDate", expirationDate);
         localStorage.setItem("userId", response.data.user_id);
-        localStorage.setItem("user", user);
+        localStorage.setItem("user", JSON.stringify(user)); // Ensure the user object is stored as a string
+
         dispatch(
           authSuccess({
             token: response.data.token,
@@ -137,15 +142,13 @@ export const auth = (username, password) => {
         dispatch(checkAuthTimeout(response.data.expires_in));
       })
       .catch((err) => {
-        dispatch(authFail(err.response.data));
+        dispatch(authFail(err.response?.data || "Authentication failed"));
       });
   };
 };
 
 export const verifyCaptcha = (recaptchaValue) => {
   return (dispatch) => {
-    // console.log('[recaptchaValue]: ', recaptchaValue);
-
     let bodyFormData = new FormData();
     bodyFormData.set("recaptchaValue", recaptchaValue);
 
@@ -156,7 +159,6 @@ export const verifyCaptcha = (recaptchaValue) => {
       headers: { "Content-Type": "multipart/form-data" },
     })
       .then((response) => {
-        // console.info('[verifyCaptcha] response: ', response.data);
         dispatch(
           captchaAuthSuccess({
             captchaValid: response.data.valid,
@@ -164,8 +166,9 @@ export const verifyCaptcha = (recaptchaValue) => {
         );
       })
       .catch((err) => {
-        // console.error(err);
-        dispatch(authFail(err?.response?.data?.error));
+        dispatch(
+          authFail(err?.response?.data?.error || "Captcha verification failed")
+        );
       });
   };
 };

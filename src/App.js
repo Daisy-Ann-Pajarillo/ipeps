@@ -31,30 +31,29 @@ const loading = (
 );
 
 const App = (props) => {
-
   useEffect(() => {
     props.onGetAuthStorage(); // Dispatch action to get auth storage
-  }, [props.auth.token]);
+  }, []);
 
   const dispatch = useDispatch();
-  dispatch(setUserType("JOBSEEKER"))
-
   const userType = useSelector((state) => state.user.userType);
-
-  console.log("user type ", userType)
 
   let authRoutes = null;
   let applicationRoutes = null;
-  console.log("Auth: ", props.auth);
-  console.log("Auth Date: ", props.auth.expirationDate);
-  console.log("Current Date: ", new Date().getTime());
-  console.log("Is Authenticated: ", props.auth.user);
 
   if (
     props.auth &&
     props.auth.expirationDate > new Date().getTime() &&
     props.auth.user
   ) {
+    console.log("Auth: ", props.auth);
+    console.log("Auth Date: ", props.auth.expirationDate);
+    console.log("Current Date: ", new Date().getTime());
+    console.log("Is Authenticated: ", props.auth.user);
+
+    dispatch(setUserType(props.auth.user.user_type));
+    // dispatch(setUserType("STUDENT"));
+    console.log("user type ", userType);
     // Check user type
     if (props.auth.user.user_type === "ADMIN") {
       authRoutes = (
@@ -159,14 +158,9 @@ const App = (props) => {
             <Route path="/logout" element={<Logout />} />
             <Route
               path="/user-application-form"
-              element={
-                <UserApplicationForm />
-              }
+              element={<UserApplicationForm />}
             />
-            <Route
-              path="dashboard/*"
-              element={<Dashboard />}
-            />
+            <Route path="dashboard/*" element={<Dashboard />} />
             {/* <Route
             path="/employer-application-form"
             element={<EmployerApplicationForm />}

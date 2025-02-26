@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -8,21 +8,22 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  IconButton
-} from '@mui/material';
-import { tokens } from '../../../theme';
-import JobView from './JobView';
-import CloseIcon from '@mui/icons-material/Close';
-import SearchData from '../../../components/layout/Search';
-const JobSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
+  IconButton,
+} from "@mui/material";
+import { tokens } from "../../../theme";
+import JobView from "./JobView";
+import CloseIcon from "@mui/icons-material/Close";
+import SearchData from "../../../components/layout/Search";
+const JobSearch = ({ isCollapsed }) => {
+  // Add isCollapsed prop here
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState('');
-  const [jobType, setJobType] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("");
+  const [jobType, setJobType] = useState("");
   //const [sortBy, setSortBy] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
-  const headerHeight = '72px'; // Define header height
+  const headerHeight = "72px"; // Define header height
 
   // Add state to track saved and applied status for each job
   const [savedJobs, setSavedJobs] = useState({});
@@ -32,22 +33,26 @@ const JobSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
 
   // Load applied items from localStorage on mount
   useEffect(() => {
-    const appliedItemsList = JSON.parse(localStorage.getItem('appliedItems') || '{}');
-    const applicationTimesList = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
+    const appliedItemsList = JSON.parse(
+      localStorage.getItem("appliedItems") || "{}"
+    );
+    const applicationTimesList = JSON.parse(
+      localStorage.getItem("applicationTimes") || "{}"
+    );
 
     // Filter only job applications
     const jobAppliedItems = Object.keys(appliedItemsList)
-      .filter(key => key.startsWith('job-'))
+      .filter((key) => key.startsWith("job-"))
       .reduce((acc, key) => {
-        const jobId = parseInt(key.replace('job-', ''));
+        const jobId = parseInt(key.replace("job-", ""));
         acc[jobId] = appliedItemsList[key];
         return acc;
       }, {});
 
     const jobApplicationTimes = Object.keys(applicationTimesList)
-      .filter(key => key.startsWith('job-'))
+      .filter((key) => key.startsWith("job-"))
       .reduce((acc, key) => {
-        const jobId = parseInt(key.replace('job-', ''));
+        const jobId = parseInt(key.replace("job-", ""));
         acc[jobId] = applicationTimesList[key];
         return acc;
       }, {});
@@ -57,33 +62,35 @@ const JobSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
   }, []);
 
   const handleSaveJob = (jobId) => {
-    setSavedJobs(prev => {
+    setSavedJobs((prev) => {
       const newSavedJobs = {
         ...prev,
-        [jobId]: !prev[jobId]
+        [jobId]: !prev[jobId],
       };
 
       // Get the job details
-      const jobToSave = jobs.find(j => j.id === jobId);
+      const jobToSave = jobs.find((j) => j.id === jobId);
 
       // Get existing saved jobs from localStorage
-      const savedJobsList = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+      const savedJobsList = JSON.parse(
+        localStorage.getItem("savedJobs") || "[]"
+      );
 
       if (newSavedJobs[jobId]) {
         // Add to localStorage if not already present
-        if (!savedJobsList.some(job => job.id === jobId)) {
+        if (!savedJobsList.some((job) => job.id === jobId)) {
           savedJobsList.push(jobToSave);
         }
       } else {
         // Remove from localStorage
-        const index = savedJobsList.findIndex(job => job.id === jobId);
+        const index = savedJobsList.findIndex((job) => job.id === jobId);
         if (index !== -1) {
           savedJobsList.splice(index, 1);
         }
       }
 
       // Update localStorage
-      localStorage.setItem('savedJobs', JSON.stringify(savedJobsList));
+      localStorage.setItem("savedJobs", JSON.stringify(savedJobsList));
 
       return newSavedJobs;
     });
@@ -93,61 +100,69 @@ const JobSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
     const now = new Date().getTime();
 
     // Update local state
-    setApplicationTimes(prev => ({
+    setApplicationTimes((prev) => ({
       ...prev,
-      [jobId]: now
+      [jobId]: now,
     }));
-    setAppliedJobs(prev => ({
+    setAppliedJobs((prev) => ({
       ...prev,
-      [jobId]: true
+      [jobId]: true,
     }));
 
     // Get the job details
-    const jobToApply = jobs.find(j => j.id === jobId);
+    const jobToApply = jobs.find((j) => j.id === jobId);
 
     // Update localStorage with full key format
-    const appliedItems = JSON.parse(localStorage.getItem('appliedItems') || '{}');
-    const applicationTimes = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
-    const allJobs = JSON.parse(localStorage.getItem('allJobs') || '[]');
+    const appliedItems = JSON.parse(
+      localStorage.getItem("appliedItems") || "{}"
+    );
+    const applicationTimes = JSON.parse(
+      localStorage.getItem("applicationTimes") || "{}"
+    );
+    const allJobs = JSON.parse(localStorage.getItem("allJobs") || "[]");
 
     appliedItems[`job-${jobId}`] = true;
     applicationTimes[`job-${jobId}`] = now;
 
     // Update or add the job to allJobs
-    const existingJobIndex = allJobs.findIndex(j => j.id === jobId);
+    const existingJobIndex = allJobs.findIndex((j) => j.id === jobId);
     if (existingJobIndex === -1) {
       allJobs.push(jobToApply);
     } else {
       allJobs[existingJobIndex] = jobToApply;
     }
 
-    localStorage.setItem('appliedItems', JSON.stringify(appliedItems));
-    localStorage.setItem('applicationTimes', JSON.stringify(applicationTimes));
-    localStorage.setItem('allJobs', JSON.stringify(allJobs));
+    localStorage.setItem("appliedItems", JSON.stringify(appliedItems));
+    localStorage.setItem("applicationTimes", JSON.stringify(applicationTimes));
+    localStorage.setItem("allJobs", JSON.stringify(allJobs));
   };
 
   const handleWithdrawApplication = (jobId) => {
     // Update local state
-    setApplicationTimes(prev => {
+    setApplicationTimes((prev) => {
       const newTimes = { ...prev };
       delete newTimes[jobId];
       return newTimes;
     });
-    setAppliedJobs(prev => {
+    setAppliedJobs((prev) => {
       const newApplied = { ...prev };
       delete newApplied[jobId];
       return newApplied;
     });
 
     // Update localStorage
-    const appliedItems = JSON.parse(localStorage.getItem('appliedItems') || '{}');
-    const applicationTimes = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
+    const appliedItems = JSON.parse(
+      localStorage.getItem("appliedItems") || "{}"
+    );
+    const applicationTimes = JSON.parse(
+      localStorage.getItem("applicationTimes") || "{}"
+    );
 
     delete appliedItems[`job-${jobId}`];
     delete applicationTimes[`job-${jobId}`];
 
-    localStorage.setItem('appliedItems', JSON.stringify(appliedItems));
-    localStorage.setItem('applicationTimes', JSON.stringify(applicationTimes));
+    localStorage.setItem("appliedItems", JSON.stringify(appliedItems));
+    localStorage.setItem("applicationTimes", JSON.stringify(applicationTimes));
   };
 
   const canWithdraw = (jobId) => {
@@ -162,14 +177,14 @@ const JobSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
   const [jobs] = useState([
     {
       id: 1,
-      title: 'Software Engineer',
-      company: 'Tech Corp',
-      location: 'Manila',
-      type: 'Full-time',
-      experienceLevel: 'Entry Level',
+      title: "Software Engineer",
+      company: "Tech Corp",
+      location: "Manila",
+      type: "Full-time",
+      experienceLevel: "Entry Level",
       vacancies: 3,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!
 
 Are you passionate about innovation, collaboration, and making a meaningful impact? We are looking for talented and driven individuals to join our dynamic team! At Tech Corp, we believe in fostering a culture of growth, creativity, and excellence.
@@ -195,86 +210,86 @@ Join us and be a part of something great! 🚀`,
     },
     {
       id: 2,
-      title: 'IT Technician',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "IT Technician",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 3,
-      title: 'Junior Developer',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Junior Developer",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 4,
-      title: 'Senior Developer',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Senior Developer",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 5,
-      title: 'Data Analyst',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Data Analyst",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 6,
-      title: 'Computer Engineer',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Computer Engineer",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 7,
-      title: 'Network Administrator',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Network Administrator",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 8,
-      title: 'Database Administrator',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Database Administrator",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
 
@@ -291,14 +306,14 @@ Join us and be a part of something great! 🚀`,
   // Handle URL parameters
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const selectedId = params.get('selected');
-    const action = params.get('action');
+    const selectedId = params.get("selected");
+    const action = params.get("action");
 
     if (selectedId) {
-      const job = jobs.find(j => j.id === parseInt(selectedId));
+      const job = jobs.find((j) => j.id === parseInt(selectedId));
       if (job) {
         setSelectedJob(job);
-        if (action === 'apply') {
+        if (action === "apply") {
           handleApplyJob(parseInt(selectedId));
         }
       }
@@ -307,16 +322,14 @@ Join us and be a part of something great! 🚀`,
 
   const handleSearch = () => {
     // Implement search functionality
-    console.log('Searching...');
+    console.log("Searching...");
   };
 
   const handleJobClick = (jobId) => {
-    const job = jobs.find(j => j.id === jobId);
+    const job = jobs.find((j) => j.id === jobId);
     setSelectedJob(job);
     setIsModalOpen(true);
   };
-
-
 
   const [query, setQuery] = useState("");
   const [entryLevel, setEntryLevel] = useState("");
@@ -330,33 +343,27 @@ Join us and be a part of something great! 🚀`,
 
     // Filtering based on search query
     if (query) {
-      updatedJobs = updatedJobs.filter((j) =>
-        j.title.toLowerCase().includes(query.toLowerCase()) ||
-        j.description.toLowerCase().includes(query.toLowerCase()) ||
-        j.company.toLowerCase().includes(query.toLowerCase())
+      updatedJobs = updatedJobs.filter(
+        (j) =>
+          j.title.toLowerCase().includes(query.toLowerCase()) ||
+          j.description.toLowerCase().includes(query.toLowerCase()) ||
+          j.company.toLowerCase().includes(query.toLowerCase())
       );
     }
 
-
     // Filtering by experience level
     if (entryLevel) {
-      updatedJobs = updatedJobs.filter(
-        (j) => j.experienceLevel === entryLevel
-      );
+      updatedJobs = updatedJobs.filter((j) => j.experienceLevel === entryLevel);
     }
 
     // Filtering by training type
     if (trainingType) {
-      updatedJobs = updatedJobs.filter(
-        (j) => j.type === trainingType
-      );
+      updatedJobs = updatedJobs.filter((j) => j.type === trainingType);
     }
 
     // Sorting logic
     if (sortBy === "Most Recent") {
-      updatedJobs.sort(
-        (a, b) => new Date(b.startDate) - new Date(a.startDate)
-      );
+      updatedJobs.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
     } else if (sortBy === "Most Relevant") {
       // Custom sorting logic for relevance (example: by provider name)
       updatedJobs.sort((a, b) => a.provider.localeCompare(b.provider));
@@ -382,9 +389,18 @@ Join us and be a part of something great! 🚀`,
         className="w-full"
         components={3}
         componentData={[
-          { title: "Experience Level", options: ["", "Entry", "Mid", "Senior"] },
-          { title: "Training Type", options: ["", "Full Time", "Part Time", "Contract", "Internship"] },
-          { title: "Sort By", options: ["", "Most Recent", "Most Relevant", "Salary"] },
+          {
+            title: "Experience Level",
+            options: ["", "Entry", "Mid", "Senior"],
+          },
+          {
+            title: "Training Type",
+            options: ["", "Full Time", "Part Time", "Contract", "Internship"],
+          },
+          {
+            title: "Sort By",
+            options: ["", "Most Recent", "Most Relevant", "Salary"],
+          },
         ]}
         onComponentChange={(index, value) => {
           if (index === 0) setEntryLevel(value);
@@ -394,76 +410,40 @@ Join us and be a part of something great! 🚀`,
       />
 
       {/* Main content container */}
-      <Box
-        sx={{
-          display: 'flex',
-          position: 'fixed',
-          top: headerHeight,
-          left: isCollapsed ? '80px' : '250px',
-          right: 0,
-          bottom: 0,
-          transition: 'left 0.3s'
-        }}
-      >
+      <Box className="flex">
         {/* Job Listings Panel */}
-        <Box
-          sx={{
-            width: '60%',
-            height: '100%',
-            overflowY: 'auto',
-            p: 3,
-            borderRight: '1px solid rgba(0, 0, 0, 0.12)',
-          }}
-        >
-          <Typography variant="subtitle1" mb={2}>
+        <Box className="w-3/5 overflow-y-auto h-dvh p-3 border-r border-gray-300 dark:border-gray-700">
+          <Typography variant="subtitle1" className="mb-2">
             Total: {filteredJobs.length} jobs found
           </Typography>
 
           {filteredJobs.map((job) => (
             <Card
               key={job.id}
-              sx={{
-                mb: 2,
-                cursor: 'pointer',
-                backgroundColor: selectedJob?.id === job.id ? '#f5f5f5' : 'white',
-                '&:hover': { backgroundColor: colors.primary[400] }
-              }}
+              className={`mb-2 cursor-pointer transition-all duration-200 ${
+                selectedJob?.id === job.id
+                  ? "bg-gray-200 dark:bg-gray-700"
+                  : "bg-white dark:bg-gray-800"
+              } hover:bg-primary-400`}
               onClick={() => handleJobClick(job.id)}
             >
               <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                <Box className="flex items-start gap-2">
                   {/* Company Image */}
-                  <Box
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      flexShrink: 0,
-                      backgroundColor: '#f5f5f5',
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
+                  <Box className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
                     <img
                       src={job.companyImage}
                       alt={job.company}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        padding: '8px'
-                      }}
+                      className="w-full h-full object-contain p-2"
                     />
                   </Box>
 
                   {/* Job Details */}
-                  <Box sx={{ flex: 1 }}>
+                  <Box className="flex-1">
                     <Typography variant="h5" component="div" gutterBottom>
                       {job.title}
                     </Typography>
-                    <Typography color="texj.secondary">
+                    <Typography className="text-gray-600 dark:text-gray-400">
                       {job.company} • {job.location}
                     </Typography>
                     <Typography variant="body2">
@@ -477,14 +457,7 @@ Join us and be a part of something great! 🚀`,
         </Box>
 
         {/* Job View Panel */}
-        <Box
-          sx={{
-            width: '40%',
-            height: '100%',
-            overflowY: 'auto',
-            backgroundColor: 'white',
-          }}
-        >
+        <Box className="w-2/5 h-dvh overflow-y-auto bg-white dark:bg-gray-900">
           {selectedJob && (
             <JobView
               job={selectedJob}
@@ -499,7 +472,6 @@ Join us and be a part of something great! 🚀`,
           )}
         </Box>
       </Box>
-
     </Box>
   );
 };

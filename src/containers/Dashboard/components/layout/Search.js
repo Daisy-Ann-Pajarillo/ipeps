@@ -102,50 +102,54 @@ const SearchData = ({
               className={`min-w-36 w-full max-w-lg grid gap-3 ${gridStyle}`}
               ref={dropdownRef}
             >
-              {componentData.slice(0, componentData.length).map((component, index) => (
-                <div key={index} className="relative">
-                  <span className="absolute -top-2.5 left-3 px-1 bg-white dark:bg-gray-900 text-xs text-gray-500 dark:text-gray-400 z-10">
-                    {component.title}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setOpenFilter(openFilter === index ? null : index)
-                    }
-                    className={`w-full min-w-36 px-4 py-2 text-left text-md border transition-colors pt-2 rounded-md
-                    ${selectedComponents[index]
+              {componentData
+                .slice(0, componentData.length)
+                .map((component, index) => (
+                  <div key={index} className="relative">
+                    <span className="absolute -top-2.5 left-3 px-1 bg-white dark:bg-gray-900 text-xs text-gray-500 dark:text-gray-400 z-10">
+                      {component.title}
+                    </span>
+                    <button
+                      onClick={() =>
+                        setOpenFilter(openFilter === index ? null : index)
+                      }
+                      className={`w-full min-w-36 px-4 py-2 text-left text-md border transition-colors pt-2 rounded-md
+                    ${
+                      selectedComponents[index]
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
                         : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
-                      }`}
-                  >
-                    <span className="block truncate">
-                      {selectedComponents[index] || "Select..."}
-                    </span>
-                  </button>
+                    }`}
+                    >
+                      <span className="block truncate">
+                        {selectedComponents[index] || "Select..."}
+                      </span>
+                    </button>
 
-                  {openFilter === index && (
-                    <div className="absolute z-20 mt-1 w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg">
-                      <div className="max-h-60 overflow-auto">
-                        {component.options.map((option, optionIndex) => (
-                          <button
-                            key={optionIndex}
-                            onClick={() => handleOptionSelect(index, option)}
-                            className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800
-                            ${selectedComponents[index] === option
+                    {openFilter === index && (
+                      <div className="absolute z-20 mt-1 w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg">
+                        <div className="max-h-60 overflow-auto">
+                          {component.options.map((option, optionIndex) => (
+                            <button
+                              key={optionIndex}
+                              onClick={() => handleOptionSelect(index, option)}
+                              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800
+                            ${
+                              selectedComponents[index] === option
                                 ? "text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900"
                                 : "text-gray-700 dark:text-gray-300"
-                              }`}
-                          >
-                            {option}
-                            {selectedComponents[index] === option && (
-                              <CheckIcon className="h-4 w-4" />
-                            )}
-                          </button>
-                        ))}
+                            }`}
+                            >
+                              {option}
+                              {selectedComponents[index] === option && (
+                                <CheckIcon className="h-4 w-4" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                ))}
             </div>
             <button
               onClick={handleResetFilters}

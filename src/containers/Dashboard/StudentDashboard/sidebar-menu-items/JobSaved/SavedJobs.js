@@ -1,53 +1,60 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, Card, CardContent, useTheme, Button } from '@mui/material';
-import { tokens } from '../../../theme';
-import SavedJobsView from './SavedJobsView';
-import SearchData from '../../../components/layout/Search';
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  useTheme,
+  Button,
+} from "@mui/material";
+import { tokens } from "../../../theme";
+import SavedJobsView from "./SavedJobsView";
+import SearchData from "../../../components/layout/Search";
 const SavedJobs = ({ isCollapsed }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState('');
-  const [jobType, setJobType] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("");
+  const [jobType, setJobType] = useState("");
   //const [sortBy, setSortBy] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
-  const headerHeight = '72px';
+  const headerHeight = "72px";
   const [appliedJobs, setAppliedJobs] = useState({});
   const [applicationTimes, setApplicationTimes] = useState({});
   const [savedJobs, setSavedJobs] = useState([]);
 
   React.useEffect(() => {
     const loadSavedJobs = () => {
-      const jobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+      const jobs = JSON.parse(localStorage.getItem("savedJobs") || "[]");
       setSavedJobs(jobs);
     };
 
     loadSavedJobs();
 
-    window.addEventListener('storage', loadSavedJobs);
+    window.addEventListener("storage", loadSavedJobs);
 
-    return () => window.removeEventListener('storage', loadSavedJobs);
+    return () => window.removeEventListener("storage", loadSavedJobs);
   }, []);
 
   const handleApplyJob = (jobId) => {
     const now = new Date().getTime();
-    setApplicationTimes(prev => ({
+    setApplicationTimes((prev) => ({
       ...prev,
-      [jobId]: now
+      [jobId]: now,
     }));
-    setAppliedJobs(prev => ({
+    setAppliedJobs((prev) => ({
       ...prev,
-      [jobId]: true
+      [jobId]: true,
     }));
   };
 
   const handleWithdrawApplication = (jobId) => {
-    setApplicationTimes(prev => {
+    setApplicationTimes((prev) => {
       const newTimes = { ...prev };
       delete newTimes[jobId];
       return newTimes;
     });
-    setAppliedJobs(prev => {
+    setAppliedJobs((prev) => {
       const newApplied = { ...prev };
       delete newApplied[jobId];
       return newApplied;
@@ -63,25 +70,25 @@ const SavedJobs = ({ isCollapsed }) => {
   };
 
   const handleSearch = () => {
-    console.log('Searching saved jobs...');
+    console.log("Searching saved jobs...");
   };
 
   const handleRemoveFromSaved = (jobId) => {
-    const updatedJobs = savedJobs.filter(job => job.id !== jobId);
-    localStorage.setItem('savedJobs', JSON.stringify(updatedJobs));
+    const updatedJobs = savedJobs.filter((job) => job.id !== jobId);
+    localStorage.setItem("savedJobs", JSON.stringify(updatedJobs));
     setSavedJobs(updatedJobs);
   };
   const [jobs] = useState([
     {
       id: 1,
-      title: 'Software Engineer',
-      company: 'Tech Corp',
-      location: 'Manila',
-      type: 'Full-time',
-      experienceLevel: 'Entry Level',
+      title: "Software Engineer",
+      company: "Tech Corp",
+      location: "Manila",
+      type: "Full-time",
+      experienceLevel: "Entry Level",
       vacancies: 3,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!
 
 Are you passionate about innovation, collaboration, and making a meaningful impact? We are looking for talented and driven individuals to join our dynamic team! At Tech Corp, we believe in fostering a culture of growth, creativity, and excellence.
@@ -107,108 +114,109 @@ Join us and be a part of something great! 🚀`,
     },
     {
       id: 2,
-      title: 'IT Technician',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "IT Technician",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 3,
-      title: 'Junior Developer',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Junior Developer",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 4,
-      title: 'Senior Developer',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Senior Developer",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 5,
-      title: 'Data Analyst',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Data Analyst",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 6,
-      title: 'Computer Engineer',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Computer Engineer",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 7,
-      title: 'Network Administrator',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Network Administrator",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
     {
       id: 8,
-      title: 'Database Administrator',
-      company: 'XYZ Solutions',
-      location: 'Iloilo City',
-      type: 'Full-time',
-      experienceLevel: 'Senior Level',
+      title: "Database Administrator",
+      company: "XYZ Solutions",
+      location: "Iloilo City",
+      type: "Full-time",
+      experienceLevel: "Senior Level",
       vacancies: 5,
-      salary: '₱30,000 - ₱50,000 / month',
-      companyImage: 'http://bij.ly/4ib59B1',
+      salary: "₱30,000 - ₱50,000 / month",
+      companyImage: "http://bij.ly/4ib59B1",
       description: `Join Our Team – Exciting Career Opportunities Await!`,
     },
 
     // Add more mock jobs here
   ]);
-  
+
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [filteredJobs, setFilteredJobs] = useState(jobs);
-  
+
   // useEffect to filter and sort trainings dynamically
   useEffect(() => {
     let updatedTrainings = [...jobs];
-  
+
     // Filtering based on search query
     if (query) {
-      updatedTrainings = updatedTrainings.filter((j) =>
-        j.title.toLowerCase().includes(query.toLowerCase()) ||
-        j.description.toLowerCase().includes(query.toLowerCase())
+      updatedTrainings = updatedTrainings.filter(
+        (j) =>
+          j.title.toLowerCase().includes(query.toLowerCase()) ||
+          j.description.toLowerCase().includes(query.toLowerCase())
       );
     }
-  
+
     // Sorting logic
     if (sortBy === "Company Name") {
       updatedTrainings.sort((a, b) => a.company.localeCompare(b.company));
@@ -217,64 +225,50 @@ Join us and be a part of something great! 🚀`,
     } else if (sortBy === "Most Relevant") {
       // Define relevance logic if applicable
     }
-  
+
     // Update filtered trainings
     setFilteredJobs(updatedTrainings);
   }, [query, sortBy, jobs]); // Dependencies
-  
+
   return (
     <Box>
       <SearchData
-           placeholder="Find a training..."
+        placeholder="Find a training..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="w-full"
         components={1}
         componentData={[
-          { title: "Sort By", options: ["", "Most Recent", "Most Relevant", "Company Name"] },
+          {
+            title: "Sort By",
+            options: ["", "Most Recent", "Most Relevant", "Company Name"],
+          },
         ]}
         onComponentChange={(index, value) => {
           if (index === 0) setSortBy(value);
         }}
       />
 
-      <Box 
-        sx={{ 
-          display: 'flex',
-          position: 'fixed',
-          top: headerHeight,
-          left: isCollapsed ? '80px' : '250px',
-          right: 0,
-          bottom: 0,
-          transition: 'left 0.3s'
-        }}
-      >
-        <Box 
-          sx={{ 
-            width: '60%',
-            height: '100%',
-            overflowY: 'auto',
-            p: 3,
-            borderRight: '1px solid rgba(0, 0, 0, 0.12)',
-          }}
-        >
-          <Typography variant="subtitle1" mb={2}>
+      <Box>
+        {/* Saved Jobs Panel */}
+        <Box className="w-full lg:w-3/5 h-full overflow-y-auto p-6 border-r border-gray-300 dark:border-gray-600">
+          <Typography variant="subtitle1" className="mb-4 dark:text-white">
             Saved Jobs: {filteredJobs.length}
           </Typography>
 
           {filteredJobs.map((job) => (
             <Card
               key={job.id}
+              className="mb-4 cursor-pointer dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
               sx={{
-                mb: 2,
-                cursor: 'pointer',
-                backgroundColor: selectedJob?.id === job.id ? '#f5f5f5' : 'white',
-                '&:hover': { backgroundColor: colors.primary[400] }
+                backgroundColor:
+                  selectedJob?.id === job.id ? "#f5f5f5" : "white",
               }}
               onClick={() => setSelectedJob(job)}
             >
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+                {/* Remove Button */}
+                <Box className="flex justify-end mb-2">
                   <Button
                     size="small"
                     color="error"
@@ -286,36 +280,34 @@ Join us and be a part of something great! 🚀`,
                     Remove
                   </Button>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  <Box
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      flexShrink: 0,
-                      backgroundColor: '#f5f5f5',
-                      borderRadius: '8px',
-                      overflow: 'hidden'
-                    }}
-                  >
+
+                {/* Job Info */}
+                <Box className="flex gap-4">
+                  {/* Company Logo */}
+                  <Box className="w-20 h-20 flex-shrink-0 bg-gray-100 dark:bg-gray-600 rounded-lg overflow-hidden">
                     <img
                       src={job.companyImage}
                       alt={job.company}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        padding: '8px'
-                      }}
+                      className="w-full h-full object-contain p-2"
                     />
                   </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h5" component="div" gutterBottom>
+
+                  {/* Job Details */}
+                  <Box className="flex-1">
+                    <Typography
+                      variant="h5"
+                      component="div"
+                      className="mb-1 dark:text-white"
+                    >
                       {job.title}
                     </Typography>
-                    <Typography color="text.secondary">
+                    <Typography className="text-gray-600 dark:text-gray-300">
                       {job.company} • {job.location}
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography
+                      variant="body2"
+                      className="text-gray-500 dark:text-gray-400"
+                    >
                       {job.type} • {job.experience}
                     </Typography>
                   </Box>
@@ -325,16 +317,10 @@ Join us and be a part of something great! 🚀`,
           ))}
         </Box>
 
-        <Box 
-          sx={{ 
-            width: '40%',
-            height: '100%',
-            overflowY: 'auto',
-            backgroundColor: 'white',
-          }}
-        >
+        {/* Job View Panel */}
+        <Box className="w-full lg:w-2/5 h-full overflow-y-auto bg-white dark:bg-gray-800">
           {selectedJob && (
-            <SavedJobsView 
+            <SavedJobsView
               job={selectedJob}
               isApplied={appliedJobs[selectedJob.id]}
               canWithdraw={canWithdraw(selectedJob.id)}
