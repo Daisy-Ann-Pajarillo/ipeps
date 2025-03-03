@@ -1,25 +1,13 @@
 import React, { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom"; // Updated imports for React Router v6
-
-//import { useSelector, useDispatch } from 'react-redux'; // Use hooks instead of connect
-import * as actions from "./store/actions/index";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"; // Updated imports for React Router v6
 import { useSelector, useDispatch } from "react-redux";
 import { setUserType } from "./store/userSlice";
+import * as actions from "./store/actions/index";
 
 import "./index.css"; // Updated import path
 import Home from "./containers/Home/Home";
 import Logout from "./containers/Logout/Logout";
-
 import UserApplicationForm from "./containers/UserApplicationForm/UserApplicationForm";
-// import EmployerApplicationForm from "./containers/UserApplicationFormNew/EmployerApplicationForm";
-// import AcademeApplicationForm from "./containers/UserApplicationFormNew/AcademeApplicationForm";
-import { connect } from "react-redux";
-
 import HelloStudent from "./hello-student";
 import HelloJobseeker from "./hello-jobseeker";
 import Dashboard from "./containers/Dashboard/Dashboard";
@@ -30,173 +18,61 @@ const loading = (
   </div>
 );
 
-const App = (props) => {
-  useEffect(() => {
-    props.onGetAuthStorage(); // Dispatch action to get auth storage
-  }, []);
-
+const App = () => {
   const dispatch = useDispatch();
-  const userType = useSelector((state) => state.user.userType);
+  const auth = useSelector((state) => state.auth);
+  useEffect(() => {
+    dispatch(actions.getAuthStorage()); // Dispatch action directly
+  }, [dispatch]);
 
   let authRoutes = null;
   let applicationRoutes = null;
 
-  if (
-    props.auth &&
-    props.auth.expirationDate > new Date().getTime() &&
-    props.auth.user
-  ) {
-    console.log("Auth: ", props.auth);
-    console.log("Auth Date: ", props.auth.expirationDate);
-    console.log("Current Date: ", new Date().getTime());
-    console.log("Is Authenticated: ", props.auth.user);
+  if (auth && auth.expirationDate > new Date().getTime() && auth.user) {
+    dispatch(setUserType(auth.user.user_type));
 
-    dispatch(setUserType(props.auth.user.user_type));
-    // dispatch(setUserType("STUDENT"));
-    console.log("user type ", userType);
-    // Check user type
-    if (props.auth.user.user_type === "ADMIN") {
-      authRoutes = (
-        <Route
-          path="/dashboard/*"
-          element={
-            <React.Suspense fallback={loading}>
-              {/* <AdminLayout /> */}
-            </React.Suspense>
-          }
-        />
-      );
-    } else if (props.auth.user.user_type === "EMPLOYER") {
-      authRoutes = (
-        <Route
-          path="/dashboard/*"
-          element={
-            <React.Suspense fallback={loading}>
-              {/* <EmployerLayout /> */}
-            </React.Suspense>
-          }
-        />
-      );
-    } else if (props.auth.user.user_type === "JOBSEEKER") {
-      authRoutes = (
-        <Route
-          path="/dashboard/*"
-          element={
-            <React.Suspense fallback={loading}>
-              <HelloJobseeker />
-              {/* <JobSeekerLayout /> */}
-            </React.Suspense>
-          }
-        />
-      );
-      applicationRoutes = (
-        <Route
-          path="/user-application-form"
-          element={
-            <React.Suspense fallback={loading}>
-              {/* <UserApplicationForm /> */}
-            </React.Suspense>
-          }
-        />
-      );
-    } else if (props.auth.user.user_type === "ACADEME") {
-      authRoutes = (
-        <Route
-          path="/dashboard/*"
-          element={
-            <React.Suspense fallback={loading}>
-              {/* <AcademeLayout /> */}
-            </React.Suspense>
-          }
-        />
-      );
-    } else if (props.auth.user.user_type === "STUDENT") {
-      authRoutes = (
-        <Route
-          path="/dashboard/*"
-          element={
-            <React.Suspense fallback={loading}>
-              <HelloStudent />
-              {/* <StudentLayout /> */}
-            </React.Suspense>
-          }
-        />
-      );
+    switch (auth.user.user_type) {
+      case "ADMIN":
+        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}>{/* <AdminLayout /> */}</React.Suspense>} />;
+        break;
+      case "EMPLOYER":
+        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}>{/* <EmployerLayout /> */}</React.Suspense>} />;
+        break;
+      case "JOBSEEKER":
+        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}><HelloJobseeker /></React.Suspense>} />;
+        applicationRoutes = <Route path="/user-application-form" element={<React.Suspense fallback={loading}>{/* <UserApplicationForm /> */}</React.Suspense>} />;
+        break;
+      case "ACADEME":
+        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}>{/* <AcademeLayout /> */}</React.Suspense>} />;
+        break;
+      case "STUDENT":
+        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}><HelloStudent /></React.Suspense>} />;
+        break;
+      default:
+        break;
     }
-
-    // if (auth.verifiedCaptcha) {
-    //   dispatch(resetCaptcha()); // Reset captcha if verified
-    // }
   }
 
-  // if (
-  //   props.auth &&
-  //   props.auth.token &&
-  //   !(new Date(props.auth.expirationDate) > new Date())
-  // ) {
-  //   // Not valid
-  //   authRoutes = (
-  //     <Route
-  //       path="/dashboard/*"
-  //       element={<Navigate to="/logout" replace />} // Redirect to logout
-  //     />
-  //   );
-
-  //   // if (auth.verifiedCaptcha) {
-  //   //   dispatch(resetCaptcha()); // Reset captcha if verified
-  //   // }
-  // }
-
   return (
-    <>
-      <Router>
-        <React.Suspense fallback={loading}>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/logout" element={<Logout />} />
-            <Route
-              path="/user-application-form"
-              element={<UserApplicationForm />}
-            />
-            <Route path="dashboard/*" element={<Dashboard />} />
-            {/* <Route
-            path="/employer-application-form"
-            element={<EmployerApplicationForm />}
-          />
-           <Route
-            path="/academe-application-form"
-            element={<AcademeApplicationForm />}
-          /> */}
+    <Router>
+      <React.Suspense fallback={loading}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route path="/user-application-form" element={<UserApplicationForm />} />
+          <Route path="dashboard/*" element={<Dashboard />} />
 
-            {/* Application Routes */}
-            {applicationRoutes}
+          {/* Protected Routes */}
+          {authRoutes}
 
-            {/* Protected Routes */}
-            {authRoutes}
-
-            {/* Catch-all Route */}
-            <Route path="*" element={<div>Error</div>} />
-          </Routes>
-        </React.Suspense>
-      </Router>
-    </>
+          {/* Catch-all Route */}
+          <Route path="*" element={<div>Error</div>} />
+        </Routes>
+      </React.Suspense>
+    </Router>
   );
 };
 
-const mapStateToProps = (state) => {
-  return {
-    auth: state.auth,
-    isAuthenticated: state.auth.token !== null ? true : false,
-  };
-};
-
-const mapDispatchToProps = (dispatch) => {
-  return {
-    onGetAuthStorage: () => dispatch(actions.getAuthStorage()),
-    //onResetCaptcha: () => dispatch(actions.resetCaptcha()),
-  };
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default App;

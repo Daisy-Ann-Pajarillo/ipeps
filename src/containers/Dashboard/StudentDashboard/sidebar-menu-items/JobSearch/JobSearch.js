@@ -5,339 +5,40 @@ import {
   Card,
   CardContent,
   useTheme,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
 } from "@mui/material";
 import { tokens } from "../../../theme";
 import JobView from "./JobView";
-import CloseIcon from "@mui/icons-material/Close";
 import SearchData from "../../../components/layout/Search";
+
 const JobSearch = ({ isCollapsed }) => {
-  // Add isCollapsed prop here
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [experienceLevel, setExperienceLevel] = useState("");
-  const [jobType, setJobType] = useState("");
-  //const [sortBy, setSortBy] = useState('');
+  const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
-  const headerHeight = "72px"; // Define header height
-
-  // Add state to track saved and applied status for each job
-  const [savedJobs, setSavedJobs] = useState({});
-  const [appliedJobs, setAppliedJobs] = useState({});
-  const [applicationTimes, setApplicationTimes] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Load applied items from localStorage on mount
-  useEffect(() => {
-    const appliedItemsList = JSON.parse(
-      localStorage.getItem("appliedItems") || "{}"
-    );
-    const applicationTimesList = JSON.parse(
-      localStorage.getItem("applicationTimes") || "{}"
-    );
-
-    // Filter only job applications
-    const jobAppliedItems = Object.keys(appliedItemsList)
-      .filter((key) => key.startsWith("job-"))
-      .reduce((acc, key) => {
-        const jobId = parseInt(key.replace("job-", ""));
-        acc[jobId] = appliedItemsList[key];
-        return acc;
-      }, {});
-
-    const jobApplicationTimes = Object.keys(applicationTimesList)
-      .filter((key) => key.startsWith("job-"))
-      .reduce((acc, key) => {
-        const jobId = parseInt(key.replace("job-", ""));
-        acc[jobId] = applicationTimesList[key];
-        return acc;
-      }, {});
-
-    setAppliedJobs(jobAppliedItems);
-    setApplicationTimes(jobApplicationTimes);
-  }, []);
-
-  const handleSaveJob = (jobId) => {
-    setSavedJobs((prev) => {
-      const newSavedJobs = {
-        ...prev,
-        [jobId]: !prev[jobId],
-      };
-
-      // Get the job details
-      const jobToSave = jobs.find((j) => j.id === jobId);
-
-      // Get existing saved jobs from localStorage
-      const savedJobsList = JSON.parse(
-        localStorage.getItem("savedJobs") || "[]"
-      );
-
-      if (newSavedJobs[jobId]) {
-        // Add to localStorage if not already present
-        if (!savedJobsList.some((job) => job.id === jobId)) {
-          savedJobsList.push(jobToSave);
-        }
-      } else {
-        // Remove from localStorage
-        const index = savedJobsList.findIndex((job) => job.id === jobId);
-        if (index !== -1) {
-          savedJobsList.splice(index, 1);
-        }
-      }
-
-      // Update localStorage
-      localStorage.setItem("savedJobs", JSON.stringify(savedJobsList));
-
-      return newSavedJobs;
-    });
-  };
-
-  const handleApplyJob = (jobId) => {
-    const now = new Date().getTime();
-
-    // Update local state
-    setApplicationTimes((prev) => ({
-      ...prev,
-      [jobId]: now,
-    }));
-    setAppliedJobs((prev) => ({
-      ...prev,
-      [jobId]: true,
-    }));
-
-    // Get the job details
-    const jobToApply = jobs.find((j) => j.id === jobId);
-
-    // Update localStorage with full key format
-    const appliedItems = JSON.parse(
-      localStorage.getItem("appliedItems") || "{}"
-    );
-    const applicationTimes = JSON.parse(
-      localStorage.getItem("applicationTimes") || "{}"
-    );
-    const allJobs = JSON.parse(localStorage.getItem("allJobs") || "[]");
-
-    appliedItems[`job-${jobId}`] = true;
-    applicationTimes[`job-${jobId}`] = now;
-
-    // Update or add the job to allJobs
-    const existingJobIndex = allJobs.findIndex((j) => j.id === jobId);
-    if (existingJobIndex === -1) {
-      allJobs.push(jobToApply);
-    } else {
-      allJobs[existingJobIndex] = jobToApply;
-    }
-
-    localStorage.setItem("appliedItems", JSON.stringify(appliedItems));
-    localStorage.setItem("applicationTimes", JSON.stringify(applicationTimes));
-    localStorage.setItem("allJobs", JSON.stringify(allJobs));
-  };
-
-  const handleWithdrawApplication = (jobId) => {
-    // Update local state
-    setApplicationTimes((prev) => {
-      const newTimes = { ...prev };
-      delete newTimes[jobId];
-      return newTimes;
-    });
-    setAppliedJobs((prev) => {
-      const newApplied = { ...prev };
-      delete newApplied[jobId];
-      return newApplied;
-    });
-
-    // Update localStorage
-    const appliedItems = JSON.parse(
-      localStorage.getItem("appliedItems") || "{}"
-    );
-    const applicationTimes = JSON.parse(
-      localStorage.getItem("applicationTimes") || "{}"
-    );
-
-    delete appliedItems[`job-${jobId}`];
-    delete applicationTimes[`job-${jobId}`];
-
-    localStorage.setItem("appliedItems", JSON.stringify(appliedItems));
-    localStorage.setItem("applicationTimes", JSON.stringify(applicationTimes));
-  };
-
-  const canWithdraw = (jobId) => {
-    if (!applicationTimes[jobId]) return false;
-    const now = new Date().getTime();
-    const applicationTime = applicationTimes[jobId];
-    const timeDiff = now - applicationTime;
-    return timeDiff <= 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  };
-
-  // Updated mock data with new image URL and detailed description
-  const [jobs] = useState([
-    {
-      id: 1,
-      title: "Software Engineer",
-      company: "Tech Corp",
-      location: "Manila",
-      type: "Full-time",
-      experienceLevel: "Entry Level",
-      vacancies: 3,
-      salary: "₱30,000 - ₱50,000 / month",
-      companyImage: "http://bij.ly/4ib59B1",
-      description: `Join Our Team – Exciting Career Opportunities Await!
-
-Are you passionate about innovation, collaboration, and making a meaningful impact? We are looking for talented and driven individuals to join our dynamic team! At Tech Corp, we believe in fostering a culture of growth, creativity, and excellence.
-
-As a part of our team, you'll have the opportunity to work on exciting projects, collaborate with industry professionals, and contribute to groundbreaking solutions. We offer a supportive work environment, competitive compensation, and opportunities for career advancemenj.
-
-Why Work With Us?
-✅ Competitive salary and benefits package
-✅ Career growth and professional development opportunities
-✅ Inclusive and diverse workplace culture
-✅ Work-life balance with flexible work arrangements
-✅ Access to the latest tools and technologies
-
-Who We're Looking For:
-We welcome individuals from various backgrounds with skills in software development, cloud computing, AI/ML, and full-stack developmenj. Whether you're an experienced professional or an ambitious newcomer, we value passion, dedication, and a willingness to learn.
-
-If you're ready to take your career to the next level, we'd love to hear from you! Apply today and become part of a team that values innovation, teamwork, and excellence.
-
-📩 How to Apply:
-Send your resume and a brief cover letter to careers@techcorp.com or visit our careers page at techcorp.com/careers.
-
-Join us and be a part of something great! 🚀`,
-    },
-    {
-      id: 2,
-      title: "IT Technician",
-      company: "XYZ Solutions",
-      location: "Iloilo City",
-      type: "Full-time",
-      experienceLevel: "Senior Level",
-      vacancies: 5,
-      salary: "₱30,000 - ₱50,000 / month",
-      companyImage: "http://bij.ly/4ib59B1",
-      description: `Join Our Team – Exciting Career Opportunities Await!`,
-    },
-    {
-      id: 3,
-      title: "Junior Developer",
-      company: "XYZ Solutions",
-      location: "Iloilo City",
-      type: "Full-time",
-      experienceLevel: "Senior Level",
-      vacancies: 5,
-      salary: "₱30,000 - ₱50,000 / month",
-      companyImage: "http://bij.ly/4ib59B1",
-      description: `Join Our Team – Exciting Career Opportunities Await!`,
-    },
-    {
-      id: 4,
-      title: "Senior Developer",
-      company: "XYZ Solutions",
-      location: "Iloilo City",
-      type: "Full-time",
-      experienceLevel: "Senior Level",
-      vacancies: 5,
-      salary: "₱30,000 - ₱50,000 / month",
-      companyImage: "http://bij.ly/4ib59B1",
-      description: `Join Our Team – Exciting Career Opportunities Await!`,
-    },
-    {
-      id: 5,
-      title: "Data Analyst",
-      company: "XYZ Solutions",
-      location: "Iloilo City",
-      type: "Full-time",
-      experienceLevel: "Senior Level",
-      vacancies: 5,
-      salary: "₱30,000 - ₱50,000 / month",
-      companyImage: "http://bij.ly/4ib59B1",
-      description: `Join Our Team – Exciting Career Opportunities Await!`,
-    },
-    {
-      id: 6,
-      title: "Computer Engineer",
-      company: "XYZ Solutions",
-      location: "Iloilo City",
-      type: "Full-time",
-      experienceLevel: "Senior Level",
-      vacancies: 5,
-      salary: "₱30,000 - ₱50,000 / month",
-      companyImage: "http://bij.ly/4ib59B1",
-      description: `Join Our Team – Exciting Career Opportunities Await!`,
-    },
-    {
-      id: 7,
-      title: "Network Administrator",
-      company: "XYZ Solutions",
-      location: "Iloilo City",
-      type: "Full-time",
-      experienceLevel: "Senior Level",
-      vacancies: 5,
-      salary: "₱30,000 - ₱50,000 / month",
-      companyImage: "http://bij.ly/4ib59B1",
-      description: `Join Our Team – Exciting Career Opportunities Await!`,
-    },
-    {
-      id: 8,
-      title: "Database Administrator",
-      company: "XYZ Solutions",
-      location: "Iloilo City",
-      type: "Full-time",
-      experienceLevel: "Senior Level",
-      vacancies: 5,
-      salary: "₱30,000 - ₱50,000 / month",
-      companyImage: "http://bij.ly/4ib59B1",
-      description: `Join Our Team – Exciting Career Opportunities Await!`,
-    },
-
-    // Add more mock jobs here
-  ]);
-
-  // Set the first job as selected by default
-  React.useEffect(() => {
-    if (jobs.length > 0 && !selectedJob) {
-      setSelectedJob(jobs[0]);
-    }
-  }, [jobs]);
-
-  // Handle URL parameters
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const selectedId = params.get("selected");
-    const action = params.get("action");
-
-    if (selectedId) {
-      const job = jobs.find((j) => j.id === parseInt(selectedId));
-      if (job) {
-        setSelectedJob(job);
-        if (action === "apply") {
-          handleApplyJob(parseInt(selectedId));
-        }
-      }
-    }
-  }, []);
-
-  const handleSearch = () => {
-    // Implement search functionality
-    console.log("Searching...");
-  };
-
-  const handleJobClick = (jobId) => {
-    const job = jobs.find((j) => j.id === jobId);
-    setSelectedJob(job);
-    setIsModalOpen(true);
-  };
-
   const [query, setQuery] = useState("");
   const [entryLevel, setEntryLevel] = useState("");
-  const [trainingType, setTrainingType] = useState("");
+  const [jobType, setJobType] = useState("");
   const [sortBy, setSortBy] = useState("");
-  const [filteredJobs, setFilteredJobs] = useState(jobs);
+  const [filteredJobs, setFilteredJobs] = useState([]);
+  const [savedJobs, setSavedJobs] = useState({});
+  const [appliedJobs, setAppliedJobs] = useState({});
 
-  // useEffect to filter and sort trainings dynamically
+  // Fetch job postings from the API
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:5000/api/get-job-postings");
+        const data = await response.json();
+        setJobs(data.job_postings); // Assuming the API returns an object with job_postings
+      } catch (error) {
+        console.error("Error fetching job postings:", error);
+      }
+    };
+
+    fetchJobs();
+  }, []);
+
+  // Filter jobs based on search query and other criteria
   useEffect(() => {
     let updatedJobs = [...jobs];
 
@@ -345,45 +46,54 @@ Join us and be a part of something great! 🚀`,
     if (query) {
       updatedJobs = updatedJobs.filter(
         (j) =>
-          j.title.toLowerCase().includes(query.toLowerCase()) ||
-          j.description.toLowerCase().includes(query.toLowerCase()) ||
-          j.company.toLowerCase().includes(query.toLowerCase())
+          j.job_title.toLowerCase().includes(query.toLowerCase()) ||
+          j.job_description.toLowerCase().includes(query.toLowerCase())
       );
     }
 
     // Filtering by experience level
     if (entryLevel) {
-      updatedJobs = updatedJobs.filter((j) => j.experienceLevel === entryLevel);
+      updatedJobs = updatedJobs.filter((j) => j.experience_level === entryLevel);
     }
 
-    // Filtering by training type
-    if (trainingType) {
-      updatedJobs = updatedJobs.filter((j) => j.type === trainingType);
+    // Filtering by job type
+    if (jobType) {
+      updatedJobs = updatedJobs.filter((j) => j.job_type === jobType);
     }
 
     // Sorting logic
     if (sortBy === "Most Recent") {
-      updatedJobs.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
-    } else if (sortBy === "Most Relevant") {
-      // Custom sorting logic for relevance (example: by provider name)
-      updatedJobs.sort((a, b) => a.provider.localeCompare(b.provider));
+      updatedJobs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     } else if (sortBy === "Salary") {
-      // Sorting based on cost
-      updatedJobs.sort(
-        (a, b) =>
-          parseInt(b.salary.replace("₱", "").replace(",", "")) -
-          parseInt(a.salary.replace("₱", "").replace(",", ""))
-      );
+      updatedJobs.sort((a, b) => a.estimated_salary_from - b.estimated_salary_from);
     }
 
-    // Update filtered trainings
     setFilteredJobs(updatedJobs);
-  }, [query, entryLevel, trainingType, sortBy, jobs]); // Dependencies
+  }, [query, entryLevel, jobType, sortBy, jobs]);
+
+  const handleJobClick = (jobId) => {
+    const job = jobs.find((j) => j.job_id === jobId);
+    setSelectedJob(job);
+  };
+
+  const handleSave = (jobId) => {
+    setSavedJobs((prev) => ({
+      ...prev,
+      [jobId]: !prev[jobId], // Toggle saved state
+    }));
+  };
+
+  const handleApply = (jobId) => {
+    setAppliedJobs((prev) => ({
+      ...prev,
+      [jobId]: !prev[jobId], // Toggle applied state
+    }));
+  };
 
   return (
     <Box>
       <SearchData
-        placeholder="Find a training..."
+        placeholder="Find a job..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="w-full"
@@ -391,64 +101,59 @@ Join us and be a part of something great! 🚀`,
         componentData={[
           {
             title: "Experience Level",
-            options: ["", "Entry", "Mid", "Senior"],
+            options: ["", "Entry", "Mid-level", "Senior"],
           },
           {
-            title: "Training Type",
-            options: ["", "Full Time", "Part Time", "Contract", "Internship"],
+            title: "Job Type",
+            options: ["", "Full-time", "Part-time", "Contract", "Internship"],
           },
           {
             title: "Sort By",
-            options: ["", "Most Recent", "Most Relevant", "Salary"],
+            options: ["", "Most Recent", "Salary"],
           },
         ]}
         onComponentChange={(index, value) => {
           if (index === 0) setEntryLevel(value);
-          if (index === 1) setTrainingType(value);
+          if (index === 1) setJobType(value);
           if (index === 2) setSortBy(value);
         }}
       />
 
-      {/* Main content container */}
       <Box className="flex">
-        {/* Job Listings Panel */}
-        <Box className="w-3/5 overflow-y-auto h-dvh p-3 border-r border-gray-300 dark:border-gray-700">
+        <Box className="w-3/5 overflow-y-auto h-dvh p-3 border-r border-gray-300">
           <Typography variant="subtitle1" className="mb-2">
             Total: {filteredJobs.length} jobs found
           </Typography>
 
           {filteredJobs.map((job) => (
             <Card
-              key={job.id}
+              key={job.job_id}
               className={`mb-2 cursor-pointer transition-all duration-200 ${
-                selectedJob?.id === job.id
-                  ? "bg-gray-200 dark:bg-gray-700"
-                  : "bg-white dark:bg-gray-800"
+                selectedJob?.job_id === job.job_id ? "bg-gray-200" : "bg-white"
               } hover:bg-primary-400`}
-              onClick={() => handleJobClick(job.id)}
+              onClick={() => handleJobClick(job.job_id)}
             >
               <CardContent>
                 <Box className="flex items-start gap-2">
-                  {/* Company Image */}
-                  <Box className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                  <Box className="w-20 h-20 flex-shrink-0 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
                     <img
-                      src={job.companyImage}
-                      alt={job.company}
+                      src="http://bij.ly/4ib59B1" // Placeholder for company image
+                      alt={job.job_title}
                       className="w-full h-full object-contain p-2"
                     />
                   </Box>
 
-                  {/* Job Details */}
                   <Box className="flex-1">
                     <Typography variant="h5" component="div" gutterBottom>
-                      {job.title}
+                      {job.job_title}
                     </Typography>
-                    <Typography className="text-gray-600 dark:text-gray-400">
-                      {job.company} • {job.location}
+                    <Typography className="text-gray-600">
+                      {job.country} • {job.city_municipality}
                     </Typography>
                     <Typography variant="body2">
-                      {job.type} • {job.experience}
+                      {job.job_type} • {job.experience_level}
                     </Typography>
+                    <Typography variant="body2">💰 {job.estimated_salary_from} - {job.estimated_salary_to}</Typography>
                   </Box>
                 </Box>
               </CardContent>
@@ -456,18 +161,15 @@ Join us and be a part of something great! 🚀`,
           ))}
         </Box>
 
-        {/* Job View Panel */}
-        <Box className="w-2/5 h-dvh overflow-y-auto bg-white dark:bg-gray-900">
+        <Box className="w-2/5 h-dvh overflow-y-auto bg-white">
           {selectedJob && (
             <JobView
               job={selectedJob}
-              isSaved={savedJobs[selectedJob.id]}
-              isApplied={appliedJobs[selectedJob.id]}
-              canWithdraw={canWithdraw(selectedJob.id)}
-              applicationTime={applicationTimes[selectedJob.id]}
-              onSave={() => handleSaveJob(selectedJob.id)}
-              onApply={() => handleApplyJob(selectedJob.id)}
-              onWithdraw={() => handleWithdrawApplication(selectedJob.id)}
+              initialIsSaved={savedJobs[selectedJob.job_id] || false}
+              initialIsApplied={appliedJobs[selectedJob.job_id] || false}
+              canWithdraw={appliedJobs[selectedJob.job_id]} // Can withdraw if applied
+              onSave={() => handleSave(selectedJob.job_id)}
+              onApply={() => handleApply(selectedJob.job_id)}
             />
           )}
         </Box>

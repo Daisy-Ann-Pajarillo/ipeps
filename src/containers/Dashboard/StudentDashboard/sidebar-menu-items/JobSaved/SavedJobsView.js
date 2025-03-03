@@ -35,16 +35,16 @@ const SavedJobsView = ({
     apply: {
       backgroundColor: isApplied 
         ? canWithdraw 
-          ? '#dc3545'
-          : '#218838'
-        : '#007BFF',
+          ? '#dc3545' // Red for withdraw
+          : '#218838' // Dark green for already applied
+        : '#007BFF', // Blue for apply
       color: '#ffffff',
       '&:hover': {
         backgroundColor: isApplied
           ? canWithdraw
-            ? '#c82333'
-            : '#1E7E34'
-          : '#0056b3',
+            ? '#c82333' // Darker red for withdraw hover
+            : '#1E7E34' // Darker green for already applied hover
+          : '#0056b3', // Darker blue for apply hover
       }
     }
   };
@@ -77,14 +77,16 @@ const SavedJobsView = ({
           />
         </Box>
 
-        <Typography variant="h4" gutterBottom>{job.title}</Typography>
+        <Typography variant="h4" gutterBottom>{job.job_title}</Typography>
         <Typography variant="h5" color="primary" gutterBottom>{job.company}</Typography>
         
         <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">📍 {job.location}</Typography>
-          <Typography variant="body1">💼 {job.type}</Typography>
-          <Typography variant="body1">👥 Vacancies: {job.vacancies}</Typography>
-          <Typography variant="body1">💰 {job.salary}</Typography>
+          <Typography variant="body1">📍 {job.city_municipality}, {job.country}</Typography>
+          <Typography variant="body1">💼 {job.job_type}</Typography>
+          <Typography variant="body1">👥 Vacancies: {job.no_of_vacancies}</Typography>
+          <Typography variant="body1">💰 ${job.estimated_salary_from} - ${job.estimated_salary_to}</Typography>
+          <Typography variant="body1">🎓 {job.certificate_received} from {job.training_institution}</Typography>
+          <Typography variant="body1">🛠️ Skills: {job.other_skills}</Typography>
         </Stack>
 
         <Box sx={{ width: '100%', mb: 3 }}>
@@ -119,7 +121,7 @@ const SavedJobsView = ({
 
         <Typography variant="h6" gutterBottom>Work Description</Typography>
         <Typography variant="body1">
-          {job.description}
+          {job.job_description}
         </Typography>
       </Box>
     </Box>

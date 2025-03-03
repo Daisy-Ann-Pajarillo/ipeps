@@ -195,9 +195,7 @@ const BackNextButton = ({
       isConfirmed = true;
     }
     if (isConfirmed) {
-      setTimeout(() => {
-        isDone();
-      }, 3000);
+      isDone();
     }
   };
 

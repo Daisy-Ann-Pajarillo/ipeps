@@ -78,7 +78,7 @@ const UserApplicationForm = (props) => {
   const [isValid, setIsValid] = useState(false);
 
   const userType = useSelector((state) => state.user.userType);
-
+console.log("userType", userType)
   //const [userHasValidEmail, setUserHasValidEmail] = useState(false);
   const [userRequestedEmailConfirmation, setUserRequestedEmailConfirmation] =
     useState(false);
@@ -94,7 +94,7 @@ const UserApplicationForm = (props) => {
   useEffect(() => {
     onRefresh();
   }, []);
-
+console.log("sepspssssst", steps)
 
   const onRefresh = () => {
     props.onGetAuthStorage();
@@ -193,7 +193,7 @@ const UserApplicationForm = (props) => {
   const getPageDataKey = (stepIndex) => {
     let pageDataKeys = {};
 
-    if (userType === "JOBSEEKER") {
+    if (userType === "JOBSEEKER" || userType === "STUDENT") {
       pageDataKeys = {
         0: "personal_info_page",
         1: "job_preference_page",
@@ -202,12 +202,13 @@ const UserApplicationForm = (props) => {
         4: "other_training_page",
         5: "eligibility_prof_license_page",
         6: "work_experience_page",
-        7: "work_experience_page", // For Other Skills
+        7: "other_skills", // For Other Skills
       };
     }
-    if (userType === "EMPLOYER") {
+    if (userType === "EMPLOYER" || userType === "ACADEME") {
       pageDataKeys = {
         0: "personal_info_page",
+        
       };
     }
 

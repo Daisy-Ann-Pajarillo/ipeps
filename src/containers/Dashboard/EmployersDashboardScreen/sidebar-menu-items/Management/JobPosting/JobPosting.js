@@ -17,6 +17,10 @@ import {
 
 import PostedJob from "./PostedJob";
 import countriesList from "../../../../../../reusable/constants/countriesList";
+import axios from '../../../../../../axios';
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const jobSchema = yup.object().shape({
   job_title: yup.string().required("Job Title is required"),
@@ -46,6 +50,7 @@ const JobPosting = ({ isCollapsed }) => {
     register,
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(jobSchema),
@@ -63,9 +68,86 @@ const JobPosting = ({ isCollapsed }) => {
 
   const [selectedCountry, setSelectedCountry] = useState("");
 
-  const onSubmit = (data) => {
-    console.log("Submitted Data:", data);
-  };
+  
+ // Submit the form data to the backend
+const onSubmit = async (data) => {
+  try {
+    const response = await axios.post("/api/job-postings", data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.status === 201) {
+      console.log("✅ Job posting created successfully");
+      console.log("Response Data:", response.data);
+      
+      // Show success toast notification
+      toast.success('Job posting created successfully!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        onClose: () => window.location.reload(),
+      });
+
+
+      // Reset the form fields to their default values
+      reset({
+        job_title: "",
+        job_type: "",
+        experience_level: "",
+        job_description: "",
+        estimated_salary_from: "",
+        estimated_salary_to: "",
+        no_of_vacancies: "",
+        country: "",
+        city_municipality: "",
+        expiration_date: "",
+        other_skills: "",
+        courses: [{ course_name: "", training_institution: "", certificate_received: "" }],
+      });
+
+      // Clear the selected country in the Autocomplete
+      setSelectedCountry("");
+
+    } else {
+      console.warn("⚠️ Unexpected status code:", response.status);
+      
+      // Show warning toast notification
+      toast.warn(`Unexpected status code: ${response.status}`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+    }
+
+  } catch (error) {
+    console.error("❌ Error submitting job posting:", error.message);
+
+    // Show error toast notification
+    toast.error('Error submitting job posting!', {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "colored",
+    });
+  }
+};
+
 
   return (
     <Box className="flex transition-all bg-white">
@@ -306,7 +388,9 @@ const JobPosting = ({ isCollapsed }) => {
           >
             Create Job Post
           </Button>
+          
         </form>
+        <ToastContainer/>
       </Box>
 
       <Box className="w-2/5 bg-gray-100 p-6">

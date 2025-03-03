@@ -1,69 +1,80 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Button,
-  Divider,
   Paper,
-  Stack,
-  IconButton,
-  Avatar
+  Button
 } from '@mui/material';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'; // Unselected state
-import BookmarkIcon from '@mui/icons-material/Bookmark'; // Selected state
-import { useTheme } from '@mui/material';
+import axios from '../../../../../../axios';
 
-const sampleJobs = [
-  {
-    id: 1,
-    company: 'Google',
-    title: 'Software Engineer',
-    location: 'Mountain View, CA',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
-  },
-  {
-    id: 2,
-    company: 'Microsoft',
-    title: 'Frontend Developer',
-    location: 'Redmond, WA',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg',
-  },
-  {
-    id: 3,
-    company: 'Amazon',
-    title: 'Data Scientist',
-    location: 'Seattle, WA',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg',
-  },
-];
+
+// Function to map status to MUI color
+const getStatusColor = (status) => {
+  switch (status?.toLowerCase()) {
+    case 'active':
+      return 'success';
+    case 'closed':
+      return 'error';
+    case 'pending':
+      return 'warning';
+    default:
+      return 'default';
+  }
+};
 
 const PostedTraining = () => {
+  const [trainingData, setTrainingData] = useState([]);
   const [bookmarked, setBookmarked] = useState({});
-  
+
+  // Fetch training data from the API
+  useEffect(() => {
+    const fetchTrainingData = async () => {
+      try {
+        const response = await axios.get('/api/get-training-postings');
+        const data = Array.isArray(response.data.training_postings) ? response.data.training_postings : [];
+        console.log('Retrieved Training Data:', data);
+        setTrainingData(data);
+      } catch (error) {
+        console.error('Error fetching training data:', error);
+      }
+    };
+
+    fetchTrainingData();
+  }, []);
+
   const handleBookmark = (id) => {
     setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
     <Box sx={{ height: '100%', position: 'relative' }}>
-
-
-
       <Box sx={{ height: '100%', overflowY: 'auto', p: 3 }}>
-
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold'}}>Training Posted</Typography>
-        {sampleJobs.map((job) => (
-
-          <Paper key={job.id} sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}> 
-
-            <Avatar src={job.logo} alt={job.company} sx={{ width: 56, height: 56, mr: 2 }} />
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Training Posted</Typography>
+        {trainingData.map((training) => (
+          <Paper key={training.id} sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h6">{job.title}</Typography>
-              <Typography variant="body2" color="text.secondary">{job.company} - {job.location}</Typography>
+              <Typography variant="h6">{training.training_name}</Typography>
+              <Typography variant="body2" color="text.secondary">Description: {training.training_description}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                Status: 
+                <Button
+                  variant="contained"
+                  color={getStatusColor(training.status)}
+                  sx={{
+                    borderRadius: '4px',
+                    padding: '2px 8px',
+                    marginLeft: '8px',
+                    fontSize: '0.875rem',
+                    textTransform: 'capitalize',
+                    lineHeight: '1.5',
+                    minWidth: 'auto',
+                    height: '24px'
+                  }}
+                >
+                  {training.status}
+                </Button>
+              </Typography>
             </Box>
-            <IconButton onClick={() => handleBookmark(job.id)}>
-              {bookmarked[job.id] ? <BookmarkIcon color="primary" /> : <BookmarkBorderIcon />}
-            </IconButton>
           </Paper>
         ))}
       </Box>
