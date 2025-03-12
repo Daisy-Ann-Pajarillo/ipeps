@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import StudentMenuItems from "./StudentMenuItems";
+import JobseekerMenuItems from "./JobseekerMenuItems";
 import EmployerMenuItems from "./EmployerMenuItems";
 import AdministratorMenuItems from "./AdminMenuItems";
 import AcademeMenuItems from "./AcademeMenuItems";
@@ -59,9 +60,11 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
     const [menuItems, setMenuItems] = useState([]);
 
     useEffect(() => {
-        if (userType === "STUDENT" || userType === "JOBSEEKER") {
+        if (userType === "STUDENT") {
             setMenuItems(StudentMenuItems);
-        } else if (userType === "EMPLOYER") {
+        } else if (userType === "JOBSEEKER") {
+            setMenuItems(JobseekerMenuItems);
+        }  else if (userType === "EMPLOYER") {
             setMenuItems(EmployerMenuItems);
         } else if (userType === "ADMIN") {
             setMenuItems(AdministratorMenuItems);

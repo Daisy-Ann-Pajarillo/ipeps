@@ -2,21 +2,95 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Card, CardContent, useTheme, Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
 import { tokens } from '../../../theme';
 import TrainingView from './TrainingView';
-import CloseIcon from '@mui/icons-material/Close';
 import SearchData from '../../../components/layout/Search';
-const TrainingSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
+
+const TrainingSearch = ({ isCollapsed }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [searchQuery, setSearchQuery] = useState('');
-
   const [selectedTraining, setSelectedTraining] = useState(null);
-  const headerHeight = '72px'; // Define header height
+  const headerHeight = '72px';
 
-  // Add state to track saved and enrolled status for each training
+  // State for trainings and loading
+  const [trainings, setTrainings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // State to track saved and enrolled status
   const [savedTraining, setSavedTraining] = useState({});
   const [enrolledTraining, setEnrolledTraining] = useState({});
   const [enrollmentTimes, setEnrollmentTimes] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fetch trainings from API
+  useEffect(() => {
+    const fetchTrainings = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('http://127.0.0.1:5000/api/get-training-postings');
+
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('API Response:', data); // Debug: Log the API response
+
+        // Access the training postings from the response
+        const trainingsArray = data.training_postings || [];
+        console.log('Processed trainings array:', trainingsArray); // Debug
+        setTrainings(trainingsArray);
+
+        // Load saved/enrolled status from localStorage
+        loadSavedAndEnrolledStatus(trainingsArray);
+      } catch (err) {
+        console.error('Error fetching trainings:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTrainings();
+  }, []);
+
+  // Load saved and enrolled status from localStorage
+  const loadSavedAndEnrolledStatus = (trainingsData) => {
+    if (!Array.isArray(trainingsData)) {
+      console.error('trainingsData is not an array:', trainingsData);
+      return;
+    }
+
+    // Load saved trainings
+    const savedTrainingsList = JSON.parse(localStorage.getItem('savedTrainings') || '[]');
+    const savedMap = {};
+    savedTrainingsList.forEach(training => {
+      if (training && training.training_id) {
+        savedMap[training.training_id] = true;
+      }
+    });
+    setSavedTraining(savedMap);
+
+    // Load enrolled trainings
+    const appliedItems = JSON.parse(localStorage.getItem('appliedItems') || '{}');
+    const applicationTimes = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
+
+    const enrolledMap = {};
+    const timesMap = {};
+
+    trainingsData.forEach(training => {
+      if (training && training.training_id) {
+        const key = `training-${training.training_id}`;
+        if (appliedItems[key]) {
+          enrolledMap[training.training_id] = true;
+          timesMap[training.training_id] = applicationTimes[key];
+        }
+      }
+    });
+
+    setEnrolledTraining(enrolledMap);
+    setEnrollmentTimes(timesMap);
+  };
 
   const handleSaveTraining = (trainingId) => {
     setSavedTraining(prev => {
@@ -26,19 +100,20 @@ const TrainingSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
       };
 
       // Get the training details
-      const trainingToSave = trainings.find(t => t.id === trainingId);
+      const trainingToSave = trainings.find(t => t && t.training_id === trainingId);
+      if (!trainingToSave) return prev; // Safety check
 
       // Get existing saved trainings from localStorage
       const savedTrainingsList = JSON.parse(localStorage.getItem('savedTrainings') || '[]');
 
       if (newSavedTrainings[trainingId]) {
         // Add to localStorage if not already present
-        if (!savedTrainingsList.some(training => training.id === trainingId)) {
+        if (!savedTrainingsList.some(training => training && training.training_id === trainingId)) {
           savedTrainingsList.push(trainingToSave);
         }
       } else {
         // Remove from localStorage
-        const index = savedTrainingsList.findIndex(training => training.id === trainingId);
+        const index = savedTrainingsList.findIndex(training => training && training.training_id === trainingId);
         if (index !== -1) {
           savedTrainingsList.splice(index, 1);
         }
@@ -65,7 +140,8 @@ const TrainingSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
     }));
 
     // Get the training details
-    const trainingToEnroll = trainings.find(t => t.id === trainingId);
+    const trainingToEnroll = trainings.find(t => t && t.training_id === trainingId);
+    if (!trainingToEnroll) return; // Safety check
 
     // Update localStorage
     const appliedItems = JSON.parse(localStorage.getItem('appliedItems') || '{}');
@@ -76,7 +152,7 @@ const TrainingSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
     applicationTimes[`training-${trainingId}`] = now;
 
     // Update or add the training to allTrainings
-    const existingTrainingIndex = allTrainings.findIndex(t => t.id === trainingId);
+    const existingTrainingIndex = allTrainings.findIndex(t => t && t.training_id === trainingId);
     if (existingTrainingIndex === -1) {
       allTrainings.push(trainingToEnroll);
     } else {
@@ -99,6 +175,16 @@ const TrainingSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
       delete newEnrolled[trainingId];
       return newEnrolled;
     });
+
+    // Update localStorage
+    const appliedItems = JSON.parse(localStorage.getItem('appliedItems') || '{}');
+    const applicationTimes = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
+
+    delete appliedItems[`training-${trainingId}`];
+    delete applicationTimes[`training-${trainingId}`];
+
+    localStorage.setItem('appliedItems', JSON.stringify(appliedItems));
+    localStorage.setItem('applicationTimes', JSON.stringify(applicationTimes));
   };
 
   const canWithdraw = (trainingId) => {
@@ -109,124 +195,37 @@ const TrainingSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
     return timeDiff <= 24 * 60 * 60 * 1000; // 24 hours in milliseconds
   };
 
-
-
-  // Set the first trainings as selected by default
-  // React.useEffect(() => {
-  //   if (trainings.length > 0 && !selectedTraining) {
-  //     setSelectedTraining(trainings[0]);
-  //   }
-  // }, [trainings]);
-
-  // const handleSearch = () => {
-  //   // Implement search functionality
-  //   console.log('Searching...');
-  // };
-
   const handleTrainingClick = (trainingId) => {
-    const selectedTraining = trainings.find(t => t.id === trainingId);
+    const selectedTraining = trainings.find(t => t && t.training_id === trainingId);
+    if (!selectedTraining) return; // Safety check
     setSelectedTraining(selectedTraining);
     setIsModalOpen(true);
   };
-  const [trainings] = useState([
-    {
-      id: 1,
-      title: "Web Development Bootcamp",
-      provider: "Tech Academy",
-      location: "Online",
-      type: "Full Time",  // Matches Training Type dropdown
-      duration: "12 weeks",
-      cost: "₱15,000",
-      startDate: "2024-03-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Entry",  // Matches Experience Level dropdown
-      description: "A comprehensive bootcamp covering HTML, CSS, JavaScript, React, and backend development.",
-    },
-    {
-      id: 2,
-      title: "Cloud Computing Fundamentals",
-      provider: "Tech Academy",
-      location: "Online",
-      type: "Part Time",  // Matches Training Type dropdown
-      duration: "8 weeks",
-      cost: "₱12,000",
-      startDate: "2024-03-15",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Mid",
-      description: "Learn cloud computing principles, AWS, Azure, and Google Cloud basics in this beginner-friendly course.",
-    },
-    {
-      id: 3,
-      title: "Data Science Essentials",
-      provider: "Data Institute",
-      location: "Hybrid",
-      type: "Contract",  // Matches Training Type dropdown
-      duration: "16 weeks",
-      cost: "₱20,000",
-      startDate: "2024-04-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Senior",
-      description: "A practical course in Python, Machine Learning, and AI, with hands-on projects.",
-    },
-    {
-      id: 4,
-      title: "Cybersecurity for Beginners",
-      provider: "Security Academy",
-      location: "In-Person",
-      type: "Full Time",
-      duration: "10 weeks",
-      cost: "₱18,000",
-      startDate: "2024-04-10",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Entry",
-      description: "Gain hands-on experience in cybersecurity fundamentals, ethical hacking, and network security.",
-    },
-    {
-      id: 5,
-      title: "AI and Machine Learning",
-      provider: "AI Institute",
-      location: "Online",
-      type: "Internship",  // Matches Training Type dropdown
-      duration: "6 months",
-      cost: "₱25,000",
-      startDate: "2024-05-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Mid",
-      description: "An advanced AI/ML program covering deep learning, NLP, and reinforcement learning techniques.",
-    },
-    {
-      id: 6,
-      title: "Project Management Professional (PMP)",
-      provider: "Business Academy",
-      location: "Hybrid",
-      type: "Part Time",
-      duration: "5 months",
-      cost: "₱30,000",
-      startDate: "2024-06-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Senior",
-      description: "A certified PMP course covering Agile, Scrum, risk management, and project planning.",
-    },
-  ]);
-  
+
+  // State for filters
   const [query, setQuery] = useState("");
   const [entryLevel, setEntryLevel] = useState("");
   const [trainingType, setTrainingType] = useState("");
   const [sortBy, setSortBy] = useState("");
-  const [filteredTrainings, setFilteredTrainings] = useState(trainings);
+  const [filteredTrainings, setFilteredTrainings] = useState([]);
 
-  // useEffect to filter and sort trainings dynamically
+  // Filter and sort trainings
   useEffect(() => {
-    let updatedTrainings = [...trainings];
+    if (!trainings.length) {
+      setFilteredTrainings([]);
+      return;
+    }
+
+    // Filter out any null or undefined items
+    let updatedTrainings = trainings.filter(t => t !== null && t !== undefined);
 
     // Filtering based on search query
     if (query) {
-      updatedTrainings = updatedTrainings.filter((t) => 
-        t.title.toLowerCase().includes(query.toLowerCase()) || 
-        t.description.toLowerCase().includes(query.toLowerCase())
+      updatedTrainings = updatedTrainings.filter((t) =>
+        (t.training_title && t.training_title.toLowerCase().includes(query.toLowerCase())) ||
+        (t.training_description && t.training_description.toLowerCase().includes(query.toLowerCase()))
       );
     }
-    
 
     // Filtering by experience level
     if (entryLevel) {
@@ -244,29 +243,34 @@ const TrainingSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
 
     // Sorting logic
     if (sortBy === "Most Recent") {
-      updatedTrainings.sort(
-        (a, b) => new Date(b.startDate) - new Date(a.startDate)
-      );
+      updatedTrainings.sort((a, b) => {
+        if (!a.created_at || !b.created_at) return 0;
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
     } else if (sortBy === "Most Relevant") {
       // Custom sorting logic for relevance (example: by provider name)
-      updatedTrainings.sort((a, b) => a.provider.localeCompare(b.provider));
+      updatedTrainings.sort((a, b) => {
+        const providerA = a.provider || '';
+        const providerB = b.provider || '';
+        return providerA.localeCompare(providerB);
+      });
     } else if (sortBy === "Salary") {
       // Sorting based on cost
-      updatedTrainings.sort(
-        (a, b) =>
-          parseInt(b.cost.replace("₱", "").replace(",", "")) -
-          parseInt(a.cost.replace("₱", "").replace(",", ""))
-      );
+      updatedTrainings.sort((a, b) => {
+        const costA = parseInt((a.cost || '0').replace(/[^\d]/g, '')) || 0;
+        const costB = parseInt((b.cost || '0').replace(/[^\d]/g, '')) || 0;
+        return costB - costA;
+      });
     }
 
     // Update filtered trainings
     setFilteredTrainings(updatedTrainings);
-  }, [query, entryLevel, trainingType, sortBy, trainings]); // Dependencies
+  }, [query, entryLevel, trainingType, sortBy, trainings]);
 
   return (
     <Box>
       <SearchData
-           placeholder="Find a training..."
+        placeholder="Find a training..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="w-full"
@@ -305,65 +309,84 @@ const TrainingSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
             borderRight: '1px solid rgba(0, 0, 0, 0.12)',
           }}
         >
-          <Typography variant="subtitle1" mb={2}>
-            Total: {filteredTrainings.length} training found
-          </Typography>
+          {isLoading ? (
+            <Typography variant="body1">Loading trainings...</Typography>
+          ) : error ? (
+            <Typography variant="body1" color="error">
+              Error loading trainings: {error}
+            </Typography>
+          ) : (
+            <>
+              <Typography variant="subtitle1" mb={2}>
+                Total: {filteredTrainings.length} training found
+              </Typography>
 
-          {filteredTrainings.map((training) => (
-            <Card
-              key={training.id}
-              sx={{
-                mb: 2,
-                cursor: 'pointer',
-                backgroundColor: selectedTraining?.id === training.id ? '#f5f5f5' : 'white',
-                '&:hover': { backgroundColor: colors.primary[400] }
-              }}
-              onClick={() => handleTrainingClick(training.id)}
-            >
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                  {/* Company Image */}
-                  <Box
+              {filteredTrainings.length === 0 && !isLoading ? (
+                <Typography variant="body1">
+                  No training postings match your criteria.
+                </Typography>
+              ) : (
+                filteredTrainings.map((training) => (
+                  <Card
+                    key={training.training_id}
                     sx={{
-                      width: 80,
-                      height: 80,
-                      flexShrink: 0,
-                      backgroundColor: '#f5f5f5',
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
+                      mb: 2,
+                      cursor: 'pointer',
+                      backgroundColor: selectedTraining?.training_id === training.training_id ? '#f5f5f5' : 'white',
+                      '&:hover': { backgroundColor: colors.primary[400] }
                     }}
+                    onClick={() => handleTrainingClick(training.training_id)}
                   >
-                    <img
-                      src={training.companyImage}
-                      alt={training.company}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
-                        padding: '8px'
-                      }}
-                    />
-                  </Box>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                        {/* Company Image */}
+                        <Box
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            flexShrink: 0,
+                            backgroundColor: '#f5f5f5',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <img
+                            src={training.companyImage || "https://bit.ly/3Qgevzn"}
+                            alt={training.provider || "Company Logo"}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              padding: '8px'
+                            }}
+                            onError={(e) => {
+                              e.target.src = "https://bit.ly/3Qgevzn"; // Fallback image on error
+                            }}
+                          />
+                        </Box>
 
-                  {/* Training Details */}
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h5" component="div" gutterBottom>
-                      {training.title}
-                    </Typography>
-                    <Typography color="text.secondary">
-                      {training.company} • {training.location}
-                    </Typography>
-                    <Typography variant="body2">
-                      {training.type} • {training.experience}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          ))}
+                        {/* Training Details */}
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="h5" component="div" gutterBottom>
+                            {training.training_title}
+                          </Typography>
+                          <Typography variant="body2">
+                            Expiration: {training.expiration_date || "N/A"}
+                          </Typography>
+                          <Typography variant="body2">
+                            {training.training_description || "Description N/A"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </>
+          )}
         </Box>
 
         {/* Training View Panel */}
@@ -378,17 +401,50 @@ const TrainingSearch = ({ isCollapsed }) => {  // Add isCollapsed prop here
           {selectedTraining && (
             <TrainingView
               training={selectedTraining}
-              isSaved={savedTraining[selectedTraining.id]}
-              isEnrolled={enrolledTraining[selectedTraining.id]}
-              canWithdraw={canWithdraw(selectedTraining.id)}
-              enrollmentTime={enrollmentTimes[selectedTraining.id]}
-              onSave={() => handleSaveTraining(selectedTraining.id)}
-              onEnroll={() => handleEnrollTraining(selectedTraining.id)}
-              onWithdraw={() => handleWithdrawEnrollment(selectedTraining.id)}
+              isSaved={savedTraining[selectedTraining.training_id]}
+              isEnrolled={enrolledTraining[selectedTraining.training_id]}
+              canWithdraw={canWithdraw(selectedTraining.training_id)}
+              enrollmentTime={enrollmentTimes[selectedTraining.training_id]}
+              onSave={() => handleSaveTraining(selectedTraining.training_id)}
+              onEnroll={() => handleEnrollTraining(selectedTraining.training_id)}
+              onWithdraw={() => handleWithdrawEnrollment(selectedTraining.training_id)}
             />
           )}
         </Box>
       </Box>
+
+      {/* Modal for mobile view */}
+      <Dialog
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        maxWidth="md"
+        fullWidth
+        sx={{ display: { md: 'none' } }}
+      >
+        <DialogTitle>
+          Training Details
+          <IconButton
+            onClick={() => setIsModalOpen(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            X
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {selectedTraining && (
+            <TrainingView
+              training={selectedTraining}
+              isSaved={savedTraining[selectedTraining.training_id]}
+              isEnrolled={enrolledTraining[selectedTraining.training_id]}
+              canWithdraw={canWithdraw(selectedTraining.training_id)}
+              enrollmentTime={enrollmentTimes[selectedTraining.training_id]}
+              onSave={() => handleSaveTraining(selectedTraining.training_id)}
+              onEnroll={() => handleEnrollTraining(selectedTraining.training_id)}
+              onWithdraw={() => handleWithdrawEnrollment(selectedTraining.training_id)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

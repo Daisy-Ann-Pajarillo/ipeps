@@ -10,7 +10,7 @@ import {
     LogoutOutlined,
 } from "@mui/icons-material";
 
-const StudentMenuItems = [
+const JobseekerMenuItems = [
     {
         title: "HOME",
         key: "home",
@@ -65,23 +65,13 @@ const StudentMenuItems = [
         ],
     },
     {
-        title: "SCHOLARSHIPS",
-        key: "scholarships",
+        title: "COMPANIES",
+        key: "companies",
         items: [
             {
-                title: "Scholarships Search",
-                to: "/dashboard/scholarship-search",
-                icon: <SchoolOutlined />,
-            },
-            {
-                title: "Saved Scholarships",
-                to: "/dashboard/saved-scholarships",
-                icon: <BookmarksOutlined />,
-            },
-            {
-                title: "Scholarship Applications",
-                to: "/dashboard/scholarship-applications",
-                icon: <WorkOutlineOutlined />,
+                title: "Companies",
+                to: "/dashboard/companies",
+                icon: <BusinessOutlined />,
             },
         ],
     },
@@ -102,4 +92,4 @@ const StudentMenuItems = [
         ],
     },
 ];
-export default StudentMenuItems;
+export default JobseekerMenuItems;

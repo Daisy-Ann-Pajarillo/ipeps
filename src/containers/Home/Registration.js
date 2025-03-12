@@ -129,7 +129,7 @@ function Registration(props) {
       registerData.append("email", data.email);
       registerData.append("password", data.password);
 
-      const response = await axios.post("/api/user/create", registerData, {
+      const response = await axios.post("/api/create-user", registerData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

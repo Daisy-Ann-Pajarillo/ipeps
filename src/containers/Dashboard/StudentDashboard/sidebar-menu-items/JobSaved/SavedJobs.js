@@ -11,6 +11,7 @@ import {
 import { tokens } from "../../../theme";
 import SavedJobsView from "./SavedJobsView";
 import SearchData from "../../../components/layout/Search";
+import axios from "../../../../../axios";
 
 const SavedJobs = ({ isCollapsed }) => {
   const theme = useTheme();
@@ -22,15 +23,20 @@ const SavedJobs = ({ isCollapsed }) => {
   const [savedJobs, setSavedJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
 
-  // Fetch saved jobs from API
   useEffect(() => {
     const loadSavedJobs = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5000/api/get-saved-jobs");
-        const data = await response.json();
-        setSavedJobs(data);
-        if (data.length > 0) {
-          setSelectedJob(data[0]); // Set the first job as selected by default
+        const response = await axios.get("/api/get-saved-jobs");
+        const data = response.data;
+
+        if (Array.isArray(data.jobs)) { // Access the jobs array correctly
+          setSavedJobs(data.jobs);
+
+          if (data.jobs.length > 0) {
+            setSelectedJob(data.jobs[0]); // Set the first job as selected by default
+          }
+        } else {
+          console.error("Fetched jobs data is not an array:", data);
         }
       } catch (error) {
         console.error("Error fetching saved jobs:", error);
@@ -39,6 +45,7 @@ const SavedJobs = ({ isCollapsed }) => {
 
     loadSavedJobs();
   }, []);
+
 
   // Update filtered jobs whenever savedJobs or searchQuery changes
   useEffect(() => {
@@ -86,7 +93,7 @@ const SavedJobs = ({ isCollapsed }) => {
   const handleRemoveFromSaved = (jobId) => {
     const updatedJobs = savedJobs.filter((job) => job.saved_job_id !== jobId);
     setSavedJobs(updatedJobs);
-    
+
     // If the removed job was selected, select another one
     if (selectedJob && selectedJob.saved_job_id === jobId) {
       setSelectedJob(updatedJobs.length > 0 ? updatedJobs[0] : null);
@@ -116,11 +123,11 @@ const SavedJobs = ({ isCollapsed }) => {
 
       <Grid container sx={{ flexGrow: 1, overflow: 'hidden' }}>
         {/* Left Panel - Job Listings */}
-        <Grid item xs={12} md={6} lg={5} 
-          sx={{ 
-            height: { xs: 'auto', md: '100%' }, 
+        <Grid item xs={12} md={6} lg={5}
+          sx={{
+            height: { xs: 'auto', md: '100%' },
             overflow: 'auto',
-            borderRight: 1, 
+            borderRight: 1,
             borderColor: 'divider'
           }}
         >
@@ -132,11 +139,11 @@ const SavedJobs = ({ isCollapsed }) => {
             {filteredJobs.map((job) => (
               <Card
                 key={job.saved_job_id}
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   cursor: 'pointer',
-                  bgcolor: selectedJob?.saved_job_id === job.saved_job_id 
-                    ? 'action.selected' 
+                  bgcolor: selectedJob?.saved_job_id === job.saved_job_id
+                    ? 'action.selected'
                     : 'background.paper',
                   '&:hover': { bgcolor: 'action.hover' }
                 }}
@@ -160,11 +167,11 @@ const SavedJobs = ({ isCollapsed }) => {
                   </Box>
 
                   <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Box sx={{ 
-                      width: 60, 
-                      height: 60, 
-                      flexShrink: 0, 
-                      bgcolor: 'action.hover', 
+                    <Box sx={{
+                      width: 60,
+                      height: 60,
+                      flexShrink: 0,
+                      bgcolor: 'action.hover',
                       borderRadius: 1,
                       display: 'flex',
                       alignItems: 'center',
@@ -175,11 +182,11 @@ const SavedJobs = ({ isCollapsed }) => {
                         <img
                           src={job.companyImage}
                           alt={job.company || "Company"}
-                          style={{ 
-                            width: '100%', 
-                            height: '100%', 
-                            objectFit: 'contain', 
-                            padding: '4px' 
+                          style={{
+                            width: '50%',
+                            height: '50%',
+                            objectFit: 'cover', // Changed from 'contain' to 'cover'
+                            padding: 0 // Removed padding to ensure full square
                           }}
                         />
                       )}
@@ -187,7 +194,7 @@ const SavedJobs = ({ isCollapsed }) => {
 
                     <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
                       <Typography variant="body2" color="text.secondary" noWrap>
-                        {job.company || "Company"} • {job.city_municipality || "City"}, {job.country || "Country"}
+                        {job.city_municipality || "City"}, {job.country || "Country"}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" noWrap>
                         {job.job_type || "Job Type"} • {job.experience_level || "Experience"}
@@ -204,7 +211,7 @@ const SavedJobs = ({ isCollapsed }) => {
         </Grid>
 
         {/* Right Panel - Job Details */}
-        <Grid item xs={12} md={6} lg={7} sx={{ height: { xs: 'auto', md: '100%' }, overflow: 'auto' }}>
+        <Grid item xs={6} md={6} lg={7} sx={{ height: { xs: 'auto', md: '100%' }, overflow: 'auto' }}>
           {selectedJob ? (
             <SavedJobsView
               job={selectedJob}

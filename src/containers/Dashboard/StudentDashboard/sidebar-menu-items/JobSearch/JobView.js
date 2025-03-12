@@ -28,7 +28,7 @@ const JobView = ({
     const now = new Date().getTime();
     const timeLeft = (applicationTime + 24 * 60 * 60 * 1000) - now;
     if (timeLeft <= 0) return null;
-    
+
     const hours = Math.floor(timeLeft / (60 * 60 * 1000));
     const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
     return `${hours}h ${minutes}m remaining to withdraw`;
@@ -52,11 +52,11 @@ const JobView = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ employer_jobpost_id: job.job_id }) // Sending the job ID in the expected format
+        body: JSON.stringify({ employer_jobpost_id: job.job_id })
       });
 
       if (response.ok) {
-        setIsSaved(job.job_id); // Toggle saved state
+        setIsSaved(!isSaved); // Toggle the boolean value instead
         toast.success(isSaved ? 'Job removed from saved jobs!' : 'Job saved successfully!');
         onSave(); // Call the parent handler
         console.log('Job saved successfully:', job.job_id);
@@ -79,7 +79,7 @@ const JobView = ({
 
         <Typography variant="h4" gutterBottom>{job.job_title}</Typography>
         <Typography variant="h5" color="primary" gutterBottom>{job.country}</Typography>
-        
+
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography variant="body1">📍 {job.city_municipality}</Typography>
           <Typography variant="body1">💼 {job.job_type}</Typography>
@@ -98,8 +98,8 @@ const JobView = ({
               {isApplied ? (canWithdraw ? 'Withdraw Application' : 'Already Applied') : 'Apply'}
             </Button>
             {isApplied && canWithdraw && (
-              <Typography 
-                variant="caption" 
+              <Typography
+                variant="caption"
                 sx={{ display: 'block', textAlign: 'center', mt: 1, color: '#dc3545' }}
               >
                 {getTimeRemaining()}
@@ -112,9 +112,9 @@ const JobView = ({
               fullWidth
               onClick={handleSave}
               sx={{ height: '36.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white', color: isSaved ? '#007BFF' : '#000000', border: '1px solid #e0e0e0' }}
-              startIcon={isSaved ===  job.job_id ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+              startIcon={isSaved === job.job_id ? <BookmarkIcon /> : <BookmarkBorderIcon />}
             >
-              {isSaved ===  job.job_id  ? 'Saved' : 'Save'}
+              {isSaved ? 'Saved' : 'Save'}
             </Button>
           </Box>
         </Stack>

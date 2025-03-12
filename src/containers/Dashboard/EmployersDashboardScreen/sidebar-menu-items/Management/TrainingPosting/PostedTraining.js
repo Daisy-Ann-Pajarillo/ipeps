@@ -53,10 +53,10 @@ const PostedTraining = () => {
         {trainingData.map((training) => (
           <Paper key={training.id} sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}>
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h6">{training.training_name}</Typography>
+              <Typography variant="h6">{training.training_title}</Typography>
               <Typography variant="body2" color="text.secondary">Description: {training.training_description}</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
-                Status: 
+                Status:
                 <Button
                   variant="contained"
                   color={getStatusColor(training.status)}

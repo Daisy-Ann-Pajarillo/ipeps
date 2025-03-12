@@ -33,18 +33,17 @@ const StudentDashboardScreen = () => {
             <div className="w-full h-dvh overflow-y-auto">
                 <Routes>
                     <Route path="/" element={<Home isCollapsed={isCollapsed} />} />
-                    <Route path="/student/" element={<Home isCollapsed={isCollapsed} />} />
-                    <Route path="/student/job-search" element={<JobSearch isCollapsed={isCollapsed} />} />
-                    <Route path="/student/training-search" element={<TrainingSearch isCollapsed={isCollapsed} />} />
-                    <Route path="/student/saved-jobs" element={<SavedJobs isCollapsed={isCollapsed} />} />
-                    <Route path="/student/saved-trainings" element={<SavedTrainings isCollapsed={isCollapsed} />} />
-                    <Route path="/student/job-applications" element={<JobApplications isCollapsed={isCollapsed} />} />
-                    <Route path="/student/training-applications" element={<TrainingApplications isCollapsed={isCollapsed} />} />
-                    <Route path="/student/scholarship-search" element={<ScholarshipSearch isCollapsed={isCollapsed} />} />
-                    <Route path="/student/scholarship-applications" element={<ScholarshipApplications isCollapsed={isCollapsed} />} />
-                    <Route path="/student/saved-scholarships" element={<SavedScholarships isCollapsed={isCollapsed} />} />
-                    <Route path="/student/companies" element={<Companies isCollapsed={isCollapsed} />} />
-                    <Route path="/student/settings" element={
+                    <Route path="/job-search" element={<JobSearch isCollapsed={isCollapsed} />} />
+                    <Route path="/training-search" element={<TrainingSearch isCollapsed={isCollapsed} />} />
+                    <Route path="/saved-jobs" element={<SavedJobs isCollapsed={isCollapsed} />} />
+                    <Route path="/saved-trainings" element={<SavedTrainings isCollapsed={isCollapsed} />} />
+                    <Route path="/job-applications" element={<JobApplications isCollapsed={isCollapsed} />} />
+                    <Route path="/training-applications" element={<TrainingApplications isCollapsed={isCollapsed} />} />
+                    <Route path="/scholarship-search" element={<ScholarshipSearch isCollapsed={isCollapsed} />} />
+                    <Route path="/scholarship-applications" element={<ScholarshipApplications isCollapsed={isCollapsed} />} />
+                    <Route path="/saved-scholarships" element={<SavedScholarships isCollapsed={isCollapsed} />} />
+                    <Route path="/companies" element={<Companies isCollapsed={isCollapsed} />} />
+                    <Route path="/settings" element={
                         <Box sx={{
                             position: 'fixed',
                             top: 0,

@@ -33,12 +33,12 @@ const PostedScholarship = () => {
     const fetchScholarships = async () => {
       try {
         const response = await axios.get('/api/get-scholarship-postings');
-        
+
         if (response.status === 200) {
           const responseData = response.data;
           // Handle the response as an array
-          const data = Array.isArray(responseData.scholarship_postings) 
-            ? responseData.scholarship_postings 
+          const data = Array.isArray(responseData.scholarship_postings)
+            ? responseData.scholarship_postings
             : [];
 
           console.log('Scholarship Data:', data); // Log the scholarship data
@@ -68,23 +68,23 @@ const PostedScholarship = () => {
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
           Scholarship Posted
         </Typography>
-        
+
         {scholarshipData.map((scholarship) => (
-          <Paper 
-            key={scholarship.id} 
+          <Paper
+            key={scholarship.id}
             sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}
-          > 
+          >
             <Box sx={{ flex: 1 }}>
-              <Typography variant="h6">{scholarship.scholarship_name}</Typography>
+              <Typography variant="h6">{scholarship.scholarship_title}</Typography>
               <Typography variant="body2" color="text.secondary">
                 Description: {scholarship.scholarship_description}
               </Typography>
-              <Typography 
-                variant="body2" 
-                color="text.secondary" 
+              <Typography
+                variant="body2"
+                color="text.secondary"
                 sx={{ display: 'flex', alignItems: 'center' }}
               >
-                Status: 
+                Status:
                 <Button
                   variant="contained"
                   color={getStatusColor(scholarship.status)}

@@ -76,6 +76,7 @@ const JobSearch = ({ isCollapsed }) => {
     setSelectedJob(job);
   };
 
+  //Save Job
   const handleSave = (jobId) => {
     setSavedJobs((prev) => ({
       ...prev,
@@ -128,9 +129,8 @@ const JobSearch = ({ isCollapsed }) => {
           {filteredJobs.map((job) => (
             <Card
               key={job.job_id}
-              className={`mb-2 cursor-pointer transition-all duration-200 ${
-                selectedJob?.job_id === job.job_id ? "bg-gray-200" : "bg-white"
-              } hover:bg-primary-400`}
+              className={`mb-2 cursor-pointer transition-all duration-200 ${selectedJob?.job_id === job.job_id ? "bg-gray-200" : "bg-white"
+                } hover:bg-primary-400`}
               onClick={() => handleJobClick(job.job_id)}
             >
               <CardContent>

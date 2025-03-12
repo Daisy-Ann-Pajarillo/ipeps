@@ -20,19 +20,19 @@ const TrainingView = ({
   isEnrolled = false,  // Changed from isApplied
   canWithdraw = false,
   enrollmentTime = null,  // Changed from applicationTime
-  onSave = () => {},
-  onEnroll = () => {},  // Changed from onApply
-  onWithdraw = () => {},
+  onSave = () => { },
+  onEnroll = () => { },  // Changed from onApply
+  onWithdraw = () => { },
 }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  
+
   const getTimeRemaining = () => {
     if (!enrollmentTime) return null;  // Changed variable name
     const now = new Date().getTime();
     const timeLeft = (enrollmentTime + 24 * 60 * 60 * 1000) - now;
     if (timeLeft <= 0) return null;
-    
+
     const hours = Math.floor(timeLeft / (60 * 60 * 1000));
     const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
     return `${hours}h ${minutes}m remaining to withdraw`;
@@ -46,20 +46,20 @@ const TrainingView = ({
       justifyContent: 'center'
     },
     apply: {  // Keep name for consistency
+      backgroundColor: isEnrolled  // Changed from isApplied
+        ? canWithdraw
+          ? '#dc3545' // Red for withdraw
+          : '#218838' // Green for already enrolled
+        : '#007BFF', // Blue for enroll
+      color: '#ffffff',
+      '&:hover': {
         backgroundColor: isEnrolled  // Changed from isApplied
-          ? canWithdraw 
-            ? '#dc3545' // Red for withdraw
-            : '#218838' // Green for already enrolled
-          : '#007BFF', // Blue for enroll
-        color: '#ffffff',
-        '&:hover': {
-          backgroundColor: isEnrolled  // Changed from isApplied
-            ? canWithdraw
-              ? '#c82333' // Darker red
-              : '#1E7E34' // Darker green
-            : '#0056b3', // Darker blue
-        }
-      },
+          ? canWithdraw
+            ? '#c82333' // Darker red
+            : '#1E7E34' // Darker green
+          : '#0056b3', // Darker blue
+      }
+    },
     save: {
       backgroundColor: 'white',
       color: isSaved ? '#007BFF' : '#000000',
@@ -70,26 +70,26 @@ const TrainingView = ({
         border: '1px solid #007BFF'
       }
     },
- 
+
   };
 
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         height: '100%',
         position: 'relative',
       }}
     >
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           height: '100%',
           overflowY: 'auto',
           p: 3
         }}
       >
         {/* Company Image with fixed size and center alignment */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -101,10 +101,10 @@ const TrainingView = ({
             borderRadius: '8px',
           }}
         >
-          <img 
-            src={training.companyImage || 'default-company-image.png'} 
+          <img
+            src={training.companyImage || 'default-company-image.png'}
             alt={training.company}
-            style={{ 
+            style={{
               width: '100%',
               height: '100%',
               objectFit: 'contain', // Maintains aspect ratio
@@ -114,14 +114,9 @@ const TrainingView = ({
         </Box>
 
         {/* training Details */}
-        <Typography variant="h4" gutterBottom>{training.title}</Typography>
-        <Typography variant="h5" color="primary" gutterBottom>{training.company}</Typography>
-        
+        <Typography variant="h4" gutterBottom>{training.training_title}</Typography>
         <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">📍 {training.location}</Typography>
-          <Typography variant="body1">💼 {training.type}</Typography>
-          <Typography variant="body1">👥 Vacancies: {training.vacancies}</Typography>
-          <Typography variant="body1">💰 {training.salary}</Typography>
+          <Typography variant="body1"> Expiration: {training.expiration_date}</Typography>
         </Stack>
 
         {/* Action Buttons - Swapped order */}
@@ -134,18 +129,18 @@ const TrainingView = ({
               sx={{ ...buttonStyles.common, ...buttonStyles.apply }}
             >
               {isEnrolled  // Changed from isApplied
-                ? canWithdraw 
+                ? canWithdraw
                   ? 'Withdraw Enrollment'  // Changed text
                   : 'Already Enrolled'  // Changed text
                 : 'Enroll Now'  // Changed text
               }
             </Button>
             {isEnrolled && canWithdraw && (  // Changed from isApplied
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  display: 'block', 
-                  textAlign: 'center', 
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  textAlign: 'center',
                   mt: 1,
                   color: '#dc3545'
                 }}
@@ -161,7 +156,7 @@ const TrainingView = ({
               onClick={onSave}
               sx={{ ...buttonStyles.common, ...buttonStyles.save }}
               startIcon={isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />} // Add icon here
-              >
+            >
               {isSaved ? 'Saved' : 'Save'}
             </Button>
           </Box>
@@ -172,7 +167,7 @@ const TrainingView = ({
         {/* Trainig Description */}
         <Typography variant="h6" gutterBottom>Training Description</Typography>
         <Typography variant="body1">
-          {training.description}
+          {training.training_description}
         </Typography>
       </Box>
     </Box>

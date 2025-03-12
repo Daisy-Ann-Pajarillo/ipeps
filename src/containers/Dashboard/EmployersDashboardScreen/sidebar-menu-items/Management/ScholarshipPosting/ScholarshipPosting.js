@@ -1,163 +1,160 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Divider, 
-  Grid 
+import {
+    Box,
+    Typography,
+    Button,
+    Divider,
+    Grid,
+    InputLabel,
+    TextField,
+    IconButton
 } from '@mui/material';
-import axios from '../../../../../../axios';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PostedScholarship from './PostedScholarship';
+import { CloudUpload, Close as CloseIcon } from '@mui/icons-material';
+import axios from '../../../../../../axios';
 
-const ScholarshipPosting = () => { 
-    const [scholarshipname, setScholarshipName] = useState('');
-    const [scholarshipdescription, setScholarshipDescription] = useState('');
+const scholarshipSchema = yup.object().shape({
+    scholarship_title: yup.string().required("Scholarship Title is required"),
+    scholarship_description: yup.string().required("Scholarship Description is required"),
+    expiration_date: yup.date().required("Expiration Date is required"),
+});
 
-    // Send the Data into the Database
-const handleSubmit = async () => { 
-  const scholarshipdata = {
-      scholarship_name: scholarshipname, 
-      scholarship_description: scholarshipdescription
-  };
+const maxImages = 5;
 
-  console.log("Scholarship Data:", scholarshipdata); 
+const ScholarshipPosting = () => {
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm({
+        resolver: yupResolver(scholarshipSchema),
+    });
 
-  try {
-      const response = await axios.post('/api/scholarship-posting', scholarshipdata);
-      
-      if (response.status === 201) {
-          console.log('Scholarship posted successfully!', scholarshipdata);
-          
-          // Show success toast notification
-          toast.success('Scholarship posted successfully!', {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "light",
-              onClose: () => window.location.reload(),
-          });
-          
-          // Clear input fields after success
-          setScholarshipName('');
-          setScholarshipDescription('');
-          
-      } else {
-          console.error('Failed to post scholarship:', response.statusText);
-          
-          // Show error toast notification
-          toast.error('Failed to post scholarship!', {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "colored",
-          });
-      }
-  } catch (error) {
-      console.error('Error posting scholarship:', error);
-      
-      // Show error toast notification for exception
-      toast.error('Error posting scholarship!', {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "colored",
-      });
-  }
-};
+    const [images, setImages] = useState([]);
+
+    const handleImageUpload = (event) => {
+        const files = Array.from(event.target.files);
+        if (images.length + files.length > maxImages) {
+            toast.error(`You can upload a maximum of ${maxImages} images.`);
+            return;
+        }
+        setImages((prevImages) => [...prevImages, ...files]);
+    };
+
+    const handleRemoveImage = (index) => {
+        setImages((prevImages) => prevImages.filter((_, i) => i !== index));
+    };
+
+
+    const onSubmit = async (data) => {
+        const ScholarshipData = {
+            scholarship_title: data.scholarship_title,
+            scholarship_description: data.scholarship_description,
+            expiration_date: data.expiration_date instanceof Date ? data.expiration_date.toISOString().split('T')[0] : data.expiration_date,
+        };
+
+        console.log("Scholarship Data:", ScholarshipData);
+
+        try {
+            const response = await axios.post('/api/scholarship-posting', ScholarshipData, {
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (response.status === 201) {
+                toast.success('Scholarship posted successfully!', {
+                    position: "top-right",
+                    autoClose: 3000,
+                });
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            } else {
+                toast.error('Failed to post scholarship!');
+            }
+        } catch (error) {
+            toast.error('Error posting scholarship!');
+        }
+    };
 
     return (
         <Box display="flex">
-            
-            {/* Scholarship Posting Form Panel */}
             <Box sx={{ width: '60%' }}>
                 <Grid container spacing={2} sx={{ p: 3 }}>
                     <Grid item xs={12}>
-                        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                        <Typography variant="h6" gutterBottom fontWeight="bold">
                             Create Scholarship Post
                         </Typography>
                     </Grid>
-
                     <Grid item xs={12}>
-                        <Typography variant="subtitle1" gutterBottom>
-                            Scholarship Name
-                        </Typography>
-                        <input
-                            type="text"
+                        <Typography variant="subtitle1">Scholarship Name</Typography>
+                        <TextField
                             placeholder="Enter Scholarship Name"
-                            value={scholarshipname}
-                            onChange={(e) => setScholarshipName(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px',
-                                fontSize: '16px',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                            }}
+                            {...register("scholarship_title")}
+                            fullWidth
+                            error={!!errors.scholarship_title}
+                            helperText={errors.scholarship_title?.message}
                         />
                     </Grid>
-
                     <Grid item xs={12}>
-                        <Typography variant="subtitle1" gutterBottom>
-                            Description
-                        </Typography>
-                        <textarea
+                        <Typography variant="subtitle1">Description</Typography>
+                        <TextField
                             placeholder="Enter Scholarship Description"
-                            value={scholarshipdescription}
-                            onChange={(e) => setScholarshipDescription(e.target.value)}
-                            style={{
-                                width: '100%',
-                                minHeight: '100px',
-                                padding: '10px',
-                                fontSize: '16px',
-                                border: '1px solid #ccc',
-                                borderRadius: '5px',
-                            }}
+                            {...register("scholarship_description")}
+                            fullWidth
+                            multiline
+                            minRows={3}
+                            error={!!errors.scholarship_description}
+                            helperText={errors.scholarship_description?.message}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <InputLabel>Scholarship Expiration</InputLabel>
+                        <TextField
+                            type="date"
+                            {...register("expiration_date")}
+                            fullWidth
+                            error={!!errors.expiration_date}
+                            helperText={errors.expiration_date?.message}
+                            InputLabelProps={{ shrink: true }}
                         />
                     </Grid>
                 </Grid>
-
+                <Grid item xs={12}>
+                    <Typography variant="subtitle1">Upload Images (Max {maxImages})</Typography>
+                    <input accept="image/*" type="file" multiple onChange={handleImageUpload} hidden id="image-upload" />
+                    <label htmlFor="image-upload">
+                        <Button variant="outlined" component="span" startIcon={<CloudUpload />} disabled={images.length >= maxImages}>
+                            Upload Images
+                        </Button>
+                    </label>
+                    <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
+                        {images.map((image, index) => (
+                            <Box key={index} sx={{ position: 'relative', width: 100, height: 100 }}>
+                                <img src={URL.createObjectURL(image)} alt={`Preview ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <IconButton size="small" onClick={() => handleRemoveImage(index)} sx={{ position: 'absolute', top: -10, right: -10, backgroundColor: 'white', boxShadow: '0 0 5px rgba(0,0,0,0.2)' }}>
+                                    <CloseIcon fontSize="small" />
+                                </IconButton>
+                            </Box>
+                        ))}
+                    </Box>
+                </Grid>
                 <Divider />
-
                 <Box display="flex" justifyContent="flex-end" mt={2}>
-                    <Button 
-                        onClick={handleSubmit} 
-                        variant="contained" 
-                        sx={{ ml: 'auto', mt: 2, backgroundColor: 'blue' }}
-                    >
+                    <Button onClick={handleSubmit(onSubmit)} variant="contained" sx={{ ml: 'auto', mt: 2, backgroundColor: 'blue' }}>
                         Create Scholarship Post
                     </Button>
                 </Box>
             </Box>
-            
-            {/* Posted Scholarship Panel */}
-            <Box 
-                sx={{ 
-                    width: '40%',
-                    height: '100%',
-                    overflowY: 'auto',
-                    backgroundColor: 'white',
-                }}
-            >
-                <PostedScholarship />  
+            <Box sx={{ width: '40%', height: '100%', overflowY: 'auto', backgroundColor: 'white' }}>
+                <PostedScholarship />
             </Box>
-
-            {/* Toast Container */}
             <ToastContainer />
-
         </Box>
     );
 };
