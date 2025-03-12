@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../store/actions/index";
 import {
   Box,
   Typography,
@@ -32,11 +34,21 @@ const LanguageDialectProficiency = ({
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const [availableLanguages, setAvailableLanguages] = useState(languagesList);
 
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
   // Fetch user data first
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
-        const response = await axios.get("api/get-user-info");
+        const response = await axios.get("api/get-user-info", {
+          auth: {
+            username: auth.token,
+          },
+        });
         console.log(response.data.language_proficiency);
         setLanguageProficiency(response.data.language_proficiency);
       } catch (error) {

@@ -15,6 +15,10 @@ import { workExperienceSchema } from "../components/schema";
 import fetchData from "../api/fetchData"; // Assuming this function handles API calls
 import axios from "../../../axios";
 
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../store/actions/index";
+
+
 const WorkExperience = ({
   activeStep,
   steps,
@@ -27,11 +31,21 @@ const WorkExperience = ({
   const [workExperiences, setWorkExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
 
+      const dispatch = useDispatch();
+      const auth = useSelector((state) => state.auth);
+    
+      useEffect(() => {
+        dispatch(actions.getAuthStorage());
+      }, [dispatch]);
   // Fetch user work experience data
   useEffect(() => {
     const fetchWorkExperiences = async () => {
       try {
-        const response = await axios.get("api/get-user-info");
+        const response = await axios.get("api/get-user-info", {
+          auth: {
+            username: auth.token,
+          },
+        });
         setWorkExperiences(response.data.work_experience);
       } catch (error) {
         console.error("Error fetching user work experience:", error);

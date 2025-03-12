@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"; // Updated imports for React Router v6
-import { useSelector, useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { connect } from "react-redux";
 import { setUserType } from "./store/userSlice";
 import * as actions from "./store/actions/index";
 
-import "./index.css"; // Updated import path
+import "./index.css";
 import Home from "./containers/Home/Home";
 import Logout from "./containers/Logout/Logout";
 import UserApplicationForm from "./containers/UserApplicationForm/UserApplicationForm";
@@ -18,35 +18,94 @@ const loading = (
   </div>
 );
 
-const App = () => {
-  const dispatch = useDispatch();
-  const auth = useSelector((state) => state.auth);
+const App = ({ auth, getAuthStorage, setUserType }) => {
+  const [userType, setUserTypeState] = useState(null);
+
   useEffect(() => {
-    dispatch(actions.getAuthStorage()); // Dispatch action directly
-  }, [dispatch]);
+    getAuthStorage();
+  }, [getAuthStorage]);
+
+  useEffect(() => {
+    if (auth && auth.user) {
+      setUserTypeState(auth.user.user_type);
+      setUserType(auth.user.user_type);
+    }
+  }, [auth, setUserType]);
 
   let authRoutes = null;
   let applicationRoutes = null;
 
   if (auth && auth.expirationDate > new Date().getTime() && auth.user) {
-    dispatch(setUserType(auth.user.user_type));
-
     switch (auth.user.user_type) {
       case "ADMIN":
-        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}>{/* <AdminLayout /> */}</React.Suspense>} />;
+        authRoutes = (
+          <Route
+            path="/dashboard/*"
+            element={
+              <React.Suspense fallback={loading}>
+                {/* <AdminLayout /> */}
+              </React.Suspense>
+            }
+          />
+        );
         break;
       case "EMPLOYER":
-        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}>{/* <EmployerLayout /> */}</React.Suspense>} />;
+        authRoutes = (
+          <Route
+            path="/dashboard/*"
+            element={
+              <React.Suspense fallback={loading}>
+                {/* <EmployerLayout /> */}
+              </React.Suspense>
+            }
+          />
+        );
         break;
       case "JOBSEEKER":
-        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}><HelloJobseeker /></React.Suspense>} />;
-        applicationRoutes = <Route path="/user-application-form" element={<React.Suspense fallback={loading}>{/* <UserApplicationForm /> */}</React.Suspense>} />;
+        authRoutes = (
+          <Route
+            path="/dashboard/*"
+            element={
+              <React.Suspense fallback={loading}>
+                <HelloJobseeker />
+              </React.Suspense>
+            }
+          />
+        );
+        applicationRoutes = (
+          <Route
+            path="/user-application-form"
+            element={
+              <React.Suspense fallback={loading}>
+                <UserApplicationForm userType={userType} />
+              </React.Suspense>
+            }
+          />
+        );
         break;
       case "ACADEME":
-        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}>{/* <AcademeLayout /> */}</React.Suspense>} />;
+        authRoutes = (
+          <Route
+            path="/dashboard/*"
+            element={
+              <React.Suspense fallback={loading}>
+                {/* <AcademeLayout /> */}
+              </React.Suspense>
+            }
+          />
+        );
         break;
       case "STUDENT":
-        authRoutes = <Route path="/dashboard/*" element={<React.Suspense fallback={loading}><HelloStudent /></React.Suspense>} />;
+        authRoutes = (
+          <Route
+            path="/dashboard/*"
+            element={
+              <React.Suspense fallback={loading}>
+                <HelloStudent />
+              </React.Suspense>
+            }
+          />
+        );
         break;
       default:
         break;
@@ -61,8 +120,11 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/logout" element={<Logout />} />
-          <Route path="/user-application-form" element={<UserApplicationForm />} />
-          <Route path="dashboard/*" element={<Dashboard />} />
+          <Route
+            path="/user-application-form"
+            element={<UserApplicationForm />}
+          />
+          <Route path="/dashboard/*" element={<Dashboard />} />
 
           {/* Protected Routes */}
           {authRoutes}
@@ -75,4 +137,15 @@ const App = () => {
   );
 };
 
-export default App;
+// Map state to props
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+// Map dispatch to props
+const mapDispatchToProps = (dispatch) => ({
+  getAuthStorage: () => dispatch(actions.getAuthStorage()),
+  setUserType: (userType) => dispatch(setUserType(userType)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);

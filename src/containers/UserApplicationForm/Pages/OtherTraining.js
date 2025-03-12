@@ -5,6 +5,8 @@ import { TextField, Button, Grid, Box } from "@mui/material";
 import { otherTrainingsSchema } from "../components/schema";
 import BackNextButton from "../backnextButton";
 import axios from "../../../axios";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../store/actions/index";
 
 const OtherTraining = ({
   activeStep,
@@ -18,11 +20,22 @@ const OtherTraining = ({
   const [otherTrainings, setOtherTrainings] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
   // Fetch user data first
   useEffect(() => {
     const fetchOtherTrainings = async () => {
       try {
-        const response = await axios.get("api/get-user-info");
+        const response = await axios.get("api/get-user-info", {
+          auth: {
+            username: auth.token,
+          },
+        });
         setOtherTrainings(response.data.other_training);
       } catch (error) {
         console.error("Error fetching user info:", error);

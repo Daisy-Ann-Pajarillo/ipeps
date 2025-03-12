@@ -3,7 +3,11 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, Grid, TextField, Button, Autocomplete } from "@mui/material";
 import BackNextButton from "../backnextButton";
-import fetchData from "../api/fetchData";
+
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../store/actions/index";
+
+
 import { professionalEligibilitySchema } from "../components/schema";
 import axios from "../../../axios";
 
@@ -24,11 +28,22 @@ const EligibilityProfessionalLicense = ({
   const [professionalLicenses, setProfessionalLicenses] = useState(null);
   const [loading, setLoading] = useState(true);
 
+
+    const dispatch = useDispatch();
+    const auth = useSelector((state) => state.auth);
+  
+    useEffect(() => {
+      dispatch(actions.getAuthStorage());
+    }, [dispatch]);
   // Fetch user data first
   useEffect(() => {
     const fetchProfessionalLicenses = async () => {
       try {
-        const response = await axios.get("api/get-user-info");
+        const response = await axios.get("api/get-user-info", {
+          auth: {
+            username: auth.token,
+          },
+        });
         setProfessionalLicenses(response.data.professional_license);
       } catch (error) {
         console.error("Error fetching user info:", error);

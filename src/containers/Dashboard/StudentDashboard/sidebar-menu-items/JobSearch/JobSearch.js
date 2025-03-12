@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  useTheme,
-} from "@mui/material";
-import { tokens } from "../../../theme";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
+import axios from "../../../../../axios";
 import JobView from "./JobView";
 import SearchData from "../../../components/layout/Search";
 
 const JobSearch = ({ isCollapsed }) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [query, setQuery] = useState("");
@@ -23,13 +16,22 @@ const JobSearch = ({ isCollapsed }) => {
   const [savedJobs, setSavedJobs] = useState({});
   const [appliedJobs, setAppliedJobs] = useState({});
 
-  // Fetch job postings from the API
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5000/api/get-job-postings");
-        const data = await response.json();
-        setJobs(data.job_postings); // Assuming the API returns an object with job_postings
+        const response = await axios.get("/api/all-job-postings", {
+          auth: {
+            username: auth.token,
+          },
+        });
+        setJobs(response.data.job_postings);
       } catch (error) {
         console.error("Error fetching job postings:", error);
       }
@@ -38,11 +40,9 @@ const JobSearch = ({ isCollapsed }) => {
     fetchJobs();
   }, []);
 
-  // Filter jobs based on search query and other criteria
   useEffect(() => {
     let updatedJobs = [...jobs];
 
-    // Filtering based on search query
     if (query) {
       updatedJobs = updatedJobs.filter(
         (j) =>
@@ -51,21 +51,24 @@ const JobSearch = ({ isCollapsed }) => {
       );
     }
 
-    // Filtering by experience level
     if (entryLevel) {
-      updatedJobs = updatedJobs.filter((j) => j.experience_level === entryLevel);
+      updatedJobs = updatedJobs.filter(
+        (j) => j.experience_level === entryLevel
+      );
     }
 
-    // Filtering by job type
     if (jobType) {
       updatedJobs = updatedJobs.filter((j) => j.job_type === jobType);
     }
 
-    // Sorting logic
     if (sortBy === "Most Recent") {
-      updatedJobs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      updatedJobs.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
     } else if (sortBy === "Salary") {
-      updatedJobs.sort((a, b) => a.estimated_salary_from - b.estimated_salary_from);
+      updatedJobs.sort(
+        (a, b) => a.estimated_salary_from - b.estimated_salary_from
+      );
     }
 
     setFilteredJobs(updatedJobs);
@@ -76,23 +79,23 @@ const JobSearch = ({ isCollapsed }) => {
     setSelectedJob(job);
   };
 
-  //Save Job
   const handleSave = (jobId) => {
     setSavedJobs((prev) => ({
       ...prev,
-      [jobId]: !prev[jobId], // Toggle saved state
+      [jobId]: !prev[jobId],
     }));
   };
 
   const handleApply = (jobId) => {
     setAppliedJobs((prev) => ({
       ...prev,
-      [jobId]: !prev[jobId], // Toggle applied state
+      [jobId]: !prev[jobId],
     }));
   };
 
   return (
-    <Box>
+    <div className="">
+      {/* Search */}
       <SearchData
         placeholder="Find a job..."
         value={query}
@@ -120,61 +123,71 @@ const JobSearch = ({ isCollapsed }) => {
         }}
       />
 
-      <Box className="flex">
-        <Box className="w-3/5 overflow-y-auto h-dvh p-3 border-r border-gray-300">
-          <Typography variant="subtitle1" className="mb-2">
+      <div className="flex mt-4">
+        {/* Job List */}
+        <div
+          className={`${
+            selectedJob ? "w-3/5" : "w-full"
+          } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
+        >
+          <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
             Total: {filteredJobs.length} jobs found
-          </Typography>
+          </div>
 
           {filteredJobs.map((job) => (
-            <Card
+            <div
               key={job.job_id}
-              className={`mb-2 cursor-pointer transition-all duration-200 ${selectedJob?.job_id === job.job_id ? "bg-gray-200" : "bg-white"
-                } hover:bg-primary-400`}
+              className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${
+                selectedJob?.job_id === job.job_id
+                  ? "bg-gray-200 dark:bg-gray-800"
+                  : "bg-white dark:bg-gray-900"
+              } hover:bg-primary-400 dark:hover:bg-primary-600`}
               onClick={() => handleJobClick(job.job_id)}
             >
-              <CardContent>
-                <Box className="flex items-start gap-2">
-                  <Box className="w-20 h-20 flex-shrink-0 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
-                    <img
-                      src="http://bij.ly/4ib59B1" // Placeholder for company image
-                      alt={job.job_title}
-                      className="w-full h-full object-contain p-2"
-                    />
-                  </Box>
+              <div className="flex gap-3">
+                {/* Company Logo */}
+                <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                  <img
+                    src="http://bij.ly/4ib59B1"
+                    alt={job.job_title}
+                    className="w-full h-full object-contain p-2"
+                  />
+                </div>
 
-                  <Box className="flex-1">
-                    <Typography variant="h5" component="div" gutterBottom>
-                      {job.job_title}
-                    </Typography>
-                    <Typography className="text-gray-600">
-                      {job.country} • {job.city_municipality}
-                    </Typography>
-                    <Typography variant="body2">
-                      {job.job_type} • {job.experience_level}
-                    </Typography>
-                    <Typography variant="body2">💰 {job.estimated_salary_from} - {job.estimated_salary_to}</Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+                {/* Job Info */}
+                <div className="flex-1">
+                  <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {job.job_title}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {job.country} • {job.city_municipality}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {job.job_type} • {job.experience_level}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    💰 {job.estimated_salary_from} - {job.estimated_salary_to}
+                  </div>
+                </div>
+              </div>
+            </div>
           ))}
-        </Box>
-
-        <Box className="w-2/5 h-dvh overflow-y-auto bg-white">
-          {selectedJob && (
+        </div>
+        {selectedJob && (
+          <div className="w-2/5 h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
             <JobView
               job={selectedJob}
               initialIsSaved={savedJobs[selectedJob.job_id] || false}
               initialIsApplied={appliedJobs[selectedJob.job_id] || false}
-              canWithdraw={appliedJobs[selectedJob.job_id]} // Can withdraw if applied
+              canWithdraw={appliedJobs[selectedJob.job_id]}
               onSave={() => handleSave(selectedJob.job_id)}
               onApply={() => handleApply(selectedJob.job_id)}
+              job_id={selectedJob.job_id}
             />
-          )}
-        </Box>
-      </Box>
-    </Box>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
-import { Link } from "react-router-dom";
-import axios from "../../axios";
+import { Link, useNavigate } from "react-router-dom";
+
 import * as actions from "../../store/actions/index";
 
 // Material-UI Components
@@ -17,9 +17,9 @@ import {
   Modal,
   Box,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useSelector } from "react-redux";
 
 // Custom Components
 import PersonalInfo from "./Pages/PersonalInfo";
@@ -44,6 +44,7 @@ const stepsForJobseekers = [
   { label: "Other Skills", component: OtherSkills },
   { label: "Review", component: ReviewApplication },
 ];
+
 const stepsForEmployer = [
   { label: "Personal Information", component: PersonalInfo },
   { label: "Review", component: ReviewApplication },
@@ -72,125 +73,83 @@ const StyledStepper = styled(Stepper)(({ theme }) => ({
   },
 }));
 
+// Modal style
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 2,
+};
+
 const UserApplicationForm = (props) => {
   const [activeStep, setActiveStep] = useState(0);
   const [pageData, setPageData] = useState({});
   const [isValid, setIsValid] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userRequestedEmailConfirmation, setUserRequestedEmailConfirmation] = useState(false);
+  const [steps, setSteps] = useState([]);
+  const navigate = useNavigate();
 
-  const userType = useSelector((state) => state.user.userType);
-console.log("userType", userType)
-  //const [userHasValidEmail, setUserHasValidEmail] = useState(false);
-  const [userRequestedEmailConfirmation, setUserRequestedEmailConfirmation] =
-    useState(false);
-
-  let steps = [];
-
-  if (userType === "JOBSEEKER" || userType === "STUDENT") {
-    steps = stepsForJobseekers;
-  } else if (userType === "EMPLOYER" || userType === "ACADEME") {
-    steps = stepsForEmployer;
-  }
-
+  // Initial auth check
   useEffect(() => {
-    onRefresh();
-  }, []);
-console.log("sepspssssst", steps)
-
-  const onRefresh = () => {
-    props.onGetAuthStorage();
-    getAllPageData(props.auth.token);
-    //checkIfUserEmailVerified(props.auth.token);
-  };
-
-  const getAllPageData = (token) => {
-    const url = "/api/user/registration/jobseeker/get-all-pages";
-    const authData = {
-      auth: {
-        username: token,
-      },
+    const checkAuth = async () => {
+      try {
+        await props.onGetAuthStorage();
+        // Check if token exists in localStorage
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        navigate("/login");
+      }
     };
+    
+    checkAuth();
+  }, []);
 
-    axios
-      .get(url, authData)
-      .then((response) => {
-        setPageData(response.data.registration_application);
-      })
-      .catch((error) => {
-        console.log("error", error);
-      });
-  };
+  // Handle auth data loading
+  useEffect(() => {
+    if (props.auth && props.auth.user) {
+      const userType = props.auth.user.user_type;
+      
+      // Set steps based on user type
+      if (userType === "JOBSEEKER" || userType === "STUDENT") {
+        setSteps(stepsForJobseekers);
+      } else if (userType === "EMPLOYER" || userType === "ACADEME") {
+        setSteps(stepsForEmployer);
+      } else {
+        // Handle unknown user type
+        console.warn("Unknown user type:", userType);
+        setSteps([]);
+      }
+      
+      setIsLoading(false);
+    }
+  }, [props.auth]);
 
-  // const checkIfUserEmailVerified = (token) => {
-  //   const url = "/api/check-user-email-validated";
-  //   const authData = {
-  //     auth: {
-  //       username: token,
-  //     },
-  //   };
-
-  //   axios
-  //     .get(url, authData)
-  //     .then((response) => {
-  //       setUserHasValidEmail(response.data.user_validate_email);
-  //     })
-  //     .catch((error) => {
-  //       console.log(error);
-  //     });
-  // };
-
-  // const resendEmailVerification = (token) => {
-  //   axios({
-  //     method: "post",
-  //     url: `/api/request-email-verification`,
-  //     headers: { "Content-Type": "multipart/form-data" },
-  //     auth: {
-  //       username: token,
-  //     },
-  //   })
-  //     .then((response) => {
-  //       setUserRequestedEmailConfirmation(response.data.sent);
-  //     })
-  //     .catch((err) => {
-  //       console.log("err", err);
-  //     });
-  // };
-
+  // Handle navigation
   const handleNext = () => {
     setActiveStep((prevStep) => Math.min(prevStep + 1, steps.length - 1));
-    onRefresh();
   };
 
   const handleBack = () => {
     setActiveStep((prevStep) => Math.max(prevStep - 1, 0));
-    onRefresh();
   };
 
   const handleStepClick = (index) => {
     setActiveStep(index);
-    onRefresh();
   };
 
-  const getCurrentComponent = () => {
-    const StepComponent = steps[activeStep].component;
-    if (!StepComponent) return null;
-
-    return (
-      <StepComponent
-        pageData={pageData?.[getPageDataKey(activeStep)]}
-        onRefresh={onRefresh}
-        isValid={isValid}
-        setIsValid={setIsValid}
-        activeStep={activeStep}
-        steps={steps}
-        handleBack={handleBack}
-        handleNext={handleNext}
-        review={steps}
-        user_type={userType}
-      />
-    );
-  };
-
+  // Page data management
   const getPageDataKey = (stepIndex) => {
+    const userType = props.auth?.user?.user_type;
     let pageDataKeys = {};
 
     if (userType === "JOBSEEKER" || userType === "STUDENT") {
@@ -202,39 +161,107 @@ console.log("sepspssssst", steps)
         4: "other_training_page",
         5: "eligibility_prof_license_page",
         6: "work_experience_page",
-        7: "other_skills", // For Other Skills
+        7: "other_skills",
       };
-    }
-    if (userType === "EMPLOYER" || userType === "ACADEME") {
+    } else if (userType === "EMPLOYER" || userType === "ACADEME") {
       pageDataKeys = {
         0: "personal_info_page",
-        
       };
     }
 
     return pageDataKeys[stepIndex];
   };
 
+  // Get current component
+  const getCurrentComponent = () => {
+    if (steps.length === 0 || !steps[activeStep]) {
+      return <Typography>No component available</Typography>;
+    }
+
+    const StepComponent = steps[activeStep].component;
+    if (!StepComponent) return null;
+
+    return (
+      <StepComponent
+        pageData={pageData?.[getPageDataKey(activeStep)]}
+        isValid={isValid}
+        setIsValid={setIsValid}
+        activeStep={activeStep}
+        steps={steps}
+        handleBack={handleBack}
+        handleNext={handleNext}
+        review={steps}
+        user_type={props.auth?.user?.user_type}
+      />
+    );
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Container className="h-screen flex items-center justify-center">
+        <Card className="p-8">
+          <CardContent className="flex flex-col items-center">
+            <CircularProgress />
+            <Typography className="mt-4">Loading user data...</Typography>
+          </CardContent>
+        </Card>
+      </Container>
+    );
+  }
+
+  // Email confirmation modal
   if (userRequestedEmailConfirmation) {
     return (
       <Modal
         open={userRequestedEmailConfirmation}
         onClose={() => setUserRequestedEmailConfirmation(false)}
       >
-        <Card>
-          <CardHeader title="Sent verification email" />
+        <Box sx={modalStyle}>
+          <Typography variant="h6" component="h2">
+            Verification Email Sent
+          </Typography>
+          <Typography sx={{ mt: 2 }}>
+            Please check your inbox and follow the instructions to verify your email.
+          </Typography>
+          <Button 
+            variant="contained" 
+            onClick={() => setUserRequestedEmailConfirmation(false)}
+            sx={{ mt: 2 }}
+          >
+            Close
+          </Button>
+        </Box>
+      </Modal>
+    );
+  }
+
+  // Guard against missing steps
+  if (!steps || steps.length === 0) {
+    return (
+      <Container className="h-screen flex items-center justify-center">
+        <Card className="p-8">
           <CardContent>
-            <Typography>Please check your inbox</Typography>
+            <Typography>No steps available for your user type. Please contact support.</Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              component={Link}
+              to="/logout"
+              className="mt-4"
+            >
+              Log Out
+            </Button>
           </CardContent>
         </Card>
-      </Modal>
+      </Container>
     );
   }
 
   return (
     <div className="fixed inset-0 flex justify-center items-center gap-2 px-3">
-      <ToggleDarkMode className={"fixed bottom-0 right-0 z-50"} />
-      <Container className=" max-w-[700px] h-full overflow-y-auto py-5 mx-0 flex flex-col items-start justify-center">
+      <ToggleDarkMode className="fixed bottom-0 right-0 z-50" />
+      <Container className="max-w-[700px] h-full overflow-y-auto py-5 mx-0 flex flex-col items-start justify-center">
         <div className="mb-4 text-left">
           <Button
             variant="contained"
@@ -245,17 +272,17 @@ console.log("sepspssssst", steps)
             Log Out
           </Button>
         </div>
-        <Card className="overflow-y-scroll">
+        <Card className="overflow-y-scroll w-full">
           <CardHeader
-            title={`${steps[activeStep].label} (${activeStep + 1}/${steps.length
-              })`}
+            title={`${steps[activeStep]?.label || "Loading"} (${activeStep + 1}/${
+              steps.length
+            })`}
             className="[&_.MuiCardHeader-title]:text-md"
           />
-
           <CardContent>{getCurrentComponent()}</CardContent>
         </Card>
       </Container>
-      <Box className="max-w-64 flex-shrink-0 ">
+      <Box className="max-w-64 flex-shrink-0 hidden md:block">
         <StyledStepper activeStep={activeStep} orientation="vertical">
           {steps.map((step, index) => (
             <Step key={step.label} completed={index < activeStep}>

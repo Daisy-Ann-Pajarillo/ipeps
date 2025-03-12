@@ -1,130 +1,105 @@
-import React from 'react';
-import { Box, Typography, Button, Divider, Stack } from '@mui/material';
-import { useTheme } from '@mui/material';
-import { tokens } from '../../../theme';
+import React from "react";
 
-const SavedJobsView = ({ 
-  job, 
-  isApplied = false, 
+const SavedJobsView = ({
+  job = {},
+  isApplied = false,
   canWithdraw = false,
   applicationTime = null,
   onApply = () => {},
   onWithdraw = () => {},
 }) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+  // Format salary with commas for better readability
+  const formatSalary = (value) => value?.toLocaleString() || "N/A";
 
+  // Calculate remaining time for withdrawal
   const getTimeRemaining = () => {
     if (!applicationTime) return null;
-    const now = new Date().getTime();
-    const timeLeft = (applicationTime + 24 * 60 * 60 * 1000) - now;
+    const timeLeft = applicationTime + 24 * 60 * 60 * 1000 - Date.now();
     if (timeLeft <= 0) return null;
-    
+
     const hours = Math.floor(timeLeft / (60 * 60 * 1000));
     const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
     return `${hours}h ${minutes}m remaining to withdraw`;
   };
 
-  const buttonStyles = {
-    common: {
-      height: '36.5px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    apply: {
-      backgroundColor: isApplied 
-        ? canWithdraw 
-          ? '#dc3545' // Red for withdraw
-          : '#218838' // Dark green for already applied
-        : '#007BFF', // Blue for apply
-      color: '#ffffff',
-      '&:hover': {
-        backgroundColor: isApplied
-          ? canWithdraw
-            ? '#c82333' // Darker red for withdraw hover
-            : '#1E7E34' // Darker green for already applied hover
-          : '#0056b3', // Darker blue for apply hover
-      }
-    }
-  };
-
   return (
-    <Box sx={{ height: '100%', position: 'relative' }}>
-      <Box sx={{ height: '100%', overflowY: 'auto', p: 3 }}>
-        <Box 
-          sx={{ 
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            mb: 4,
-            height: '300px',
-            width: '100%',
-            overflow: 'hidden',
-            backgroundColor: '#f5f5f5',
-            borderRadius: '8px',
-          }}
-        >
-          <img 
-            src={job.companyImage} 
-            alt={job.company}
-            style={{ 
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              padding: '16px',
-            }}
-          />
-        </Box>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden max-w-2xl mx-auto">
+      {/* Company Image */}
+      <div className="h-64 bg-gray-100 dark:bg-gray-700 flex justify-center items-center">
+        <img
+          src={job.companyImage || "/placeholder.png"}
+          alt={`Logo of ${job.company || "Company"}`}
+          className="w-full h-full object-contain p-4"
+        />
+      </div>
 
-        <Typography variant="h4" gutterBottom>{job.job_title}</Typography>
-        <Typography variant="h5" color="primary" gutterBottom>{job.company}</Typography>
-        
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">📍 {job.city_municipality}, {job.country}</Typography>
-          <Typography variant="body1">💼 {job.job_type}</Typography>
-          <Typography variant="body1">👥 Vacancies: {job.no_of_vacancies}</Typography>
-          <Typography variant="body1">💰 ${job.estimated_salary_from} - ${job.estimated_salary_to}</Typography>
-          <Typography variant="body1">🎓 {job.certificate_received} from {job.training_institution}</Typography>
-          <Typography variant="body1">🛠️ Skills: {job.other_skills}</Typography>
-        </Stack>
+      <div className="p-6">
+        {/* Job Title and Company */}
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">
+          {job.job_title || "Job Title"}
+        </h2>
+        <h3 className="text-xl text-blue-600 dark:text-blue-400 mb-3">
+          {job.company || "Company Name"}
+        </h3>
 
-        <Box sx={{ width: '100%', mb: 3 }}>
-          <Button
-            variant="contained"
-            fullWidth
+        {/* Job Details */}
+        <div className="space-y-2 text-gray-700 dark:text-gray-300 mb-6">
+          <p>
+            📍 {job.city_municipality || "City"}, {job.country || "Country"}
+          </p>
+          <p>💼 {job.job_type || "Job Type"}</p>
+          <p>👥 Vacancies: {job.no_of_vacancies || 0}</p>
+          <p>
+            💰 ${formatSalary(job.estimated_salary_from)} - $
+            {formatSalary(job.estimated_salary_to)}
+          </p>
+          <p>
+            🎓 {job.certificate_received || "N/A"} from{" "}
+            {job.training_institution || "N/A"}
+          </p>
+          <p>🛠️ Skills: {job.other_skills || "None"}</p>
+        </div>
+
+        {/* Apply/Withdraw Button */}
+        <div className="mb-6">
+          <button
             onClick={isApplied && canWithdraw ? onWithdraw : onApply}
-            sx={{ ...buttonStyles.common, ...buttonStyles.apply }}
+            className={`w-full py-2 rounded-md font-semibold text-white transition ${
+              isApplied
+                ? canWithdraw
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-green-500 hover:bg-green-600"
+                : "bg-blue-500 hover:bg-blue-600"
+            }`}
           >
-            {isApplied 
-              ? canWithdraw 
-                ? 'Withdraw Application' 
-                : 'Already Applied'
-              : 'Apply'}
-          </Button>
+            {isApplied
+              ? canWithdraw
+                ? "Withdraw Application"
+                : "Already Applied"
+              : "Apply"}
+          </button>
+          {/* Remaining Time */}
           {isApplied && canWithdraw && (
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                display: 'block', 
-                textAlign: 'center', 
-                mt: 1,
-                color: '#dc3545'
-              }}
-            >
+            <p className="text-sm text-red-500 text-center mt-2">
               {getTimeRemaining()}
-            </Typography>
+            </p>
           )}
-        </Box>
+        </div>
 
-        <Divider sx={{ my: 3 }} />
+        {/* Divider */}
+        <hr className="border-gray-300 dark:border-gray-600 mb-6" />
 
-        <Typography variant="h6" gutterBottom>Work Description</Typography>
-        <Typography variant="body1">
-          {job.job_description}
-        </Typography>
-      </Box>
-    </Box>
+        {/* Work Description */}
+        <div>
+          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            Work Description
+          </h4>
+          <p className="text-gray-700 dark:text-gray-300">
+            {job.job_description || "No description available"}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 };
 

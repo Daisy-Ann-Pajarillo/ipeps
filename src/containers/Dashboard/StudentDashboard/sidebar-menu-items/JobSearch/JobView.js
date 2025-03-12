@@ -1,15 +1,10 @@
-import React from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Divider,
-  Stack,
-} from '@mui/material';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'; // Unselected state
-import BookmarkIcon from '@mui/icons-material/Bookmark'; // Selected state
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
+import axios from "../../../../../axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Bookmark, BookmarkBorder } from "@mui/icons-material";
 
 const JobView = ({
   job,
@@ -19,14 +14,22 @@ const JobView = ({
   applicationTime = null,
   onSave,
   onApply,
+  job_id,
 }) => {
-  const [isSaved, setIsSaved] = React.useState(initialIsSaved);
-  const [isApplied, setIsApplied] = React.useState(initialIsApplied);
+  const [isSaved, setIsSaved] = useState(initialIsSaved);
+  const [isApplied, setIsApplied] = useState(initialIsApplied);
+
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
 
   const getTimeRemaining = () => {
     if (!applicationTime) return null;
     const now = new Date().getTime();
-    const timeLeft = (applicationTime + 24 * 60 * 60 * 1000) - now;
+    const timeLeft = applicationTime + 24 * 60 * 60 * 1000 - now;
     if (timeLeft <= 0) return null;
 
     const hours = Math.floor(timeLeft / (60 * 60 * 1000));
@@ -34,99 +37,150 @@ const JobView = ({
     return `${hours}h ${minutes}m remaining to withdraw`;
   };
 
-  const handleApply = () => {
-    if (isApplied) {
-      setIsApplied(false);
-      toast.success('Application withdrawn successfully!');
-    } else {
+  const handleApply = async () => {
+    try {
+      const response = await axios.post("/api/saved-jobs", {
+        employer_jobpost_id: job_id,
+      });
       setIsApplied(true);
-      toast.success('Applied for the job successfully!');
+      toast.success("Job application submitted successfully!");
+      onApply?.();
+    } catch (error) {
+      console.error("Error applying for job:", error);
+      toast.error("Failed to apply for job.");
     }
-    onApply(); // Call the parent handler
   };
 
   const handleSave = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/saved-jobs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await axios.post(
+        "/api/saved-jobs",
+        {
+          employer_jobpost_id: job_id,
         },
-        body: JSON.stringify({ employer_jobpost_id: job.job_id })
-      });
+        {
+          auth: { username: auth.token },
+        }
+      );
 
-      if (response.ok) {
-        setIsSaved(!isSaved); // Toggle the boolean value instead
-        toast.success(isSaved ? 'Job removed from saved jobs!' : 'Job saved successfully!');
-        onSave(); // Call the parent handler
-        console.log('Job saved successfully:', job.job_id);
-      } else {
-        toast.error('Failed to save job: ' + response.statusText);
-      }
+      setIsSaved(
+        response.data.message === "Saved job added successfully" ? true : false
+      );
+      console.log(isSaved, "is saved", response, "response");
+      toast.success(
+        isSaved ? "Job saved successfully!" : "Job removed from saved jobs!"
+      );
+      onSave?.();
     } catch (error) {
       console.error("Error saving job:", error);
-      toast.error('Error saving job: ' + error.message);
+      toast.error(
+        "Error saving job: " + (error.response?.data?.message || error.message)
+      );
     }
   };
 
+  useEffect(() => {
+    const checkAlreadyApplied = async () => {
+      try {
+        const response = await axios.post(
+          "/api/check-already-applied",
+          { job_id: job_id },
+          { auth: { username: auth.token } }
+        );
+        setIsSaved(response.data.already_saved);
+        setIsApplied(response.data.already_applied);
+      } catch (error) {
+        console.error("Error checking job status:", error);
+      }
+    };
+
+    if (job_id) checkAlreadyApplied();
+  }, [job_id, auth.token]);
+
+  console.log(isSaved);
   return (
-    <Box sx={{ height: '100%', position: 'relative' }}>
+    <div className="h-full relative dark:bg-gray-900">
       <ToastContainer />
-      <Box sx={{ height: '100%', overflowY: 'auto', p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 4, height: '300px', width: '100%', overflow: 'hidden', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-          <img src={job.companyImage || 'default-company-image.png'} alt={job.company} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '16px' }} />
-        </Box>
+      <div className="h-full overflow-y-auto p-6">
+        {/* Company Logo */}
+        <div className="flex justify-center items-center mb-6 h-72 w-full overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <img
+            src={job.companyImage || "default-company-image.png"}
+            alt={job.company}
+            className="w-full h-full object-contain p-4"
+          />
+        </div>
 
-        <Typography variant="h4" gutterBottom>{job.job_title}</Typography>
-        <Typography variant="h5" color="primary" gutterBottom>{job.country}</Typography>
+        {/* Job Details */}
+        <h2 className="text-2xl font-bold mb-2 text-gray-800 dark:text-white">
+          {job.job_title}
+        </h2>
+        <h3 className="text-xl font-medium mb-4 text-blue-600 dark:text-blue-400">
+          {job.country}
+        </h3>
 
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">📍 {job.city_municipality}</Typography>
-          <Typography variant="body1">💼 {job.job_type}</Typography>
-          <Typography variant="body1">👥 Vacancies: {job.no_of_vacancies}</Typography>
-          <Typography variant="body1">💰 {job.estimated_salary_from} - {job.estimated_salary_to}</Typography>
-        </Stack>
+        <div className="space-y-2 mb-6 text-gray-700 dark:text-gray-300">
+          <p>📍 {job.city_municipality}</p>
+          <p>💼 {job.job_type}</p>
+          <p>👥 Vacancies: {job.no_of_vacancies}</p>
+          <p>
+            💰 {job.estimated_salary_from} - {job.estimated_salary_to}
+          </p>
+        </div>
 
-        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-          <Box sx={{ flex: 1 }}>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleApply}
-              sx={{ height: '36.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isApplied ? (canWithdraw ? '#dc3545' : '#218838') : '#007BFF', color: '#ffffff' }}
-            >
-              {isApplied ? (canWithdraw ? 'Withdraw Application' : 'Already Applied') : 'Apply'}
-            </Button>
-            {isApplied && canWithdraw && (
-              <Typography
-                variant="caption"
-                sx={{ display: 'block', textAlign: 'center', mt: 1, color: '#dc3545' }}
-              >
-                {getTimeRemaining()}
-              </Typography>
+        {/* Buttons */}
+        <div className="flex space-x-4 mb-6">
+          {/* Apply Button */}
+          <button
+            onClick={handleApply}
+            className={`flex-1 px-4 py-2 text-white rounded-lg ${
+              isApplied
+                ? canWithdraw
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-green-500 hover:bg-green-600"
+                : "bg-blue-500 hover:bg-blue-600"
+            }`}
+          >
+            {isApplied
+              ? canWithdraw
+                ? "Withdraw Application"
+                : "Already Applied"
+              : "Apply"}
+          </button>
+
+          {/* Save Button */}
+          <button
+            onClick={handleSave}
+            className="flex items-center justify-center px-4 py-2 bg-white dark:bg-gray-700 border rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-600"
+          >
+            {isSaved ? (
+              <BookmarkBorder className="text-gray-500 mr-2" />
+            ) : (
+              <Bookmark className="text-blue-500 mr-2" />
             )}
-          </Box>
-          <Box sx={{ width: '120px' }}>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleSave}
-              sx={{ height: '36.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white', color: isSaved ? '#007BFF' : '#000000', border: '1px solid #e0e0e0' }}
-              startIcon={isSaved === job.job_id ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-            >
-              {isSaved ? 'Saved' : 'Save'}
-            </Button>
-          </Box>
-        </Stack>
+            {isSaved ? "Saved" : "Save"}
+          </button>
+        </div>
 
-        <Divider sx={{ my: 3 }} />
+        {/* Time Remaining */}
+        {isApplied && canWithdraw && (
+          <p className="text-center text-sm text-red-500">
+            {getTimeRemaining()}
+          </p>
+        )}
 
-        <Typography variant="h6" gutterBottom>Work Description</Typography>
-        <Typography variant="body1">
+        {/* Divider */}
+        <div className="border-t border-gray-300 dark:border-gray-700 my-6" />
+
+        {/* Job Description */}
+        <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">
+          Work Description
+        </h3>
+        <p className="text-gray-700 dark:text-gray-300">
           {job.job_description}
-        </Typography>
-      </Box>
-    </Box>
+        </p>
+      </div>
+    </div>
   );
 };
 

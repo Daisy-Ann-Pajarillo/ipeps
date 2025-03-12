@@ -11,6 +11,9 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../store/actions/index";
+
 import BackNextButton from "../backnextButton";
 import { otherSkillsSchema } from "../components/schema";
 import fetchData from "../api/fetchData";
@@ -27,11 +30,22 @@ const OtherSkills = ({
   const [otherSkills, setOtherSkills] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
   // Fetch user work experience data
   useEffect(() => {
     const fetchOtherSkills = async () => {
       try {
-        const response = await axios.get("api/get-user-info");
+        const response = await axios.get("api/get-user-info", {
+          auth: {
+            username: auth.token,
+          },
+        });
         setOtherSkills(response.data.other_skills || []);
       } catch (error) {
         console.error("Error fetching user work experience:", error);

@@ -9,6 +9,8 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../store/actions/index";
 
 import BackNextButton from "../backnextButton";
 import countriesList from "../../../reusable/constants/countriesList";
@@ -19,6 +21,7 @@ import {
   getMunicipalities,
   getProvinces,
 } from "../components/getSpecificAddress";
+
 const JobPreference = ({
   activeStep,
   steps,
@@ -39,11 +42,22 @@ const JobPreference = ({
     municipalities: [],
   });
 
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
   // Fetch user data first
   useEffect(() => {
     const fetchJobPreferred = async () => {
       try {
-        const response = await axios.get("api/get-user-info");
+        const response = await axios.get("api/get-user-info", {
+          auth: {
+            username: auth.token,
+          },
+        });
         setJobPreferred(response.data.job_preference[0]);
       } catch (error) {
         console.error("Error fetching user info:", error);

@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Autocomplete } from "@mui/material";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../store/actions/index";
 import {
   Button,
   TextField,
@@ -18,6 +20,8 @@ import {
 import BackNextButton from "../backnextButton";
 import fieldOfStudyTypes from "../../../reusable/constants/fieldOfStudyTypes";
 import fetchData from "../api/fetchData";
+import axios from "../../../axios";
+import { auth } from "../../../store/actions";
 
 const schema = yup.object().shape({
   educationHistory: yup.array().of(
@@ -117,14 +121,25 @@ const EducationalBackground = ({
       educationHistory: [],
     },
   });
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
 
   // Fetch and transform data
   useEffect(() => {
     const fetchEducationalBackground = async () => {
       try {
-        const response = await fetchData("api/get-user-info");
-        if (response.educational_background) {
-          const transformedData = response.educational_background.map(
+        const response = await axios.get("api/get-user-info", {
+          auth: {
+            username: auth.token,
+          },
+        });
+
+        if (response.data.educational_background) {
+          const transformedData = response.data.educational_background.map(
             (edu) => ({
               schoolName: edu.school_name,
               degreeQualification: edu.degree_or_qualification,

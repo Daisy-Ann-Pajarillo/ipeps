@@ -1,42 +1,39 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  useTheme,
-  Button,
-  Grid,
-} from "@mui/material";
-import { tokens } from "../../../theme";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
+import axios from "../../../../../axios";
 import SavedJobsView from "./SavedJobsView";
 import SearchData from "../../../components/layout/Search";
-import axios from "../../../../../axios";
 
-const SavedJobs = ({ isCollapsed }) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+const SavedJobs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedJob, setSelectedJob] = useState(null);
   const [appliedJobs, setAppliedJobs] = useState({});
   const [applicationTimes, setApplicationTimes] = useState({});
   const [savedJobs, setSavedJobs] = useState([]);
-  const [filteredJobs, setFilteredJobs] = useState([]);
 
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  // Load authentication state
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
+  // Load saved jobs
   useEffect(() => {
     const loadSavedJobs = async () => {
       try {
-        const response = await axios.get("/api/get-saved-jobs");
-        const data = response.data;
+        if (auth.token) {
+          const response = await axios.get("/api/get-saved-jobs", {
+            auth: { username: auth.token },
+          });
+          const data = response.data;
 
-        if (Array.isArray(data.jobs)) { // Access the jobs array correctly
-          setSavedJobs(data.jobs);
-
-          if (data.jobs.length > 0) {
-            setSelectedJob(data.jobs[0]); // Set the first job as selected by default
+          if (Array.isArray(data.jobs)) {
+            setSavedJobs(data.jobs);
+            //setSelectedJob(data.jobs[0] || null);
           }
-        } else {
-          console.error("Fetched jobs data is not an array:", data);
         }
       } catch (error) {
         console.error("Error fetching saved jobs:", error);
@@ -44,193 +41,163 @@ const SavedJobs = ({ isCollapsed }) => {
     };
 
     loadSavedJobs();
-  }, []);
+  }, [auth.token]);
 
-
-  // Update filtered jobs whenever savedJobs or searchQuery changes
-  useEffect(() => {
-    const updatedJobs = savedJobs.filter((job) =>
-      job.job_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  // Filter jobs based on search query
+  const filteredJobs = savedJobs.filter(
+    (job) =>
+      job.job_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.job_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       job.company?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredJobs(updatedJobs);
-  }, [savedJobs, searchQuery]);
+  );
 
+  // Handle job application
   const handleApplyJob = (jobId) => {
-    const now = new Date().getTime();
-    setApplicationTimes((prev) => ({
-      ...prev,
-      [jobId]: now,
-    }));
-    setAppliedJobs((prev) => ({
-      ...prev,
-      [jobId]: true,
-    }));
+    const now = Date.now();
+    setApplicationTimes((prev) => ({ ...prev, [jobId]: now }));
+    setAppliedJobs((prev) => ({ ...prev, [jobId]: true }));
   };
 
+  // Handle application withdrawal within 24 hours
   const handleWithdrawApplication = (jobId) => {
     setApplicationTimes((prev) => {
-      const newTimes = { ...prev };
-      delete newTimes[jobId];
-      return newTimes;
+      const updatedTimes = { ...prev };
+      delete updatedTimes[jobId];
+      return updatedTimes;
     });
+
     setAppliedJobs((prev) => {
-      const newApplied = { ...prev };
-      delete newApplied[jobId];
-      return newApplied;
+      const updatedApplied = { ...prev };
+      delete updatedApplied[jobId];
+      return updatedApplied;
     });
   };
 
+  // Check if the user can withdraw the application within 24 hours
   const canWithdraw = (jobId) => {
-    if (!applicationTimes[jobId]) return false;
-    const now = new Date().getTime();
-    const applicationTime = applicationTimes[jobId];
-    const timeDiff = now - applicationTime;
-    return timeDiff <= 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    return (
+      applicationTimes[jobId] &&
+      now - applicationTimes[jobId] <= 24 * 60 * 60 * 1000
+    );
   };
 
+  // Handle job removal from saved jobs
   const handleRemoveFromSaved = (jobId) => {
     const updatedJobs = savedJobs.filter((job) => job.saved_job_id !== jobId);
     setSavedJobs(updatedJobs);
 
-    // If the removed job was selected, select another one
-    if (selectedJob && selectedJob.saved_job_id === jobId) {
-      setSelectedJob(updatedJobs.length > 0 ? updatedJobs[0] : null);
+    if (selectedJob?.saved_job_id === jobId) {
+      setSelectedJob(updatedJobs[0] || null);
     }
   };
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ p: 2 }}>
-        <SearchData
-          placeholder="Find a job..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full"
-          components={1}
-          componentData={[
-            {
-              title: "Sort By",
-              options: ["", "Most Recent", "Most Relevant", "Company Name"],
-            },
-          ]}
-          onComponentChange={(index, value) => {
-            // Implement sorting logic if needed
-          }}
-        />
-      </Box>
+    <div className="flex flex-col h-full bg-gray-200 dark:bg-gray-800 dark:text-white ">
+      {/* Header with Dark Mode Toggle */}
+      <SearchData
+        placeholder="Find a job..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full"
+        components={1}
+        componentData={[
+          {
+            title: "Sort By",
+            options: ["", "Most Recent", "Most Relevant", "Company Name"],
+          },
+        ]}
+        onComponentChange={(index, value) => {
+          // Add sorting logic if needed
+        }}
+      />
 
-      <Grid container sx={{ flexGrow: 1, overflow: 'hidden' }}>
-        {/* Left Panel - Job Listings */}
-        <Grid item xs={12} md={6} lg={5}
-          sx={{
-            height: { xs: 'auto', md: '100%' },
-            overflow: 'auto',
-            borderRight: 1,
-            borderColor: 'divider'
-          }}
+      {/* Main Content */}
+      <div className="flex flex-grow overflow-hidden">
+        {/* Left Panel - Job List */}
+        <div
+          className={`${
+            selectedJob ? "w-2/5" : "w-full"
+          } overflow-auto border-r border-gray-500 dark:border-gray-700`}
         >
-          <Box sx={{ p: 2 }}>
-            <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          <div className="p-4">
+            <div className="text-lg font-semibold mb-4">
               Saved Jobs: {filteredJobs.length}
-            </Typography>
+            </div>
 
             {filteredJobs.map((job) => (
-              <Card
+              <div
                 key={job.saved_job_id}
-                sx={{
-                  mb: 2,
-                  cursor: 'pointer',
-                  bgcolor: selectedJob?.saved_job_id === job.saved_job_id
-                    ? 'action.selected'
-                    : 'background.paper',
-                  '&:hover': { bgcolor: 'action.hover' }
-                }}
+                className={`border rounded-lg p-4 mb-4 cursor-pointer ${
+                  selectedJob?.saved_job_id === job.saved_job_id
+                    ? "bg-gray-100 dark:bg-gray-800"
+                    : "bg-white dark:bg-gray-700"
+                } hover:bg-gray-50 dark:hover:bg-gray-600`}
                 onClick={() => setSelectedJob(job)}
               >
-                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                    <Typography variant="h6" component="div" noWrap>
-                      {job.job_title}
-                    </Typography>
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFromSaved(job.saved_job_id);
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Box sx={{
-                      width: 60,
-                      height: 60,
-                      flexShrink: 0,
-                      bgcolor: 'action.hover',
-                      borderRadius: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden'
-                    }}>
-                      {job.companyImage && (
-                        <img
-                          src={job.companyImage}
-                          alt={job.company || "Company"}
-                          style={{
-                            width: '50%',
-                            height: '50%',
-                            objectFit: 'cover', // Changed from 'contain' to 'cover'
-                            padding: 0 // Removed padding to ensure full square
-                          }}
-                        />
-                      )}
-                    </Box>
-
-                    <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {job.city_municipality || "City"}, {job.country || "Country"}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {job.job_type || "Job Type"} • {job.experience_level || "Experience"}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        Salary: ${job.estimated_salary_from || 0} - ${job.estimated_salary_to || 0}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+                <div className="flex justify-between items-center mb-2">
+                  <div className="font-bold truncate">{job.job_title}</div>
+                  <button
+                    className="text-red-500 hover:text-red-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveFromSaved(job.saved_job_id);
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
+                    {job.companyImage ? (
+                      <img
+                        src={job.companyImage}
+                        alt={job.company || "Company"}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+                  <div className="overflow-hidden">
+                    <div className="text-gray-500 dark:text-gray-400 truncate">
+                      {job.city_municipality || "City"},{" "}
+                      {job.country || "Country"}
+                    </div>
+                    <div className="text-gray-500 dark:text-gray-400 truncate">
+                      {job.job_type || "Job Type"} •{" "}
+                      {job.experience_level || "Experience"}
+                    </div>
+                    <div className="text-gray-500 dark:text-gray-400 truncate">
+                      Salary: ${job.estimated_salary_from || 0} - $
+                      {job.estimated_salary_to || 0}
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
-          </Box>
-        </Grid>
+          </div>
+        </div>
 
         {/* Right Panel - Job Details */}
-        <Grid item xs={6} md={6} lg={7} sx={{ height: { xs: 'auto', md: '100%' }, overflow: 'auto' }}>
-          {selectedJob ? (
+        {selectedJob && (
+          <div className="w-3/5 overflow-auto">
             <SavedJobsView
               job={selectedJob}
               isApplied={appliedJobs[selectedJob.saved_job_id]}
               canWithdraw={canWithdraw(selectedJob.saved_job_id)}
               applicationTime={applicationTimes[selectedJob.saved_job_id]}
               onApply={() => handleApplyJob(selectedJob.saved_job_id)}
-              onWithdraw={() => handleWithdrawApplication(selectedJob.saved_job_id)}
+              onWithdraw={() =>
+                handleWithdrawApplication(selectedJob.saved_job_id)
+              }
             />
-          ) : (
-            <Box className="w-full lg:w-2/5 h-full overflow-y-auto bg-white dark:bg-gray-800">
-              <Typography variant="h6" color="text.secondary">
-                Select a job to view details
-              </Typography>
-            </Box>
-          )}
-        </Grid>
-      </Grid>
-    </Box>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
