@@ -84,7 +84,6 @@ export const getAuthStorage = () => {
 
     try {
       const decodeToken = jwtDecode(localToken);
-      console.log(decodeToken);
       const expirationDate = localStorage.getItem("expirationDate");
       const userId = decodeToken?.id;
       const user = decodeToken;
@@ -105,7 +104,6 @@ export const getAuthStorage = () => {
 };
 
 export const auth = (username, password) => {
-  console.log("Logging in with:", username, password);
   return (dispatch) => {
     dispatch(authStart());
     axios({
@@ -118,10 +116,7 @@ export const auth = (username, password) => {
       withCredentials: false,
     })
       .then((response) => {
-        console.log("AUTH response ---------", response);
-
         const user = jwtDecode(response.data.token);
-        console.log("USER  JWT", user);
         const expirationDate = new Date(
           new Date().getTime() + response.data.expires_in * 1000
         ).getTime();
