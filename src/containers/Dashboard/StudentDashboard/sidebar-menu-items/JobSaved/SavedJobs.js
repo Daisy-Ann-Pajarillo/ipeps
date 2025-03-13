@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../store/actions/index";
+
 import axios from "../../../../../axios";
 import SavedJobsView from "./SavedJobsView";
 import SearchData from "../../../components/layout/Search";
