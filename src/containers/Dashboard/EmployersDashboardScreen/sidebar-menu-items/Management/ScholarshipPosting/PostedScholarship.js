@@ -9,6 +9,9 @@ import {
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'; // Unselected state
 import BookmarkIcon from '@mui/icons-material/Bookmark'; // Selected state
 import axios from '../../../../../../axios';
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../../store/actions/index";
+
 
 // Function to map status to MUI color
 const getStatusColor = (status) => {
@@ -28,11 +31,22 @@ const PostedScholarship = () => {
   const [scholarshipData, setScholarshipData] = useState([]);
   const [bookmarked, setBookmarked] = useState({});
 
+  // setup auth, retrieving the token from local storage
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  // Load authentication state
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
   useEffect(() => {
     // Fetch scholarship postings from the API
     const fetchScholarships = async () => {
       try {
-        const response = await axios.get('/api/get-scholarship-postings');
+        const response = await axios.get('/api/get-scholarship-postings', {
+          auth: { username: auth.token }
+        });
 
         if (response.status === 200) {
           const responseData = response.data;

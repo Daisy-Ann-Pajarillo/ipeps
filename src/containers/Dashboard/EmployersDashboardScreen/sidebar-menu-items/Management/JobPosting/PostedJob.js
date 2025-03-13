@@ -9,6 +9,11 @@ import {
   Button
 } from '@mui/material';
 
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../../store/actions/index";
+
+
+
 // Function to map status to color
 const getStatusColor = (status) => {
   switch (status?.toLowerCase()) {
@@ -26,11 +31,22 @@ const getStatusColor = (status) => {
 const PostedJob = (props) => {
   const [jobs, setJobs] = useState([]);
 
-  // Fetch data from the API when the component mounts
+  // setup auth, retrieving the token from local storage
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  // Load authentication state
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
+  //Fetch Posted Jobs
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get('/api/get-job-postings');
+        const response = await axios.get('/api/get-job-postings', {
+          auth: { username: auth.token }
+        });
         const jobsData = Array.isArray(response.data.job_postings) ? response.data.job_postings : [];
         setJobs(jobsData);
 

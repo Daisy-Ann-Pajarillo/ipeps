@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Box,
     Typography,
@@ -18,12 +18,19 @@ import 'react-toastify/dist/ReactToastify.css';
 import PostedScholarship from './PostedScholarship';
 import { CloudUpload, Close as CloseIcon } from '@mui/icons-material';
 import axios from '../../../../../../axios';
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../../store/actions/index";
+
 
 const scholarshipSchema = yup.object().shape({
     scholarship_title: yup.string().required("Scholarship Title is required"),
     scholarship_description: yup.string().required("Scholarship Description is required"),
     expiration_date: yup.date().required("Expiration Date is required"),
 });
+
+ 
+
+ 
 
 const maxImages = 5;
 
@@ -52,6 +59,16 @@ const ScholarshipPosting = () => {
     };
 
 
+    // setup auth, retrieving the token from local storage
+    const dispatch = useDispatch();
+    const auth = useSelector((state) => state.auth);
+
+    // Load authentication state
+    useEffect(() => {
+        dispatch(actions.getAuthStorage());
+    }, [dispatch]);
+
+
     const onSubmit = async (data) => {
         const ScholarshipData = {
             scholarship_title: data.scholarship_title,
@@ -63,6 +80,7 @@ const ScholarshipPosting = () => {
 
         try {
             const response = await axios.post('/api/scholarship-posting', ScholarshipData, {
+                auth: { username: auth.token },
                 headers: { 'Content-Type': 'application/json' },
             });
 

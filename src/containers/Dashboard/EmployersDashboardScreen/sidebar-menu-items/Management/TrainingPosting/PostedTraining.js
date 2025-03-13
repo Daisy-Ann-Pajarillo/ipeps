@@ -7,6 +7,10 @@ import {
 } from '@mui/material';
 import axios from '../../../../../../axios';
 
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../../store/actions/index";
+
+
 
 // Function to map status to MUI color
 const getStatusColor = (status) => {
@@ -26,21 +30,36 @@ const PostedTraining = () => {
   const [trainingData, setTrainingData] = useState([]);
   const [bookmarked, setBookmarked] = useState({});
 
-  // Fetch training data from the API
+// setup auth, retrieving the token from local storage
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+ // Load authentication state
+ 
   useEffect(() => {
-    const fetchTrainingData = async () => {
-      try {
-        const response = await axios.get('/api/get-training-postings');
-        const data = Array.isArray(response.data.training_postings) ? response.data.training_postings : [];
-        console.log('Retrieved Training Data:', data);
-        setTrainingData(data);
-      } catch (error) {
-        console.error('Error fetching training data:', error);
-      }
-    };
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
 
-    fetchTrainingData();
-  }, []);
+  //Get Training Data
+useEffect(() => {
+  const fetchTrainingData = async () => {
+    try {
+      const response = await axios.get('/api/get-training-postings', {
+        auth: { username: auth.token }
+      });
+
+      const data = Array.isArray(response.data.training_postings) 
+        ? response.data.training_postings 
+        : [];
+
+      console.log('Retrieved Training Data:', data);
+      setTrainingData(data);
+    } catch (error) {
+      console.error('Error fetching training data:', error);
+    }
+  };
+
+  fetchTrainingData();
+}, []);
 
   const handleBookmark = (id) => {
     setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }));

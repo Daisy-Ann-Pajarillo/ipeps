@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -18,13 +18,29 @@ import PostedTraining from './PostedTraining';
 import { CloudUpload, Close as CloseIcon } from '@mui/icons-material';
 import axios from '../../../../../../axios';
 
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../../store/actions/index";
 const schema = yup.object().shape({
   training_title: yup.string().required('Training title is required'),
   training_description: yup.string().required('Training description is required'),
   expiration_date: yup.date().required('Expiration date is required'),
 });
 
+
+
 const TrainingPosting = ({ isCollapsed }) => {
+
+  // setup auth, retrieving the token from local storage
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+  // Load authentication state
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
+
+
   const {
     register,
     handleSubmit,
@@ -39,15 +55,21 @@ const TrainingPosting = ({ isCollapsed }) => {
     const formattedData = {
       training_title: data.training_title,
       training_description: data.training_description,
-      expiration_date: data.expiration_date instanceof Date ? data.expiration_date.toISOString().split('T')[0] : data.expiration_date,
+      expiration_date: data.expiration_date instanceof Date
+        ? data.expiration_date.toISOString().split('T')[0]
+        : data.expiration_date,
     };
+
     try {
-      const response = await axios.post('/api/training-posting', formattedData);
+      const response = await axios.post('/api/training-posting', formattedData, {
+        auth: { username: auth.token }
+      });
+
       if (response.status === 201) {
         toast.success('Training posted successfully!', { autoClose: 3000 });
         setTimeout(() => {
           window.location.reload();
-        }, 3000)
+        }, 3000);
       } else {
         toast.error('Failed to post training!');
       }
@@ -55,6 +77,7 @@ const TrainingPosting = ({ isCollapsed }) => {
       toast.error('Error submitting training data!');
     }
   };
+
 
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files);

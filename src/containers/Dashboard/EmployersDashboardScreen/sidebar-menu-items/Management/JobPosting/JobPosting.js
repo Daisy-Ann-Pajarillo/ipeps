@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -18,7 +18,10 @@ import {
 import PostedJob from "./PostedJob";
 import countriesList from "../../../../../../reusable/constants/countriesList";
 import axios from '../../../../../../axios';
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../../store/actions/index";
 
+//Pop-upModals
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -68,6 +71,14 @@ const JobPosting = ({ isCollapsed }) => {
 
   const [selectedCountry, setSelectedCountry] = useState("");
 
+  // setup auth, retrieving the token from local storage
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  // Load authentication state
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
 
   // Submit the form data to the backend
   const onSubmit = async (data) => {
@@ -78,8 +89,10 @@ const JobPosting = ({ isCollapsed }) => {
     }
     try {
       const response = await axios.post("/api/job-postings", data, {
+        auth: { username: auth.token },
         headers: {
           "Content-Type": "application/json",
+
         },
       });
       console.log("Response:", response.data);

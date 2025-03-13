@@ -202,8 +202,8 @@ const JobView = ({ job }) => {
               {isLoading
                 ? "Loading..."
                 : isApplied
-                ? "Already Applied"
-                : "Apply"}
+                  ? "Already Applied"
+                  : "Apply"}
             </Button>
           </Box>
           <Box sx={{ width: "120px" }}>
