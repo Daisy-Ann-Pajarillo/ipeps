@@ -15,11 +15,13 @@ import {
   Autocomplete,
 } from "@mui/material";
 
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../../store/actions/index";
+
 import PostedJob from "./PostedJob";
 import countriesList from "../../../../../../reusable/constants/countriesList";
 import axios from '../../../../../../axios';
-import { useSelector, useDispatch } from "react-redux";
-import * as actions from "../../../../../../store/actions/index";
+
 
 //Pop-upModals
 import { ToastContainer, toast } from 'react-toastify';
@@ -94,6 +96,9 @@ const JobPosting = ({ isCollapsed }) => {
           "Content-Type": "application/json",
 
         },
+        auth: {
+          username: auth.token,
+        },
       });
       console.log("Response:", response.data);
       if (response.status === 201) {
@@ -101,7 +106,7 @@ const JobPosting = ({ isCollapsed }) => {
         console.log("Response Data:", response.data);
 
         // Show success toast notification
-        toast.success('Job posting created successfully!', {
+        toast.success("Job posting created successfully!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -112,7 +117,6 @@ const JobPosting = ({ isCollapsed }) => {
           theme: "light",
           onClose: () => window.location.reload(),
         });
-
 
         // Reset the form fields to their default values
         reset({
@@ -127,12 +131,17 @@ const JobPosting = ({ isCollapsed }) => {
           city_municipality: "",
           expiration_date: "",
           other_skills: "",
-          courses: [{ course_name: "", training_institution: "", certificate_received: "" }],
+          courses: [
+            {
+              course_name: "",
+              training_institution: "",
+              certificate_received: "",
+            },
+          ],
         });
 
         // Clear the selected country in the Autocomplete
         setSelectedCountry("");
-
       } else {
         console.warn("⚠️ Unexpected status code:", response.status);
 
@@ -148,12 +157,11 @@ const JobPosting = ({ isCollapsed }) => {
           theme: "colored",
         });
       }
-
     } catch (error) {
       console.error("❌ Error submitting job posting:", error.message);
 
       // Show error toast notification
-      toast.error('Error submitting job posting!', {
+      toast.error("Error submitting job posting!", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -167,19 +175,32 @@ const JobPosting = ({ isCollapsed }) => {
   };
   const [createJobOpen, setCreateJobOpen] = useState(false);
 
-
   return (
-    <Box className={`flex  transition-all justify-center items-center${createJobOpen ? 'flex-row' : 'w-3/5 flex-col'}`}>
-      <Grid className={` h-full flex flex-col ${createJobOpen ? 'w-3/5' : 'w-full'}`}>
-        <Button onClick={() => setCreateJobOpen(!createJobOpen)} className="flex items-center justify-center">
-          <Typography variant="h5" className="w-full text-center font-bold py-5">
+    <Box
+      className={`flex  transition-all justify-center items-center${createJobOpen ? "flex-row" : "w-3/5 flex-col"
+        }`}
+    >
+      <Grid
+        className={` h-full flex flex-col ${createJobOpen ? "w-3/5" : "w-full"
+          }`}
+      >
+        <Button
+          onClick={() => setCreateJobOpen(!createJobOpen)}
+          className="flex items-center justify-center"
+        >
+          <Typography
+            variant="h5"
+            className="w-full text-center font-bold py-5"
+          >
             Create Job Posting
           </Typography>
         </Button>
-        {
-          createJobOpen &&
+        {createJobOpen && (
           <Box className="px-8 pb-5">
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="flex flex-col gap-6"
+            >
               <div className="border-b pb-4">
                 <Typography variant="h6" className="font-semibold">
                   Job Details
@@ -350,7 +371,9 @@ const JobPosting = ({ isCollapsed }) => {
                         {...register(`courses.${index}.course_name`)}
                         fullWidth
                         error={!!errors.courses?.[index]?.course_name}
-                        helperText={errors.courses?.[index]?.course_name?.message}
+                        helperText={
+                          errors.courses?.[index]?.course_name?.message
+                        }
                       />
                     </Grid>
                     <Grid item xs={4}>
@@ -411,11 +434,10 @@ const JobPosting = ({ isCollapsed }) => {
               >
                 Create Job Post
               </Button>
-
             </form>
             <ToastContainer />
           </Box>
-        }
+        )}
       </Grid>
 
       <PostedJob createJobOpen={createJobOpen} />
