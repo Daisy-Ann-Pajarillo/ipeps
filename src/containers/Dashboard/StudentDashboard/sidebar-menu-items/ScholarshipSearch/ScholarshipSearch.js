@@ -46,7 +46,7 @@ const ScholarshipSearch = ({ isCollapsed }) => {
   useEffect(() => {
     const fetchScholarships = async () => {
       try {
-        const response = await axios.get("/api/get-scholarship-postings");
+        const response = await axios.get("/api/all-scholarship-postings");
 
         console.log("API Response:", response.data); // Debug: Log the API response
 
@@ -271,12 +271,12 @@ const ScholarshipSearch = ({ isCollapsed }) => {
               isSaved={savedScholarships[selectedScholarship.scholarship_id]}
               isApplied={
                 appliedScholarships[
-                  `scholarship-${selectedScholarship.scholarship_id}`
+                `scholarship-${selectedScholarship.scholarship_id}`
                 ]
               }
               applicationTime={
                 applicationTimes[
-                  `scholarship-${selectedScholarship.scholarship_id}`
+                `scholarship-${selectedScholarship.scholarship_id}`
                 ]
               }
               onSave={() =>

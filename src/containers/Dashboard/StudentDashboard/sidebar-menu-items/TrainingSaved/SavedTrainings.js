@@ -3,6 +3,11 @@ import { Box, Typography, Card, CardContent, useTheme, Button } from '@mui/mater
 import { tokens } from '../../../theme';
 import SavedTrainingsView from './SavedTrainingsView';
 import SearchData from '../../../components/layout/Search';
+import axios from "../../../../../axios";
+
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
+
 
 const SavedTrainings = ({ isCollapsed }) => {
   const theme = useTheme();
@@ -12,25 +17,53 @@ const SavedTrainings = ({ isCollapsed }) => {
   const headerHeight = '72px';
   const [enrolledTrainings, setEnrolledTrainings] = useState({});
   const [savedTrainings, setSavedTrainings] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  React.useEffect(() => {
-    const loadSavedTrainings = () => {
-      const trainings = JSON.parse(localStorage.getItem('savedTrainings') || '[]');
-      setSavedTrainings(trainings);
+
+
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+  // Fetch saved trainings from the API with authentication
+  useEffect(() => {
+    const fetchSavedTrainings = async () => {
+      try {
+        const response = await axios.get('/api/get-saved-trainings', {
+          auth: {
+            username: auth.token // Add authentication using token
+          }
+        });
+
+        // Handle the response data
+        if (response.data.success && Array.isArray(response.data.trainings)) {
+          const transformedTrainings = response.data.trainings.map((training) => ({
+            id: training.saved_training_id,       // Use saved_training_id as the unique identifier
+            title: training.training_title,       // Map training_title to title
+            description: training.training_description, // Map training_description to description
+            companyImage: 'https://bit.ly/3Qgevzn',  // Placeholder image URL
+            expiration: training.expiration_date,
+          }));
+
+          setSavedTrainings(transformedTrainings);
+        } else {
+          console.error('Invalid API response:', response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching saved trainings:', error);
+      }
     };
 
-    loadSavedTrainings();
+    fetchSavedTrainings();
+  }, [auth.token]); // Added auth.token as a dependency to refetch when it changes
 
-    window.addEventListener('storage', loadSavedTrainings);
-
-    return () => window.removeEventListener('storage', loadSavedTrainings);
-  }, []);
 
   const handleEnroll = (trainingId) => {
-    setEnrolledTrainings(prev => ({
+    setEnrolledTrainings((prev) => ({
       ...prev,
-      [trainingId]: true
+      [trainingId]: true,
     }));
   };
 
@@ -39,160 +72,86 @@ const SavedTrainings = ({ isCollapsed }) => {
   };
 
   const handleRemoveFromSaved = (trainingId) => {
-    const updatedTrainings = savedTrainings.filter(training => training.id !== trainingId);
-    localStorage.setItem('savedTrainings', JSON.stringify(updatedTrainings));
+    const updatedTrainings = savedTrainings.filter((training) => training.id !== trainingId);
     setSavedTrainings(updatedTrainings);
-    
+
     // If the removed training was selected, clear the selection
     if (selectedTraining?.id === trainingId) {
       setSelectedTraining(null);
     }
+
+    // Optionally, send a DELETE request to the API to remove the training from the backend
+    axios
+      .delete(`/api/remove-saved-training/${trainingId}`)
+      .then(() => console.log('Training removed successfully'))
+      .catch((error) => console.error('Error removing training:', error));
   };
 
   const handleTrainingClick = (trainingId) => {
-    const selectedTraining = trainings.find(t => t.id === trainingId);
+    const selectedTraining = savedTrainings.find((t) => t.id === trainingId);
     setSelectedTraining(selectedTraining);
     setIsModalOpen(true);
   };
-  const [trainings] = useState([
-    {
-      id: 1,
-      title: "Web Development Bootcamp",
-      provider: "Tech Academy",
-      location: "Online",
-      type: "Full Time",  // Matches Training Type dropdown
-      duration: "12 weeks",
-      cost: "₱15,000",
-      startDate: "2024-03-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Entry",  // Matches Experience Level dropdown
-      description: "A comprehensive bootcamp covering HTML, CSS, JavaScript, React, and backend development.",
-    },
-    {
-      id: 2,
-      title: "Cloud Computing Fundamentals",
-      provider: "Tech Academy",
-      location: "Online",
-      type: "Part Time",  // Matches Training Type dropdown
-      duration: "8 weeks",
-      cost: "₱12,000",
-      startDate: "2024-03-15",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Mid",
-      description: "Learn cloud computing principles, AWS, Azure, and Google Cloud basics in this beginner-friendly course.",
-    },
-    {
-      id: 3,
-      title: "Data Science Essentials",
-      provider: "Data Institute",
-      location: "Hybrid",
-      type: "Contract",  // Matches Training Type dropdown
-      duration: "16 weeks",
-      cost: "₱20,000",
-      startDate: "2024-04-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Senior",
-      description: "A practical course in Python, Machine Learning, and AI, with hands-on projects.",
-    },
-    {
-      id: 4,
-      title: "Cybersecurity for Beginners",
-      provider: "Security Academy",
-      location: "In-Person",
-      type: "Full Time",
-      duration: "10 weeks",
-      cost: "₱18,000",
-      startDate: "2024-04-10",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Entry",
-      description: "Gain hands-on experience in cybersecurity fundamentals, ethical hacking, and network security.",
-    },
-    {
-      id: 5,
-      title: "AI and Machine Learning",
-      provider: "AI Institute",
-      location: "Online",
-      type: "Internship",  // Matches Training Type dropdown
-      duration: "6 months",
-      cost: "₱25,000",
-      startDate: "2024-05-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Mid",
-      description: "An advanced AI/ML program covering deep learning, NLP, and reinforcement learning techniques.",
-    },
-    {
-      id: 6,
-      title: "Project Management Professional (PMP)",
-      provider: "Business Academy",
-      location: "Hybrid",
-      type: "Part Time",
-      duration: "5 months",
-      cost: "₱30,000",
-      startDate: "2024-06-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Senior",
-      description: "A certified PMP course covering Agile, Scrum, risk management, and project planning.",
-    },
-  ]);
-  
-  const [query, setQuery] = useState("");
-  const [sortBy, setSortBy] = useState("");
-  const [filteredTrainings, setFilteredTrainings] = useState(trainings);
-  
+
+  const [query, setQuery] = useState('');
+  const [sortBy, setSortBy] = useState('');
+  const [filteredTrainings, setFilteredTrainings] = useState(savedTrainings);
+
   // useEffect to filter and sort trainings dynamically
   useEffect(() => {
-    let updatedTrainings = [...trainings];
-  
+    let updatedTrainings = [...(Array.isArray(savedTrainings) ? savedTrainings : [])];
+
     // Filtering based on search query
     if (query) {
-      updatedTrainings = updatedTrainings.filter((t) =>
-        t.title.toLowerCase().includes(query.toLowerCase()) ||
-        t.description.toLowerCase().includes(query.toLowerCase())
+      updatedTrainings = updatedTrainings.filter(
+        (t) =>
+          t.title.toLowerCase().includes(query.toLowerCase()) ||
+          t.description.toLowerCase().includes(query.toLowerCase())
       );
     }
-  
+
     // Sorting logic
-    if (sortBy === "Company Name") {
+    if (sortBy === 'Company Name') {
       updatedTrainings.sort((a, b) => a.provider.localeCompare(b.provider));
-    } else if (sortBy === "Most Recent") {
-      updatedTrainings.sort((a, b) => new Date(b.date) - new Date(a.date)); // Assuming `date` exists
-    } else if (sortBy === "Most Relevant") {
+    } else if (sortBy === 'Most Recent') {
+      updatedTrainings.sort((a, b) => new Date(b.startDate) - new Date(a.startDate)); // Sort by start date
+    } else if (sortBy === 'Most Relevant') {
       // Define relevance logic if applicable
     }
-  
+
     // Update filtered trainings
     setFilteredTrainings(updatedTrainings);
-  }, [query, sortBy, trainings]); // Dependencies
-  
+  }, [query, sortBy, savedTrainings]); // Dependencies
+
   return (
     <Box>
       <SearchData
-           placeholder="Find a training..."
+        placeholder="Find a training..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="w-full"
         components={1}
         componentData={[
-          { title: "Sort By", options: ["", "Most Recent", "Most Relevant", "Company Name"] },
+          { title: 'Sort By', options: ['', 'Most Recent', 'Most Relevant', 'Company Name'] },
         ]}
         onComponentChange={(index, value) => {
           if (index === 0) setSortBy(value);
         }}
       />
-      <Box 
-        sx={{ 
+      <Box
+        sx={{
           display: 'flex',
           position: 'fixed',
           top: headerHeight,
           left: isCollapsed ? '80px' : '250px',
           right: 0,
           bottom: 0,
-          transition: 'left 0.3s'
+          transition: 'left 0.3s',
         }}
       >
         {/* Training Listings Panel */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             width: '60%',
             height: '100%',
             overflowY: 'auto',
@@ -203,7 +162,6 @@ const SavedTrainings = ({ isCollapsed }) => {
           <Typography variant="subtitle1" mb={2}>
             Saved Trainings: {filteredTrainings.length}
           </Typography>
-
           {filteredTrainings.map((training) => (
             <Card
               key={training.id}
@@ -211,7 +169,7 @@ const SavedTrainings = ({ isCollapsed }) => {
                 mb: 2,
                 cursor: 'pointer',
                 backgroundColor: selectedTraining?.id === training.id ? '#f5f5f5' : 'white',
-                '&:hover': { backgroundColor: colors.primary[400] }
+                '&:hover': { backgroundColor: colors.primary[400] },
               }}
               onClick={() => setSelectedTraining(training)}
             >
@@ -236,7 +194,7 @@ const SavedTrainings = ({ isCollapsed }) => {
                       flexShrink: 0,
                       backgroundColor: '#f5f5f5',
                       borderRadius: '8px',
-                      overflow: 'hidden'
+                      overflow: 'hidden',
                     }}
                   >
                     <img
@@ -246,7 +204,7 @@ const SavedTrainings = ({ isCollapsed }) => {
                         width: '100%',
                         height: '100%',
                         objectFit: 'contain',
-                        padding: '8px'
+                        padding: '8px',
                       }}
                     />
                   </Box>
@@ -255,10 +213,7 @@ const SavedTrainings = ({ isCollapsed }) => {
                       {training.title}
                     </Typography>
                     <Typography color="text.secondary">
-                      {training.company} • {training.location} {/* Changed from provider to company */}
-                    </Typography>
-                    <Typography variant="body2">
-                      {training.type} • {training.duration}
+                      {training.description}
                     </Typography>
                   </Box>
                 </Box>
@@ -266,10 +221,9 @@ const SavedTrainings = ({ isCollapsed }) => {
             </Card>
           ))}
         </Box>
-
         {/* Training View Panel */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             width: '40%',
             height: '100%',
             overflowY: 'auto',
@@ -277,7 +231,7 @@ const SavedTrainings = ({ isCollapsed }) => {
           }}
         >
           {selectedTraining && (
-            <SavedTrainingsView 
+            <SavedTrainingsView
               training={selectedTraining}
               isEnrolled={enrolledTrainings[selectedTraining.id]}
               onEnroll={() => handleEnroll(selectedTraining.id)}

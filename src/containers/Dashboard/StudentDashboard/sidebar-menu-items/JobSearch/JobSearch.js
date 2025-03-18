@@ -25,6 +25,8 @@ const JobSearch = ({ isCollapsed }) => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
+
+
   // Load applied jobs to know which jobs user has applied to
   const loadAppliedJobs = async () => {
     if (!auth.token) return;
@@ -77,6 +79,7 @@ const JobSearch = ({ isCollapsed }) => {
 
     fetchJobs();
   }, [auth.token]);
+
 
   // Filter and sort jobs
   useEffect(() => {
@@ -183,9 +186,8 @@ const JobSearch = ({ isCollapsed }) => {
       <div className="flex mt-4">
         {/* Job List */}
         <div
-          className={`${
-            selectedJob ? "w-3/5" : "w-full"
-          } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
+          className={`${selectedJob ? "w-3/5" : "w-full"
+            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
         >
           <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
             Total: {filteredJobs.length} jobs found
@@ -207,11 +209,10 @@ const JobSearch = ({ isCollapsed }) => {
             filteredJobs.map((job) => (
               <div
                 key={job.job_id}
-                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${
-                  selectedJob?.job_id === job.job_id
-                    ? "bg-gray-200 dark:bg-gray-800"
-                    : "bg-white dark:bg-gray-900"
-                } hover:bg-primary-400 dark:hover:bg-primary-600`}
+                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedJob?.job_id === job.job_id
+                  ? "bg-gray-200 dark:bg-gray-800"
+                  : "bg-white dark:bg-gray-900"
+                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
                 onClick={() => handleJobClick(job.job_id)}
               >
                 <div className="flex gap-3">

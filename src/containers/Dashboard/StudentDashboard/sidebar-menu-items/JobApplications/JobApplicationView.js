@@ -9,6 +9,7 @@ import {
   IconButton,
 
 } from '@mui/material';
+
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder'; // Unselected state
 import BookmarkIcon from '@mui/icons-material/Bookmark'; // Selected state
 import { tokens } from '../../../theme';
@@ -17,7 +18,7 @@ import { useTheme } from '@mui/material';
 const JobApplicationView = ({ application, onWithdraw }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  
+
   if (!application) return null;
 
   const canWithdraw = () => {
@@ -32,7 +33,7 @@ const JobApplicationView = ({ application, onWithdraw }) => {
     const now = new Date().getTime();
     const timeLeft = (application.applicationTime + 24 * 60 * 60 * 1000) - now;
     if (timeLeft <= 0) return 'Application confirmed';
-    
+
     const hours = Math.floor(timeLeft / (60 * 60 * 1000));
     const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
     return `${hours}h ${minutes}m remaining to withdraw`;
@@ -40,7 +41,7 @@ const JobApplicationView = ({ application, onWithdraw }) => {
 
   const handleWithdraw = () => {
     if (!canWithdraw()) return;
-    
+
     const appliedItems = JSON.parse(localStorage.getItem('appliedItems') || '{}');
     const applicationTimes = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
 
@@ -49,10 +50,10 @@ const JobApplicationView = ({ application, onWithdraw }) => {
 
     localStorage.setItem('appliedItems', JSON.stringify(appliedItems));
     localStorage.setItem('applicationTimes', JSON.stringify(applicationTimes));
-    
+
     // Call parent's onWithdraw to update the list and clear selection
     onWithdraw(application.id);
-    
+
     // Trigger storage event to update other components
     window.dispatchEvent(new Event('storage'));
   };
@@ -61,8 +62,8 @@ const JobApplicationView = ({ application, onWithdraw }) => {
     <Box sx={{ height: '100%', position: 'relative' }}>
       <Box sx={{ height: '100%', overflowY: 'auto', p: 3 }}>
         {/* Company Image */}
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -74,10 +75,10 @@ const JobApplicationView = ({ application, onWithdraw }) => {
             borderRadius: '8px',
           }}
         >
-          <img 
-            src={application.companyImage || 'default-company-image.png'} 
+          <img
+            src={application.companyImage || 'default-company-image.png'}
             alt={application.company}
-            style={{ 
+            style={{
               width: '100%',
               height: '100%',
               objectFit: 'contain', // Maintains aspect ratio
@@ -89,7 +90,7 @@ const JobApplicationView = ({ application, onWithdraw }) => {
         {/* Job Details */}
         <Typography variant="h4" gutterBottom>{application.title}</Typography>
         <Typography variant="h5" color="primary" gutterBottom>{application.company}</Typography>
-        
+
         <Stack spacing={1} sx={{ mb: 3 }}>
           <Typography variant="body1">📍 {application.location}</Typography>
           <Typography variant="body1">💼 {application.type}</Typography>
@@ -120,11 +121,11 @@ const JobApplicationView = ({ application, onWithdraw }) => {
             {canWithdraw() ? 'Withdraw Application' : 'Application Confirmed'}
           </Button>
           {canWithdraw() && (
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                display: 'block', 
-                textAlign: 'center', 
+            <Typography
+              variant="caption"
+              sx={{
+                display: 'block',
+                textAlign: 'center',
                 mt: 1,
                 color: '#dc3545'
               }}

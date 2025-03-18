@@ -1,39 +1,23 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  useTheme,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-} from "@mui/material";
-import { tokens } from "../../../theme";
-import TrainingView from "./TrainingView";
-import SearchData from "../../../components/layout/Search";
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../store/actions/index";
 import axios from "../../../../../axios";
+import TrainingView from "./TrainingView";
+import SearchData from "../../../components/layout/Search";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const TrainingSearch = ({ isCollapsed }) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTraining, setSelectedTraining] = useState(null);
-  const headerHeight = "72px";
-
-  // State for trainings and loading
   const [trainings, setTrainings] = useState([]);
+  const [selectedTraining, setSelectedTraining] = useState(null);
+  const [query, setQuery] = useState("");
+  const [entryLevel, setEntryLevel] = useState("");
+  const [trainingType, setTrainingType] = useState("");
+  const [sortBy, setSortBy] = useState("");
+  const [filteredTrainings, setFilteredTrainings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [appliedTrainingIds, setAppliedTrainingIds] = useState([]);
 
-  // State to track saved and enrolled status
-  const [savedTraining, setSavedTraining] = useState({});
-  const [enrolledTraining, setEnrolledTraining] = useState({});
-  const [enrollmentTimes, setEnrollmentTimes] = useState({});
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
 
@@ -41,292 +25,142 @@ const TrainingSearch = ({ isCollapsed }) => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-  // Fetch trainings from API
+  // Load applied trainings to know which trainings user has applied to
+  const loadAppliedTrainings = async () => {
+    if (!auth.token) return;
+
+    try {
+      const response = await axios.get("/api/get-applied-trainings", {
+        auth: { username: auth.token },
+      });
+
+      console.log("API Response for Applied Trainings:", response.data); // Log API response
+
+      if (response.data.success && Array.isArray(response.data.applications)) {
+        const appliedIds = response.data.applications.map(
+          (application) => application.employer_trainingpost_id.toString() // Ensure IDs are strings
+        );
+        console.log("Extracted Applied Training IDs:", appliedIds); // Log extracted IDs
+        setAppliedTrainingIds(appliedIds);
+      }
+    } catch (error) {
+      console.error("Error fetching applied trainings:", error);
+    }
+  };
+
+  // Fetch all trainings
   useEffect(() => {
     const fetchTrainings = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get("/api/get-training-postings", {
-          auth: {
-            username: auth.token,
-          },
-        });
 
-        console.log("API Response:", response.data); // Debug: Log the API response
+        if (auth.token) {
+          const response = await axios.get("/api/all-training-postings", {
+            auth: { username: auth.token },
+          });
 
-        // Access the training postings from the response
-        const trainingsArray = response.data.training_postings || [];
-        console.log("Processed trainings array:", trainingsArray); // Debug
-        setTrainings(trainingsArray);
+          console.log("API Response for All Trainings:", response.data); // Log API response
 
-        // Load saved/enrolled status from localStorage
-        loadSavedAndEnrolledStatus(trainingsArray);
-      } catch (err) {
-        console.error("Error fetching trainings:", err);
-        setError(err.message);
+          if (response.data && Array.isArray(response.data.training_postings)) {
+            const formattedTrainings = response.data.training_postings.map((t) => ({
+              ...t,
+              training_id: t.training_id.toString(), // Ensure training IDs are strings
+            }));
+            setTrainings(formattedTrainings);
+          } else {
+            setTrainings([]);
+            toast.error("No trainings found or invalid response format");
+          }
+
+          await loadAppliedTrainings();
+        }
+      } catch (error) {
+        console.error("Error fetching training postings:", error);
+        toast.error("Failed to load training postings");
+        setTrainings([]);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchTrainings();
-  }, []);
-
-  // Load saved and enrolled status from localStorage
-  const loadSavedAndEnrolledStatus = (trainingsData) => {
-    if (!Array.isArray(trainingsData)) {
-      console.error("trainingsData is not an array:", trainingsData);
-      return;
-    }
-
-    // Load saved trainings
-    const savedTrainingsList = JSON.parse(
-      localStorage.getItem("savedTrainings") || "[]"
-    );
-    const savedMap = {};
-    savedTrainingsList.forEach((training) => {
-      if (training && training.training_id) {
-        savedMap[training.training_id] = true;
-      }
-    });
-    setSavedTraining(savedMap);
-
-    // Load enrolled trainings
-    const appliedItems = JSON.parse(
-      localStorage.getItem("appliedItems") || "{}"
-    );
-    const applicationTimes = JSON.parse(
-      localStorage.getItem("applicationTimes") || "{}"
-    );
-
-    const enrolledMap = {};
-    const timesMap = {};
-
-    trainingsData.forEach((training) => {
-      if (training && training.training_id) {
-        const key = `training-${training.training_id}`;
-        if (appliedItems[key]) {
-          enrolledMap[training.training_id] = true;
-          timesMap[training.training_id] = applicationTimes[key];
-        }
-      }
-    });
-
-    setEnrolledTraining(enrolledMap);
-    setEnrollmentTimes(timesMap);
-  };
-
-  const handleSaveTraining = (trainingId) => {
-    setSavedTraining((prev) => {
-      const newSavedTrainings = {
-        ...prev,
-        [trainingId]: !prev[trainingId],
-      };
-
-      // Get the training details
-      const trainingToSave = trainings.find(
-        (t) => t && t.training_id === trainingId
-      );
-      if (!trainingToSave) return prev; // Safety check
-
-      // Get existing saved trainings from localStorage
-      const savedTrainingsList = JSON.parse(
-        localStorage.getItem("savedTrainings") || "[]"
-      );
-
-      if (newSavedTrainings[trainingId]) {
-        // Add to localStorage if not already present
-        if (
-          !savedTrainingsList.some(
-            (training) => training && training.training_id === trainingId
-          )
-        ) {
-          savedTrainingsList.push(trainingToSave);
-        }
-      } else {
-        // Remove from localStorage
-        const index = savedTrainingsList.findIndex(
-          (training) => training && training.training_id === trainingId
-        );
-        if (index !== -1) {
-          savedTrainingsList.splice(index, 1);
-        }
-      }
-
-      // Update localStorage
-      localStorage.setItem(
-        "savedTrainings",
-        JSON.stringify(savedTrainingsList)
-      );
-
-      return newSavedTrainings;
-    });
-  };
-
-  const handleEnrollTraining = (trainingId) => {
-    const now = new Date().getTime();
-
-    // Update local state
-    setEnrollmentTimes((prev) => ({
-      ...prev,
-      [trainingId]: now,
-    }));
-    setEnrolledTraining((prev) => ({
-      ...prev,
-      [trainingId]: true,
-    }));
-
-    // Get the training details
-    const trainingToEnroll = trainings.find(
-      (t) => t && t.training_id === trainingId
-    );
-    if (!trainingToEnroll) return; // Safety check
-
-    // Update localStorage
-    const appliedItems = JSON.parse(
-      localStorage.getItem("appliedItems") || "{}"
-    );
-    const applicationTimes = JSON.parse(
-      localStorage.getItem("applicationTimes") || "{}"
-    );
-    const allTrainings = JSON.parse(
-      localStorage.getItem("allTrainings") || "[]"
-    );
-
-    appliedItems[`training-${trainingId}`] = true;
-    applicationTimes[`training-${trainingId}`] = now;
-
-    // Update or add the training to allTrainings
-    const existingTrainingIndex = allTrainings.findIndex(
-      (t) => t && t.training_id === trainingId
-    );
-    if (existingTrainingIndex === -1) {
-      allTrainings.push(trainingToEnroll);
-    } else {
-      allTrainings[existingTrainingIndex] = trainingToEnroll;
-    }
-
-    localStorage.setItem("appliedItems", JSON.stringify(appliedItems));
-    localStorage.setItem("applicationTimes", JSON.stringify(applicationTimes));
-    localStorage.setItem("allTrainings", JSON.stringify(allTrainings));
-  };
-
-  const handleWithdrawEnrollment = (trainingId) => {
-    setEnrollmentTimes((prev) => {
-      const newTimes = { ...prev };
-      delete newTimes[trainingId];
-      return newTimes;
-    });
-    setEnrolledTraining((prev) => {
-      const newEnrolled = { ...prev };
-      delete newEnrolled[trainingId];
-      return newEnrolled;
-    });
-
-    // Update localStorage
-    const appliedItems = JSON.parse(
-      localStorage.getItem("appliedItems") || "{}"
-    );
-    const applicationTimes = JSON.parse(
-      localStorage.getItem("applicationTimes") || "{}"
-    );
-
-    delete appliedItems[`training-${trainingId}`];
-    delete applicationTimes[`training-${trainingId}`];
-
-    localStorage.setItem("appliedItems", JSON.stringify(appliedItems));
-    localStorage.setItem("applicationTimes", JSON.stringify(applicationTimes));
-  };
-
-  const canWithdraw = (trainingId) => {
-    if (!enrollmentTimes[trainingId]) return false;
-    const now = new Date().getTime();
-    const enrollmentTime = enrollmentTimes[trainingId];
-    const timeDiff = now - enrollmentTime;
-    return timeDiff <= 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-  };
-
-  const handleTrainingClick = (trainingId) => {
-    const selectedTraining = trainings.find(
-      (t) => t && t.training_id === trainingId
-    );
-    if (!selectedTraining) return; // Safety check
-    setSelectedTraining(selectedTraining);
-    setIsModalOpen(true);
-  };
-
-  // State for filters
-  const [query, setQuery] = useState("");
-  const [entryLevel, setEntryLevel] = useState("");
-  const [trainingType, setTrainingType] = useState("");
-  const [sortBy, setSortBy] = useState("");
-  const [filteredTrainings, setFilteredTrainings] = useState([]);
+  }, [auth.token]);
 
   // Filter and sort trainings
   useEffect(() => {
-    if (!trainings.length) {
-      setFilteredTrainings([]);
-      return;
-    }
+    let updatedTrainings = [...trainings];
 
-    // Filter out any null or undefined items
-    let updatedTrainings = trainings.filter(
-      (t) => t !== null && t !== undefined
-    );
-
-    // Filtering based on search query
+    // Text search filter
     if (query) {
       updatedTrainings = updatedTrainings.filter(
         (t) =>
-          (t.training_title &&
-            t.training_title.toLowerCase().includes(query.toLowerCase())) ||
-          (t.training_description &&
-            t.training_description.toLowerCase().includes(query.toLowerCase()))
+          t.training_title.toLowerCase().includes(query.toLowerCase()) ||
+          t.training_description.toLowerCase().includes(query.toLowerCase()) ||
+          (t.provider &&
+            t.provider.toLowerCase().includes(query.toLowerCase())) ||
+          (t.country &&
+            t.country.toLowerCase().includes(query.toLowerCase())) ||
+          (t.city_municipality &&
+            t.city_municipality.toLowerCase().includes(query.toLowerCase()))
       );
     }
 
-    // Filtering by experience level
+    // Experience level filter
     if (entryLevel) {
       updatedTrainings = updatedTrainings.filter(
-        (t) => t.experienceLevel === entryLevel
+        (t) => t.experience_level === entryLevel
       );
     }
 
-    // Filtering by training type
+    // Training type filter
     if (trainingType) {
       updatedTrainings = updatedTrainings.filter(
-        (t) => t.type === trainingType
+        (t) => t.training_type === trainingType
       );
     }
 
-    // Sorting logic
+    // Sort options
     if (sortBy === "Most Recent") {
-      updatedTrainings.sort((a, b) => {
-        if (!a.created_at || !b.created_at) return 0;
-        return new Date(b.created_at) - new Date(a.created_at);
-      });
-    } else if (sortBy === "Most Relevant") {
-      // Custom sorting logic for relevance (example: by provider name)
-      updatedTrainings.sort((a, b) => {
-        const providerA = a.provider || "";
-        const providerB = b.provider || "";
-        return providerA.localeCompare(providerB);
-      });
-    } else if (sortBy === "Salary") {
-      // Sorting based on cost
-      updatedTrainings.sort((a, b) => {
-        const costA = parseInt((a.cost || "0").replace(/[^\d]/g, "")) || 0;
-        const costB = parseInt((b.cost || "0").replace(/[^\d]/g, "")) || 0;
-        return costB - costA;
-      });
+      updatedTrainings.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+    } else if (sortBy === "Cost") {
+      updatedTrainings.sort(
+        (a, b) =>
+          (b.estimated_cost_from || 0) - (a.estimated_cost_from || 0)
+      );
     }
 
-    // Update filtered trainings
     setFilteredTrainings(updatedTrainings);
-  }, [query, entryLevel, trainingType, sortBy, trainings]);
+
+    // If the currently selected training is no longer in the filtered list,
+    // either clear the selection or select the first available training
+    if (
+      selectedTraining &&
+      !updatedTrainings.some(
+        (training) => training.training_id === selectedTraining.training_id
+      )
+    ) {
+      if (updatedTrainings.length > 0) {
+        setSelectedTraining(updatedTrainings[0]);
+      } else {
+        setSelectedTraining(null);
+      }
+    }
+  }, [query, entryLevel, trainingType, sortBy, trainings, selectedTraining]);
+
+  const handleTrainingClick = (trainingId) => {
+    const training = trainings.find((t) => t.training_id === trainingId);
+    setSelectedTraining(training);
+  };
+
+
 
   return (
-    <Box>
+    <div className="">
+      <ToastContainer />
+
+      {/* Search */}
       <SearchData
         placeholder="Find a training..."
         value={query}
@@ -336,15 +170,15 @@ const TrainingSearch = ({ isCollapsed }) => {
         componentData={[
           {
             title: "Experience Level",
-            options: ["", "Entry", "Mid", "Senior"],
+            options: ["", "Beginner", "Intermediate", "Advanced"],
           },
           {
             title: "Training Type",
-            options: ["", "Full Time", "Part Time", "Contract", "Internship"],
+            options: ["", "Online", "In-Person", "Hybrid"],
           },
           {
             title: "Sort By",
-            options: ["", "Most Recent", "Most Relevant", "Salary"],
+            options: ["", "Most Recent", "Cost"],
           },
         ]}
         onComponentChange={(index, value) => {
@@ -354,184 +188,83 @@ const TrainingSearch = ({ isCollapsed }) => {
         }}
       />
 
-      {/* Main content container */}
-      <Box
-        sx={{
-          display: "flex",
-          position: "fixed",
-          top: headerHeight,
-          left: isCollapsed ? "80px" : "250px",
-          right: 0,
-          bottom: 0,
-          transition: "left 0.3s",
-        }}
-      >
-        {/* Training Listings Panel */}
-        <Box
-          sx={{
-            width: "60%",
-            height: "100%",
-            overflowY: "auto",
-            p: 3,
-            borderRight: "1px solid rgba(0, 0, 0, 0.12)",
-          }}
+      <div className="flex mt-4">
+        {/* Training List */}
+        <div
+          className={`${selectedTraining ? "w-3/5" : "w-full"
+            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
         >
+          <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+            Total: {filteredTrainings.length} trainings found
+          </div>
+
           {isLoading ? (
-            <Typography variant="body1">Loading trainings...</Typography>
-          ) : error ? (
-            <Typography variant="body1" color="error">
-              Error loading trainings: {error}
-            </Typography>
+            <div className="flex justify-center items-center h-40">
+              <p className="text-gray-500 dark:text-gray-400">
+                Loading trainings...
+              </p>
+            </div>
+          ) : filteredTrainings.length === 0 ? (
+            <div className="flex justify-center items-center h-40">
+              <p className="text-gray-500 dark:text-gray-400">
+                No trainings found matching your criteria
+              </p>
+            </div>
           ) : (
-            <>
-              <Typography variant="subtitle1" mb={2}>
-                Total: {filteredTrainings.length} training found
-              </Typography>
+            filteredTrainings.map((training) => (
+              <div
+                key={training.training_id}
+                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedTraining?.training_id === training.training_id
+                  ? "bg-gray-200 dark:bg-gray-800"
+                  : "bg-white dark:bg-gray-900"
+                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
+                onClick={() => handleTrainingClick(training.training_id)}
+              >
+                <div className="flex gap-3">
+                  {/* Provider Logo */}
+                  <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                    <img
+                      src={training.providerImage || "http://bij.ly/4ib59B1"}
+                      alt={training.training_title}
+                      className="w-full h-full object-contain p-2"
+                    />
+                  </div>
 
-              {filteredTrainings.length === 0 && !isLoading ? (
-                <Typography variant="body1">
-                  No training postings match your criteria.
-                </Typography>
-              ) : (
-                filteredTrainings.map((training) => (
-                  <Card
-                    key={training.training_id}
-                    sx={{
-                      mb: 2,
-                      cursor: "pointer",
-                      backgroundColor:
-                        selectedTraining?.training_id === training.training_id
-                          ? "#f5f5f5"
-                          : "white",
-                      "&:hover": { backgroundColor: colors.primary[400] },
-                    }}
-                    onClick={() => handleTrainingClick(training.training_id)}
-                  >
-                    <CardContent>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: 2,
-                        }}
-                      >
-                        {/* Company Image */}
-                        <Box
-                          sx={{
-                            width: 80,
-                            height: 80,
-                            flexShrink: 0,
-                            backgroundColor: "#f5f5f5",
-                            borderRadius: "8px",
-                            overflow: "hidden",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <img
-                            src={
-                              training.companyImage || "https://bit.ly/3Qgevzn"
-                            }
-                            alt={training.provider || "Company Logo"}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "contain",
-                              padding: "8px",
-                            }}
-                            onError={(e) => {
-                              e.target.src = "https://bit.ly/3Qgevzn"; // Fallback image on error
-                            }}
-                          />
-                        </Box>
+                  {/* Training Info */}
+                  <div className="flex-1">
+                    <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      {training.training_title}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {training.training_description}
+                    </div>
+                  </div>
 
-                        {/* Training Details */}
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="h5" component="div" gutterBottom>
-                            {training.training_title}
-                          </Typography>
-                          <Typography variant="body2">
-                            Expiration: {training.expiration_date || "N/A"}
-                          </Typography>
-                          <Typography variant="body2">
-                            {training.training_description || "Description N/A"}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </>
+                  {/* Application Status Indicator */}
+                  {appliedTrainingIds.includes(training.training_id) && (
+                    <div className="flex items-start">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Enrolled
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
           )}
-        </Box>
+        </div>
 
-        {/* Training View Panel */}
-        <Box
-          sx={{
-            width: "40%",
-            height: "100%",
-            overflowY: "auto",
-            backgroundColor: "white",
-          }}
-        >
-          {selectedTraining && (
+        {/* Training Details View */}
+        {selectedTraining && (
+          <div className="w-2/5 h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
             <TrainingView
               training={selectedTraining}
-              isSaved={savedTraining[selectedTraining.training_id]}
-              isEnrolled={enrolledTraining[selectedTraining.training_id]}
-              canWithdraw={canWithdraw(selectedTraining.training_id)}
-              enrollmentTime={enrollmentTimes[selectedTraining.training_id]}
-              onSave={() => handleSaveTraining(selectedTraining.training_id)}
-              onEnroll={() =>
-                handleEnrollTraining(selectedTraining.training_id)
-              }
-              onWithdraw={() =>
-                handleWithdrawEnrollment(selectedTraining.training_id)
-              }
+              isEnrolled={appliedTrainingIds.includes(selectedTraining.employer_trainingpost_id)}
             />
-          )}
-        </Box>
-      </Box>
-
-      {/* Modal for mobile view */}
-      <Dialog
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        maxWidth="md"
-        fullWidth
-        sx={{ display: { md: "none" } }}
-      >
-        <DialogTitle>
-          Training Details
-          <IconButton
-            onClick={() => setIsModalOpen(false)}
-            sx={{ position: "absolute", right: 8, top: 8 }}
-          >
-            X
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          {selectedTraining && (
-            <TrainingView
-              training={selectedTraining}
-              isSaved={savedTraining[selectedTraining.training_id]}
-              isEnrolled={enrolledTraining[selectedTraining.training_id]}
-              canWithdraw={canWithdraw(selectedTraining.training_id)}
-              enrollmentTime={enrollmentTimes[selectedTraining.training_id]}
-              onSave={() => handleSaveTraining(selectedTraining.training_id)}
-              onEnroll={() =>
-                handleEnrollTraining(selectedTraining.training_id)
-              }
-              onWithdraw={() =>
-                handleWithdrawEnrollment(selectedTraining.training_id)
-              }
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-    </Box>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -3,10 +3,10 @@ import { Box, Typography, Button, Divider, Stack } from '@mui/material';
 import { useTheme } from '@mui/material';
 import { tokens } from '../../../theme';
 
-const SavedTrainingsView = ({ 
-  training, 
+const SavedTrainingsView = ({
+  training,
   isEnrolled = false,
-  onEnroll = () => {},
+  onEnroll = () => { },
 }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -30,8 +30,8 @@ const SavedTrainingsView = ({
   return (
     <Box sx={{ height: '100%', position: 'relative' }}>
       <Box sx={{ height: '100%', overflowY: 'auto', p: 3 }}>
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -43,10 +43,10 @@ const SavedTrainingsView = ({
             borderRadius: '8px',
           }}
         >
-          <img 
+          <img
             src={training.companyImage} // Changed from providerImage to companyImage
             alt={training.company} // Changed from provider to company
-            style={{ 
+            style={{
               width: '100%',
               height: '100%',
               objectFit: 'contain',
@@ -56,15 +56,7 @@ const SavedTrainingsView = ({
         </Box>
 
         <Typography variant="h4" gutterBottom>{training.title}</Typography>
-        <Typography variant="h5" color="primary" gutterBottom>{training.company}</Typography> {/* Changed from provider to company */}
-        
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">📍 {training.location}</Typography>
-          <Typography variant="body1">⏱️ Duration: {training.duration}</Typography>
-          <Typography variant="body1">📅 Start Date: {training.startDate}</Typography>
-          <Typography variant="body1">💰 Cost: {training.cost}</Typography>
-        </Stack>
-
+        <Typography variant="h5" color="primary" gutterBottom>{training.expiration}</Typography> {/* Changed from provider to company */}
         <Box sx={{ width: '100%', mb: 3 }}>
           <Button
             variant="contained"
