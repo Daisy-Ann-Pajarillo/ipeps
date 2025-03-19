@@ -1,92 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Button, Divider, Stack } from "@mui/material";
-import { useSelector, useDispatch } from "react-redux";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder"; // Unselected state
 import BookmarkIcon from "@mui/icons-material/Bookmark"; // Selected state
-import * as actions from "../../../../../store/actions/index";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useSelector } from "react-redux";
 import axios from "../../../../../axios";
 
 const TrainingView = ({ training, isEnrolled }) => {
-  const [isSaved, setIsSaved] = useState(false);
-  const [isEnrolledState, setIsEnrolledState] = useState(isEnrolled); // Local state for enrollment
-  const [isLoading, setIsLoading] = useState(true);
+  const [isSaved, setIsSaved] = useState(false); // Tracks if the training is saved
+  const [isEnrolledState, setIsEnrolledState] = useState(isEnrolled); // Tracks if the user is enrolled
+  const [isLoading, setIsLoading] = useState(true); // Tracks loading state for API calls
 
-  const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    dispatch(actions.getAuthStorage());
-  }, [dispatch]);
-
-  // Reset states when training changes
-  useEffect(() => {
-    setIsSaved(false);
-    setIsEnrolledState(isEnrolled);
-    setIsLoading(true);
-  }, [training.training_id]);
-
-  const handleEnroll = async () => {
-    // Don't proceed if already enrolled
-    if (isEnrolledState) return;
-
-    try {
-      setIsLoading(true);
-      const response = await axios.post(
-        "/api/apply-training",
-        {
-          employer_trainingpost_id: training.training_id,
-        },
-        {
-          auth: {
-            username: auth.token,
-          },
-        }
-      );
-
-      setIsEnrolledState(true);
-      toast.success(response.data.message || "Successfully enrolled in the training");
-    } catch (error) {
-      console.error("Error enrolling in training:", error);
-      if (error.response?.data?.is_enrolled) {
-        setIsEnrolledState(true);
-        toast.info("You are already enrolled in this training");
-      } else {
-        toast.error(
-          error.response?.data?.message || "Failed to enroll in the training"
-        );
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  //Saved Trainings
-  const handleSave = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.post(
-        "/api/save-training",
-        {
-          employer_trainingpost_id: training.training_id,
-        },
-        {
-          auth: {
-            username: auth.token,
-          },
-        }
-      );
-      setIsSaved(response.data.is_saved);
-      toast.success(response.data.message);
-    } catch (error) {
-      console.error("Error saving training:", error);
-      toast.error(error.response?.data?.message || "Failed to save the training");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
 
   useEffect(() => {
     const checkTrainingStatus = async () => {
@@ -98,17 +22,17 @@ const TrainingView = ({ training, isEnrolled }) => {
       try {
         setIsLoading(true);
 
-        // Check if training is saved
+        // Check if the training is saved
         const savedResponse = await axios.post(
-          "/api/check-training-status",
+          "/api/save-training",
           { employer_trainingpost_id: training.training_id },
           { auth: { username: auth.token } }
         );
         setIsSaved(savedResponse.data.is_saved);
 
-        // Check if training is enrolled
+        // Check if the user is already enrolled
         const enrolledResponse = await axios.post(
-          "/api/check-training-status",
+          "/api/check-already-enrolled",
           { employer_trainingpost_id: training.training_id },
           { auth: { username: auth.token } }
         );
@@ -125,8 +49,8 @@ const TrainingView = ({ training, isEnrolled }) => {
 
   return (
     <Box sx={{ height: "100%", position: "relative" }}>
-      <ToastContainer />
       <Box sx={{ height: "100%", overflowY: "auto", p: 3 }}>
+        {/* Training Image */}
         <Box
           sx={{
             display: "flex",
@@ -152,28 +76,30 @@ const TrainingView = ({ training, isEnrolled }) => {
           />
         </Box>
 
+        {/* Training Title and Expiration Date */}
         <Typography variant="h4" gutterBottom>
           {training.training_title}
         </Typography>
         <Typography variant="h5" color="primary" gutterBottom>
-          {training.expiration_date}
+          Expires on: {training.expiration_date}
         </Typography>
 
+        {/* Enrollment and Save Buttons */}
         <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+          {/* Enroll Button */}
           <Box sx={{ flex: 1 }}>
             <Button
               variant="contained"
               fullWidth
-              onClick={handleEnroll}
-              disabled={isLoading || isEnrolledState}
+              disabled={true} // Disable the button since handleEnroll is removed
               sx={{
                 height: "36.5px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: isEnrolledState ? "#218838" : "#007BFF",
+                backgroundColor: isEnrolledState ? "#218838" : "#cccccc",
                 color: "#ffffff",
-                pointerEvents: isEnrolledState ? "none" : "auto", // This changes the cursor behavior
+                pointerEvents: "none", // Disable pointer events
                 "&:disabled": {
                   backgroundColor: isEnrolledState ? "#218838" : "#cccccc",
                   color: "#ffffff",
@@ -184,9 +110,6 @@ const TrainingView = ({ training, isEnrolled }) => {
                   backgroundColor: isEnrolledState ? "#218838" : "#cccccc",
                   color: "#ffffff",
                 },
-                "&:hover": {
-                  backgroundColor: isEnrolledState ? "#218838" : "#0069d9",
-                },
               }}
             >
               {isLoading
@@ -196,19 +119,20 @@ const TrainingView = ({ training, isEnrolled }) => {
                   : "Enroll"}
             </Button>
           </Box>
+
+          {/* Save Button */}
           <Box sx={{ width: "120px" }}>
             <Button
               variant="contained"
               fullWidth
-              onClick={handleSave}
-              disabled={isLoading}
+              disabled={true} // Disable the button since handleSave is removed
               sx={{
                 height: "36.5px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "white",
-                color: isSaved ? "#007BFF" : "#000000",
+                color: isSaved ? "#007BFF" : "#999999",
                 border: "1px solid #e0e0e0",
                 "&:disabled": {
                   backgroundColor: "#f5f5f5",
@@ -222,8 +146,10 @@ const TrainingView = ({ training, isEnrolled }) => {
           </Box>
         </Stack>
 
+        {/* Divider */}
         <Divider sx={{ my: 3 }} />
 
+        {/* Training Description */}
         <Typography variant="h6" gutterBottom>
           Training Description
         </Typography>

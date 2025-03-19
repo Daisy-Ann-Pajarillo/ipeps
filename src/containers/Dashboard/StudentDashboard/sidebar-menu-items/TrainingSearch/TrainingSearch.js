@@ -38,7 +38,7 @@ const TrainingSearch = ({ isCollapsed }) => {
 
       if (response.data.success && Array.isArray(response.data.applications)) {
         const appliedIds = response.data.applications.map(
-          (application) => application.employer_trainingpost_id.toString() // Ensure IDs are strings
+          (application) => application.employer_trainingpost_id
         );
         console.log("Extracted Applied Training IDs:", appliedIds); // Log extracted IDs
         setAppliedTrainingIds(appliedIds);
@@ -241,7 +241,7 @@ const TrainingSearch = ({ isCollapsed }) => {
                   </div>
 
                   {/* Application Status Indicator */}
-                  {appliedTrainingIds.includes(training.training_id) && (
+                  {appliedTrainingIds.includes(training.employer_trainingpost_id) && (
                     <div className="flex items-start">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Enrolled

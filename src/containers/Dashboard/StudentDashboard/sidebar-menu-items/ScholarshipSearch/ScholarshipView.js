@@ -1,6 +1,18 @@
-import React from 'react';
-import { Box, Typography, Button, Divider, Stack, IconButton } from '@mui/material';
-import { School, AccessTime, Payment, BookmarkBorder, Bookmark } from '@mui/icons-material';
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  Divider,
+  Stack,
+} from "@mui/material";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder"; // Unselected state
+import BookmarkIcon from "@mui/icons-material/Bookmark"; // Selected state
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
+import axios from "../../../../../axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ScholarshipView = ({
   scholarship,
@@ -9,104 +21,173 @@ const ScholarshipView = ({
   applicationTime,
   onSave,
   onApply,
-  onWithdraw
 }) => {
-  const canWithdraw = () => {
-    if (!applicationTime) return false;
-    const now = new Date().getTime();
-    const timeLeft = (applicationTime + 24 * 60 * 60 * 1000) - now;
-    return timeLeft > 0;
+  const [isLoading, setIsLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
+  // Reset states when scholarship changes
+  useEffect(() => {
+    setIsLoading(false);
+  }, [scholarship.scholarship_id]);
+
+  const handleSave = async () => {
+    try {
+      setIsLoading(true);
+      await onSave(); // Use the parent's save handler
+    } catch (error) {
+      console.error("Error saving scholarship:", error);
+      toast.error(error.response?.data?.message || "Failed to save the scholarship");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const getTimeRemaining = () => {
-    if (!applicationTime) return null;
-    const now = new Date().getTime();
-    const timeLeft = (applicationTime + 24 * 60 * 60 * 1000) - now;
-    if (timeLeft <= 0) return null;
+  const handleApply = async () => {
+    if (isApplied) return;
 
-    const hours = Math.floor(timeLeft / (60 * 60 * 1000));
-    const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-    return `${hours}h ${minutes}m remaining to withdraw`;
+    try {
+      setIsLoading(true);
+      await onApply(); // Use the parent's apply handler
+      toast.success("Successfully applied for the scholarship");
+    } catch (error) {
+      console.error("Error applying scholarship:", error);
+      if (error.response?.data?.is_applied) {
+        toast.info("You have already applied for this scholarship");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to apply for the scholarship");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Box sx={{ height: '100%', position: 'relative' }}>
-      <Box sx={{ height: '100%', overflowY: 'auto', p: 3 }}>
+    <Box sx={{ height: "100%", position: "relative" }}>
+      <ToastContainer />
+      <Box sx={{ height: "100%", overflowY: "auto", p: 3 }}>
         {/* Scholarship Image */}
-        <Box sx={{ /* ... image container styles ... */ }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            mb: 4,
+            height: "300px",
+            width: "100%",
+            overflow: "hidden",
+            backgroundColor: "#f5f5f5",
+            borderRadius: "8px",
+          }}
+        >
           <img
-            src={scholarship.scholarshipImage}
-            alt={scholarship.title}
-            style={{ /* ... image styles ... */ }}
+            src={scholarship.logo || "http://bij.ly/4ib59B1"}
+            alt={scholarship.scholarship_title}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              padding: "16px",
+            }}
           />
         </Box>
 
-        {/* Scholarship Details */}
-        <Typography variant="h4" gutterBottom>{scholarship.scholarship_title || 'Title Not Available'}</Typography>
-        <Typography variant="h5" color="primary" gutterBottom>{scholarship.provider || 'Provider Unknown'}</Typography>
+        {/* Scholarship Title and Country */}
+        <Typography variant="h4" gutterBottom>
+          {scholarship.scholarship_title}
+        </Typography>
+        <Typography variant="h5" color="primary" gutterBottom>
+          {scholarship.expiration_date}
+        </Typography>
 
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">🎓 Description: {scholarship.scholarship_description || 'No description available.'}</Typography>
-          <Typography variant="body1">⏳ Expiration Date: {scholarship.expiration_date || 'N/A'}</Typography>
-        </Stack>
 
         {/* Action Buttons */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={isApplied ? (canWithdraw() ? onWithdraw : null) : onApply}
-            sx={{
-              height: '36.5px',
-              backgroundColor: isApplied
-                ? canWithdraw() ? '#dc3545' : '#28a745'
-                : '#007bff',
-              color: '#ffffff',
-              '&:hover': {
-                backgroundColor: isApplied
-                  ? canWithdraw() ? '#c82333' : '#218838'
-                  : '#0056b3',
-              },
-            }}
-          >
-            {isApplied
-              ? (canWithdraw() ? 'Withdraw Application' : 'Applied')
-              : 'Apply Now'
-            }
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={onSave}
-            startIcon={isSaved ? <Bookmark /> : <BookmarkBorder />}
-            sx={{ width: '120px' }}
-          >
-            {isSaved ? 'Saved' : 'Save'}
-          </Button>
-        </Box>
+        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+          {/* Apply Button */}
+          <Box sx={{ flex: 1 }}>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleApply}
+              disabled={isLoading || isApplied}
+              sx={{
+                height: "36.5px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: isApplied ? "#218838" : "#007BFF",
+                color: "#ffffff",
+                pointerEvents: isApplied ? "none" : "auto",
+                "&:disabled": {
+                  backgroundColor: isApplied ? "#218838" : "#cccccc",
+                  color: "#ffffff",
+                  opacity: 1,
+                  cursor: "not-allowed",
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: isApplied ? "#218838" : "#cccccc",
+                  color: "#ffffff",
+                },
+                "&:hover": {
+                  backgroundColor: isApplied ? "#218838" : "#0069d9",
+                },
+              }}
+            >
+              {isLoading
+                ? "Loading..."
+                : isApplied
+                  ? "Already Applied"
+                  : "Apply"}
+            </Button>
+          </Box>
 
-        {/* Withdrawal Timer */}
-        {isApplied && canWithdraw() && (
-          <Typography
-            variant="caption"
-            sx={{
-              display: 'block',
-              textAlign: 'center',
-              mt: -2,
-              mb: 3,
-              color: '#dc3545'
-            }}
-          >
-            {getTimeRemaining()}
-          </Typography>
-        )}
+          {/* Save Button */}
+          <Box sx={{ width: "120px" }}>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleSave}
+              disabled={isLoading}
+              sx={{
+                height: "36.5px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "white",
+                color: isSaved ? "#007BFF" : "#000000",
+                border: "1px solid #e0e0e0",
+                "&:disabled": {
+                  backgroundColor: "#f5f5f5",
+                  color: "#999999",
+                },
+              }}
+              startIcon={isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+            >
+              {isLoading ? "..." : isSaved ? "Saved" : "Save"}
+            </Button>
+          </Box>
+        </Stack>
 
+        {/* Divider */}
         <Divider sx={{ my: 3 }} />
 
-        {/* Description */}
-        <Typography variant="h6" gutterBottom>Description</Typography>
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-          {scholarship.scholarship_description || 'No description available.'}
+        {/* Scholarship Description */}
+        <Typography variant="h6" gutterBottom>
+          Scholarship Description
         </Typography>
+        <Typography variant="body1">{scholarship.scholarship_description}</Typography>
+
+        {/* Application Time */}
+        {applicationTime && (
+          <Typography variant="caption" sx={{ mt: 2, color: "text.secondary" }}>
+            Applied on: {new Date(applicationTime).toLocaleString()}
+          </Typography>
+        )}
       </Box>
     </Box>
   );
