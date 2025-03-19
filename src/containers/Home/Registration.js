@@ -166,17 +166,6 @@ function Registration(props) {
     setErrors((prev) => ({ ...prev, login: { error: false, message: "" } }));
     setSuccess((prev) => ({ ...prev, login: { success: false, message: "" } }));
 
-    // const response = await axios.get("/api/token", {
-    //   auth: {
-    //     username: data.loginUsername,
-    //     password: data.loginPassword,
-    //   },
-    //   withCredentials: false,
-    // });
-    // console.log("Response:", response.data);
-
-    // Authentication and navigation
-    //props.onAuth(data.loginUsername, data.loginPassword);
     props.onAuth(data.loginUsername, data.loginPassword);
   };
 
