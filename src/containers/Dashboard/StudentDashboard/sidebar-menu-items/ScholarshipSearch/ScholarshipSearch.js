@@ -158,7 +158,6 @@ const ScholarshipSearch = ({ isCollapsed }) => {
           auth: { username: auth.token },
         }
       );
-
       setSavedScholarships((prev) => {
         const newSaved = { ...prev, [scholarshipId]: isSaving };
         localStorage.setItem("savedScholarships", JSON.stringify(newSaved));

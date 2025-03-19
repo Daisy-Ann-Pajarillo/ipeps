@@ -102,20 +102,9 @@ const ScholarshipView = ({
           {scholarship.scholarship_title}
         </Typography>
         <Typography variant="h5" color="primary" gutterBottom>
-          {scholarship.country}
+          {scholarship.expiration_date}
         </Typography>
 
-        {/* Scholarship Details */}
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">📍 {scholarship.city_municipality}</Typography>
-          <Typography variant="body1">🎓 {scholarship.scholarship_type}</Typography>
-          <Typography variant="body1">
-            💰 Amount: {scholarship.amount || "N/A"}
-          </Typography>
-          <Typography variant="body1">
-            ⏳ Deadline: {new Date(scholarship.deadline).toLocaleDateString()}
-          </Typography>
-        </Stack>
 
         {/* Action Buttons */}
         <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
