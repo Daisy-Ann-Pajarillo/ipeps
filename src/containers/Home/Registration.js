@@ -165,7 +165,6 @@ function Registration(props) {
     // Reset previous errors and success messages
     setErrors((prev) => ({ ...prev, login: { error: false, message: "" } }));
     setSuccess((prev) => ({ ...prev, login: { success: false, message: "" } }));
-    console.log("Data: ", data);
 
     // const response = await axios.get("/api/token", {
     //   auth: {
@@ -177,11 +176,8 @@ function Registration(props) {
     // console.log("Response:", response.data);
 
     // Authentication and navigation
-    if (data) {
-      props.onAuth(data.loginUsername, data.loginPassword);
-      // if finish registration
-      navigate("/dashboard");
-    }
+    //props.onAuth(data.loginUsername, data.loginPassword);
+    props.onAuth(data.loginUsername, data.loginPassword);
   };
 
   return (

@@ -135,9 +135,11 @@ export const auth = (username, password) => {
           })
         );
         dispatch(checkAuthTimeout(response.data.expires_in));
+        window.location.href = "/dashboard";
       })
       .catch((err) => {
         dispatch(authFail(err.response?.data || "Authentication failed"));
+        window.location.href = "/";
       });
   };
 };
