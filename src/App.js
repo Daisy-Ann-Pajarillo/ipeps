@@ -11,6 +11,11 @@ import UserApplicationForm from "./containers/UserApplicationForm/UserApplicatio
 import HelloStudent from "./hello-student";
 import HelloJobseeker from "./hello-jobseeker";
 import Dashboard from "./containers/Dashboard/Dashboard";
+import StudentDashboard from "./containers/Dashboard/StudentDashboard/StudentDashboard"
+import AdministratorDashboard from "./containers/Dashboard/AdministratorDashboard/AdministratorDashboard";
+import EmployersDashboard from "./containers/Dashboard/EmployersDashboardScreen/EmployerDashboard";
+import AcademeDashboard from "./containers/Dashboard/AcademeDashboard/AcademicDashboard";
+import Unauthorized from "./error";
 
 const loading = (
   <div className="pt-3 text-center">
@@ -43,7 +48,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/dashboard/*"
             element={
               <React.Suspense fallback={loading}>
-                {/* <AdminLayout /> */}
+                <AdministratorDashboard/>
               </React.Suspense>
             }
           />
@@ -55,7 +60,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/dashboard/*"
             element={
               <React.Suspense fallback={loading}>
-                {/* <EmployerLayout /> */}
+                <EmployersDashboard/>
               </React.Suspense>
             }
           />
@@ -67,7 +72,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/dashboard/*"
             element={
               <React.Suspense fallback={loading}>
-                <HelloJobseeker />
+                <StudentDashboard/>
               </React.Suspense>
             }
           />
@@ -89,7 +94,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/dashboard/*"
             element={
               <React.Suspense fallback={loading}>
-                {/* <AcademeLayout /> */}
+                <AcademeDashboard/>
               </React.Suspense>
             }
           />
@@ -101,7 +106,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/dashboard/*"
             element={
               <React.Suspense fallback={loading}>
-                <HelloStudent />
+                <StudentDashboard/>
               </React.Suspense>
             }
           />
@@ -124,13 +129,11 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/user-application-form"
             element={<UserApplicationForm />}
           />
-          <Route path="/dashboard/*" element={<Dashboard />} />
-
           {/* Protected Routes */}
           {authRoutes}
 
           {/* Catch-all Route */}
-          <Route path="*" element={<div>Error</div>} />
+          <Route path="*" element={<Unauthorized/>} />
         </Routes>
       </React.Suspense>
     </Router>

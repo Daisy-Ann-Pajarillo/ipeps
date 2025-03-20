@@ -62,6 +62,7 @@ export const logout = () => {
   localStorage.removeItem("expirationDate");
   localStorage.removeItem("userId");
   localStorage.removeItem("user");
+  console.log("logo out jdksjfkasdfkj")
   return {
     type: actionTypes.AUTH_LOGOUT,
   };

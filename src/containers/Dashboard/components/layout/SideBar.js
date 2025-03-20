@@ -8,6 +8,9 @@ import AdministratorMenuItems from "./AdminMenuItems";
 import AcademeMenuItems from "./AcademeMenuItems";
 import { ExpandMore, ExpandLess, Menu, ChevronLeft, DarkMode, LightMode } from "@mui/icons-material";
 import ToggleDarkMode from "../../../../reusable/components/toggleDarkMode";
+import { useDispatch } from 'react-redux';
+
+import * as actions from '../../../../store/actions/auth';
 
 const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) => (
     <>
@@ -33,7 +36,17 @@ const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) =
     </>
 );
 
+
 const SidebarItem = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
+    const dispatch = useDispatch();
+
+    const handleClick = () => {
+        setSelected(title);
+        if (title === "Logout") {
+            dispatch(actions.logout());
+        }
+    };
+
     return (
         <Link
             to={to}
@@ -44,7 +57,7 @@ const SidebarItem = ({ title, to, icon, selected, setSelected, isCollapsed }) =>
                 transition-all duration-300 ease-in-out
                 ${isCollapsed ? "justify-center" : ""}
             `}
-            onClick={() => setSelected(title)}
+            onClick={handleClick}
         >
             {icon && <span className={`${!isCollapsed && "mr-2"}`}>{icon}</span>}
             {!isCollapsed && <span className="text-md">{title}</span>}
@@ -145,6 +158,7 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
                     </SidebarGroupItems>
                 ))}
             </div>
+           
         </div>
     );
 };

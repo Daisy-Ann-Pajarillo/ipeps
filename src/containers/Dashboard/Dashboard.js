@@ -4,6 +4,8 @@ import AdministratorDashboard from "./AdministratorDashboard/AdministratorDashbo
 import AcademeDashboard from "./AcademeDashboard/AcademicDashboard";
 import { useSelector } from "react-redux";
 
+
+///// delete this component
 const Dashboard = () => {
     const userType = useSelector((state) => state.user.userType);
     return (
