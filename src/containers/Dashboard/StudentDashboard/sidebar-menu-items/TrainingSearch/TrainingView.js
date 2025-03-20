@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import * as actions from "../../../../../store/actions/index";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "../../../../../axios";
 import { tokens } from "../../../theme";
@@ -81,13 +81,11 @@ const TrainingView = ({ training }) => {
       // Toggle saved state locally regardless of response
       const newSavedState = !isSaved;
       setIsSaved(newSavedState);
-
-      toast.success(
-        response.data.message ||
-          (newSavedState
-            ? "Training saved successfully"
-            : "Training removed from saved items")
-      );
+      newSavedState
+        ? toast.success(response.data.message || "Training saved successfully")
+        : toast.info(
+            response.data.message || "Training removed from saved items"
+          );
     } catch (error) {
       console.error("Error saving training:", error);
       toast.error(
@@ -129,7 +127,6 @@ const TrainingView = ({ training }) => {
 
   return (
     <Box sx={{ height: "100%", position: "relative" }}>
-      <ToastContainer />
       <Box sx={{ height: "100%", overflowY: "auto", p: 3 }}>
         {/* Company Image with fixed size and center alignment */}
         <Box

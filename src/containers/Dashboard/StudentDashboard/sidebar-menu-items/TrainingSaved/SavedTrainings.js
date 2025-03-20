@@ -227,7 +227,7 @@ const SavedTrainings = ({ isCollapsed }) => {
         setSelectedTraining(null);
       }
 
-      toast.success("Training removed from saved items");
+      toast.info("Training removed from saved items");
     } catch (error) {
       console.error("Error removing saved training:", error);
       toast.error("Failed to remove training from saved items");

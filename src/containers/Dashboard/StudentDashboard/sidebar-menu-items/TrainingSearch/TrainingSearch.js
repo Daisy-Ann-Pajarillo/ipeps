@@ -25,28 +25,6 @@ const TrainingSearch = ({ isCollapsed }) => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-  // Load applied trainings to know which trainings user has applied to
-  const loadAppliedTrainings = async () => {
-    if (!auth.token) return;
-
-    try {
-      const response = await axios.get("/api/get-applied-trainings", {
-        auth: { username: auth.token },
-      });
-
-      console.log("API Response for Applied Trainings:", response.data); // Log API response
-
-      // if (response.data.success && Array.isArray(response.data.applications)) {
-      //   const appliedIds = response.data.applications.map(
-      //     (application) => application.employer_trainingpost_id
-      //   );
-      //   console.log("Extracted Applied Training IDs:", appliedIds); // Log extracted IDs
-      //   setAppliedTrainingIds(appliedIds);
-      // }
-    } catch (error) {
-      console.error("Error fetching applied trainings:", error);
-    }
-  };
 
   // Fetch all trainings
   useEffect(() => {
@@ -73,8 +51,6 @@ const TrainingSearch = ({ isCollapsed }) => {
             setTrainings([]);
             toast.error("No trainings found or invalid response format");
           }
-
-          await loadAppliedTrainings();
         }
       } catch (error) {
         console.error("Error fetching training postings:", error);
@@ -196,8 +172,9 @@ const TrainingSearch = ({ isCollapsed }) => {
       <div className="flex mt-4">
         {/* Training List */}
         <div
-          className={`${selectedTraining ? "w-3/5" : "w-full"
-            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
+          className={`${
+            selectedTraining ? "w-3/5" : "w-full"
+          } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
         >
           <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
             Total: {filteredTrainings.length} trainings found
@@ -219,10 +196,11 @@ const TrainingSearch = ({ isCollapsed }) => {
             filteredTrainings.map((training) => (
               <div
                 key={training.training_id}
-                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedTraining?.training_id === training.training_id
-                  ? "bg-gray-200 dark:bg-gray-800"
-                  : "bg-white dark:bg-gray-900"
-                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
+                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${
+                  selectedTraining?.training_id === training.training_id
+                    ? "bg-gray-200 dark:bg-gray-800"
+                    : "bg-white dark:bg-gray-900"
+                } hover:bg-primary-400 dark:hover:bg-primary-600`}
                 onClick={() => handleTrainingClick(training.training_id)}
               >
                 <div className="flex gap-3">
@@ -256,11 +234,11 @@ const TrainingSearch = ({ isCollapsed }) => {
                     )}
                     {(training.estimated_cost_from !== undefined ||
                       training.estimated_cost_to !== undefined) && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          💰 {formatCost(training.estimated_cost_from)} -
-                          {formatCost(training.estimated_cost_to)}
-                        </div>
-                      )}
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        💰 {formatCost(training.estimated_cost_from)} -
+                        {formatCost(training.estimated_cost_to)}
+                      </div>
+                    )}
                   </div>
 
                   {/* Application Status Indicator
