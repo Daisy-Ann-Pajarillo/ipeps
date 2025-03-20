@@ -42,6 +42,7 @@ const TrainingView = ({ training }) => {
           },
         }
       );
+      console.log("respnse: ", response.data);
 
       setIsEnrolled(true);
       toast.success(
