@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../../axios";
-import { useSelector, useDispatch } from "react-redux";
-import * as actions from "../../../store/actions/index";
+import Box from '@mui/material/Box';
 
 const DataCard = ({ title, data = [] }) => {
   if (!data || data.length === 0) return null;
@@ -49,33 +48,19 @@ const ReviewApplication = ({ user_type }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const dispatch = useDispatch();
-  const auth = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    dispatch(actions.getAuthStorage());
-  }, [dispatch]);
-
-  const AUTH = {
-    auth: {
-      username: auth.token,
-    },
-  };
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
           const response = await axios.get(
-            "/api/get-jobseeker-student-all-data",
-            AUTH
+            "/api/get-jobseeker-student-all-data"
           );
           setData(response.data);
         } else if (user_type === "ACADEME") {
           console.log("user type ACADEME");
 
           const response = await axios.get(
-            "/api/get-academe-personal-information",
-            AUTH
+            "/api/get-academe-personal-information"
           );
           console.log(response.data);
           setData(response.data);
@@ -83,8 +68,7 @@ const ReviewApplication = ({ user_type }) => {
           console.log("user type EMPLOYER");
 
           const response = await axios.get(
-            "/api/get-employer-personal-information",
-            AUTH
+            "/api/get-employer-personal-information"
           );
           console.log(response.data);
           setData(response.data);
@@ -144,11 +128,15 @@ const ReviewApplication = ({ user_type }) => {
       : baseSections;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {sections.map(({ title, key }) => (
-        <DataCard key={key} title={title} data={data[key] || []} />
-      ))}
-    </div>
+    <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+        <div className="p-6 max-w-6xl mx-auto">
+          {sections.map(({ title, key }) => (
+            <DataCard key={key} title={title} data={data[key] || []} />
+          ))}
+        </div>
+      </Box>
+    </Box>
   );
 };
 

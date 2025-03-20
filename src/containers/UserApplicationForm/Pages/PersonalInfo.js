@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useSelector, useDispatch } from "react-redux";
-import * as actions from "../../../store/actions/index";
 
 import {
   TextField,
@@ -47,7 +45,6 @@ import {
 } from "../components/schema";
 import axios from "../../../axios";
 
-
 // Dynamic Schema Based on User Type
 const getSchema = (userType) => {
   if (userType === "EMPLOYER") {
@@ -74,22 +71,11 @@ const PersonalInfo = ({
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const dispatch = useDispatch();
-  const auth = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    dispatch(actions.getAuthStorage());
-  }, [dispatch]);
-
   // Fetch user data first
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await axios.get("/api/get-user-info", {
-          auth: {
-            username: auth.token,
-          },
-        });
+        const response = await axios.get("/api/get-user-info");
 
         console.log("Response Data: ", response.data.personal_information[0]);
         setUserInfo(response.data.personal_information[0]);
