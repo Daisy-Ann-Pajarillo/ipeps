@@ -2,6 +2,7 @@ import { jwtDecode } from "jwt-decode";
 
 import * as actionTypes from "./actionTypes";
 import axios from "../../axios";
+import React, { useState } from "react";
 
 export const authStart = () => {
   return {
@@ -62,7 +63,7 @@ export const logout = () => {
   localStorage.removeItem("expirationDate");
   localStorage.removeItem("userId");
   localStorage.removeItem("user");
-  console.log("logo out jdksjfkasdfkj")
+  console.log("logo out jdksjfkasdfkj");
   return {
     type: actionTypes.AUTH_LOGOUT,
   };
@@ -136,10 +137,21 @@ export const auth = (username, password) => {
           })
         );
         dispatch(checkAuthTimeout(response.data.expires_in));
-        window.location.href = "/dashboard";
+
+        return axios
+          .get("/api/check-personal-information-status", {
+            auth: {
+              username: response.data.token,
+            },
+          })
+          .then((statusResponse) => {
+            window.location.href = statusResponse.data.has_personal_info
+              ? "/dashboard"
+              : "/user-application-form";
+          });
       })
-      .catch((err) => {
-        dispatch(authFail(err.response?.data || "Authentication failed"));
+      .catch((error) => {
+        dispatch(authFail(error.response?.data || "Authentication failed"));
         window.location.href = "/";
       });
   };
