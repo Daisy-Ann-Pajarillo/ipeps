@@ -196,9 +196,8 @@ const TrainingSearch = ({ isCollapsed }) => {
       <div className="flex mt-4">
         {/* Training List */}
         <div
-          className={`${
-            selectedTraining ? "w-3/5" : "w-full"
-          } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
+          className={`${selectedTraining ? "w-3/5" : "w-full"
+            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
         >
           <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
             Total: {filteredTrainings.length} trainings found
@@ -220,11 +219,10 @@ const TrainingSearch = ({ isCollapsed }) => {
             filteredTrainings.map((training) => (
               <div
                 key={training.training_id}
-                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${
-                  selectedTraining?.training_id === training.training_id
-                    ? "bg-gray-200 dark:bg-gray-800"
-                    : "bg-white dark:bg-gray-900"
-                } hover:bg-primary-400 dark:hover:bg-primary-600`}
+                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedTraining?.training_id === training.training_id
+                  ? "bg-gray-200 dark:bg-gray-800"
+                  : "bg-white dark:bg-gray-900"
+                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
                 onClick={() => handleTrainingClick(training.training_id)}
               >
                 <div className="flex gap-3">
@@ -258,11 +256,11 @@ const TrainingSearch = ({ isCollapsed }) => {
                     )}
                     {(training.estimated_cost_from !== undefined ||
                       training.estimated_cost_to !== undefined) && (
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        💰 {formatCost(training.estimated_cost_from)} -
-                        {formatCost(training.estimated_cost_to)}
-                      </div>
-                    )}
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          💰 {formatCost(training.estimated_cost_from)} -
+                          {formatCost(training.estimated_cost_to)}
+                        </div>
+                      )}
                   </div>
 
                   {/* Application Status Indicator

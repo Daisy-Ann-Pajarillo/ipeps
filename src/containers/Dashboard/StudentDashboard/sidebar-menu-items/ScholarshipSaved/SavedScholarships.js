@@ -243,13 +243,7 @@ const SavedScholarships = () => {
                       {scholarship.scholarship_title}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {scholarship.country} • {scholarship.city_municipality}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      💰 {scholarship.amount || "N/A"}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      ⏳ Deadline: {new Date(scholarship.deadline).toLocaleDateString()}
+                      {scholarship.scholarship_description}
                     </div>
                   </div>
                   {/* Remove Button */}

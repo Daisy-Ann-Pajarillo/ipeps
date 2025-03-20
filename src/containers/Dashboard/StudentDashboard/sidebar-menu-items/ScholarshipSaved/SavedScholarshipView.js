@@ -143,24 +143,6 @@ const SavedScholarshipsView = ({
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">
           {scholarship.scholarship_title || "Scholarship Title"}
         </h2>
-        <h3 className="text-xl text-blue-600 dark:text-blue-400 mb-3">
-          {scholarship.organization || "Organization"}
-        </h3>
-        <h4 className="text-lg text-gray-700 dark:text-gray-300 mb-3">
-          {scholarship.country || "Country"},{" "}
-          {scholarship.city_municipality || "City"}
-        </h4>
-
-        {/* Scholarship Details */}
-        <div className="space-y-2 text-gray-700 dark:text-gray-300 mb-6">
-          <p>🎓 {scholarship.scholarship_type || "Scholarship Type"}</p>
-          <p>⏳ Deadline: {new Date(scholarship.deadline).toLocaleDateString()}</p>
-          <p>
-            💰 Amount: ${formatAmount(scholarship.amount)} - $
-            {formatAmount(scholarship.max_amount)}
-          </p>
-        </div>
-
         {/* Action Buttons */}
         <div className="flex gap-3 mb-6">
           <button

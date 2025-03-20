@@ -12,13 +12,6 @@ import {
 } from "@mui/material";
 import { tokens } from "../../../theme";
 import ScholarshipView from "./ScholarshipView";
-import {
-  School,
-  AccessTime,
-  Payment,
-  BookmarkBorder,
-  Bookmark,
-} from "@mui/icons-material";
 import SearchData from "../../../components/layout/Search";
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../store/actions/index";
@@ -39,7 +32,6 @@ const ScholarshipSearch = ({ isCollapsed }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [savedScholarships, setSavedScholarships] = useState({});
   const [appliedScholarships, setAppliedScholarships] = useState({});
-
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
 
@@ -47,22 +39,37 @@ const ScholarshipSearch = ({ isCollapsed }) => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-  // Load saved and applied scholarships
-  useEffect(() => {
-    const loadSavedAndApplied = () => {
-      const savedList = JSON.parse(localStorage.getItem("savedScholarships") || "{}");
-      const appliedItems = JSON.parse(localStorage.getItem("appliedItems") || "{}");
-      setSavedScholarships(savedList);
-      setAppliedScholarships(appliedItems);
-    };
-    loadSavedAndApplied();
-  }, []);
+  // Load applied scholarships to know which scholarships the user has applied to
+  const loadAppliedScholarships = async () => {
+    if (!auth.token) return;
+    try {
+      const response = await axios.get("/api/get-applied-scholarships", {
+        auth: { username: auth.token },
+      });
+      console.log("API Response for Applied Scholarships:", response.data); // Log API response
+      if (response.data.success && Array.isArray(response.data.applications)) {
+        const appliedIds = response.data.applications.map(
+          (application) => application.is_applied
+        );
+        console.log("Extracted Applied Scholarship IDs:", appliedIds); // Log extracted IDs
+        const appliedScholarshipsMap = appliedIds.reduce((acc, id) => {
+          acc[id] = true;
+          return acc;
+        }, {});
+        setAppliedScholarships(appliedScholarshipsMap);
+      }
+    } catch (error) {
+      console.error("Error fetching applied scholarships:", error);
+    }
+  };
 
-  // Fetch all scholarships
+  // Fetch all scholarships and load applied scholarships
   useEffect(() => {
-    const fetchScholarships = async () => {
+    const fetchScholarshipsAndApplied = async () => {
       try {
         setIsLoading(true);
+
+        // Fetch scholarships
         const response = await axios.get("/api/all-scholarship-postings", {
           auth: { username: auth.token },
         });
@@ -73,16 +80,19 @@ const ScholarshipSearch = ({ isCollapsed }) => {
           setScholarships([]);
           toast.error("No scholarships found or invalid response format");
         }
+
+        // Load applied scholarships
+        await loadAppliedScholarships();
       } catch (error) {
-        console.error("Error fetching scholarships:", error);
-        toast.error("Failed to load scholarships");
+        console.error("Error fetching scholarships or applied scholarships:", error);
+        toast.error("Failed to load scholarships or applied scholarships");
         setScholarships([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchScholarships();
+    fetchScholarshipsAndApplied();
   }, [auth.token]);
 
   // Filter and sort scholarships
@@ -119,8 +129,7 @@ const ScholarshipSearch = ({ isCollapsed }) => {
       );
     } else if (sortBy === "Amount") {
       updatedScholarships.sort(
-        (a, b) =>
-          (b.amount || 0) - (a.amount || 0)
+        (a, b) => (b.amount || 0) - (a.amount || 0)
       );
     }
 
@@ -181,7 +190,6 @@ const ScholarshipSearch = ({ isCollapsed }) => {
         { employer_scholarshippost_id: scholarshipId },
         { auth: { username: auth.token } }
       );
-
       setAppliedScholarships((prev) => {
         const newApplied = { ...prev, [scholarshipId]: true };
         localStorage.setItem("appliedItems", JSON.stringify(newApplied));
@@ -197,7 +205,6 @@ const ScholarshipSearch = ({ isCollapsed }) => {
   return (
     <div>
       <ToastContainer />
-
       {/* Search */}
       <SearchData
         placeholder="Find a scholarship..."
@@ -225,7 +232,6 @@ const ScholarshipSearch = ({ isCollapsed }) => {
           if (index === 2) setSortBy(value);
         }}
       />
-
       <div className="flex mt-4">
         {/* Scholarship List */}
         <div
@@ -235,7 +241,6 @@ const ScholarshipSearch = ({ isCollapsed }) => {
           <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
             Total: {filteredScholarships.length} scholarships found
           </div>
-
           {isLoading ? (
             <div className="flex justify-center items-center h-40">
               <p className="text-gray-500 dark:text-gray-400">
@@ -267,7 +272,6 @@ const ScholarshipSearch = ({ isCollapsed }) => {
                       className="w-full h-full object-contain p-2"
                     />
                   </div>
-
                   {/* Scholarship Info */}
                   <div className="flex-1">
                     <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -280,9 +284,8 @@ const ScholarshipSearch = ({ isCollapsed }) => {
                       💰 {scholarship.amount || "N/A"}
                     </div>
                   </div>
-
                   {/* Application Status Indicator */}
-                  {appliedScholarships[scholarship.scholarship_id] && (
+                  {appliedScholarships[scholarship.employer_scholarshippost_id] && (
                     <div className="flex items-start">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                         Applied
@@ -294,14 +297,13 @@ const ScholarshipSearch = ({ isCollapsed }) => {
             ))
           )}
         </div>
-
         {/* Scholarship Details View */}
         {selectedScholarship && (
           <div className="w-2/5 h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
             <ScholarshipView
               scholarship={selectedScholarship}
-              isSaved={savedScholarships[selectedScholarship.scholarship_id]}
-              isApplied={appliedScholarships[selectedScholarship.scholarship_id]}
+              isSaved={savedScholarships[selectedScholarship.employer_scholarshippost_id]}
+              isApplied={appliedScholarships[selectedScholarship.employer_scholarshippost_id]}
               onSave={() => handleSaveScholarship(selectedScholarship.scholarship_id)}
               onApply={() => handleApplyScholarship(selectedScholarship.scholarship_id)}
             />
