@@ -11,9 +11,6 @@ import {
 } from "@mui/material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useSelector, useDispatch } from "react-redux";
-import * as actions from "../../../store/actions/index";
-
 import BackNextButton from "../backnextButton";
 import { otherSkillsSchema } from "../components/schema";
 import fetchData from "../api/fetchData";
@@ -30,22 +27,11 @@ const OtherSkills = ({
   const [otherSkills, setOtherSkills] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const dispatch = useDispatch();
-  const auth = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    dispatch(actions.getAuthStorage());
-  }, [dispatch]);
-
   // Fetch user work experience data
   useEffect(() => {
     const fetchOtherSkills = async () => {
       try {
-        const response = await axios.get("api/get-user-info", {
-          auth: {
-            username: auth.token,
-          },
-        });
+        const response = await axios.get("api/get-user-info");
         setOtherSkills(response.data.other_skills || []);
       } catch (error) {
         console.error("Error fetching user work experience:", error);
@@ -184,89 +170,93 @@ const OtherSkills = ({
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        Select Your Skills
-      </Typography>
+    <Box sx={{ p: 4, height: "100%", display: "flex", flexDirection: "column" }}>
+      <Box sx={{ flexGrow: 1, overflowY: "auto" }}>
+        <Typography variant="h6" gutterBottom>
+          Select Your Skills
+        </Typography>
 
-      <Grid container spacing={3}>
-        {skillColumns.map((columnSkills, columnIndex) => (
-          <Grid item xs={12} md={4} key={columnIndex}>
-            {columnSkills.map((skill) => {
-              const formattedLabel = skill
-                .split(" ")
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" ");
-              return (
-                <FormControlLabel
-                  key={skill}
-                  control={
-                    <Checkbox
-                      checked={
-                        skills.includes(skill) || isSkillInOtherSkills(skill)
-                      }
-                      onChange={handleSkillChange(skill)}
-                    />
-                  }
-                  label={formattedLabel}
-                />
-              );
-            })}
-          </Grid>
-        ))}
-      </Grid>
-
-      <Box sx={{ mt: 3, mb: 5 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={8}>
-            <TextField
-              fullWidth
-              label="Add other skills..."
-              {...register("newSkill")}
-              onKeyPress={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddSkill();
-                }
-              }}
-            />
-          </Grid>
-          <Grid item xs={4}>
-            <Button
-              variant="contained"
-              onClick={handleAddSkill}
-              disabled={!watch("newSkill")?.trim() || other_skills.length >= 50}
-            >
-              Add
-            </Button>
-          </Grid>
+        <Grid container spacing={3}>
+          {skillColumns.map((columnSkills, columnIndex) => (
+            <Grid item xs={12} md={4} key={columnIndex}>
+              {columnSkills.map((skill) => {
+                const formattedLabel = skill
+                  .split(" ")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ");
+                return (
+                  <FormControlLabel
+                    key={skill}
+                    control={
+                      <Checkbox
+                        checked={
+                          skills.includes(skill) || isSkillInOtherSkills(skill)
+                        }
+                        onChange={handleSkillChange(skill)}
+                      />
+                    }
+                    label={formattedLabel}
+                  />
+                );
+              })}
+            </Grid>
+          ))}
         </Grid>
 
-        <Box sx={{ mt: 2 }}>
-          {other_skills.map((skill, index) => (
-            <Chip
-              key={index}
-              label={skill.skills}
-              onDelete={() => handleRemoveSkill(skill.skills)}
-              sx={{ m: 0.5 }}
-            />
-          ))}
+        <Box sx={{ mt: 3, mb: 5 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={8}>
+              <TextField
+                fullWidth
+                label="Add other skills..."
+                {...register("newSkill")}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddSkill();
+                  }
+                }}
+              />
+            </Grid>
+            <Grid item xs={4}>
+              <Button
+                variant="contained"
+                onClick={handleAddSkill}
+                disabled={!watch("newSkill")?.trim() || other_skills.length >= 50}
+              >
+                Add
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Box sx={{ mt: 2 }}>
+            {other_skills.map((skill, index) => (
+              <Chip
+                key={index}
+                label={skill.skills}
+                onDelete={() => handleRemoveSkill(skill.skills)}
+                sx={{ m: 0.5 }}
+              />
+            ))}
+          </Box>
         </Box>
       </Box>
 
-      <BackNextButton
-        activeStep={activeStep}
-        steps={steps}
-        handleBack={handleBack}
-        handleNext={handleNext}
-        isValid={isValid}
-        setIsValid={setIsValid}
-        schema={otherSkillsSchema}
-        canSkip={true}
-        user_type={user_type}
-        formData={[...skills, ...other_skills.map((item) => item.skills)]}
-        api="other-skills"
-      />
+      <Box sx={{ mt: 'auto', pt: 2 }}>
+        <BackNextButton
+          activeStep={activeStep}
+          steps={steps}
+          handleBack={handleBack}
+          handleNext={handleNext}
+          isValid={isValid}
+          setIsValid={setIsValid}
+          schema={otherSkillsSchema}
+          canSkip={true}
+          user_type={user_type}
+          formData={[...skills, ...other_skills.map((item) => item.skills)]}
+          api="other-skills"
+        />
+      </Box>
     </Box>
   );
 };

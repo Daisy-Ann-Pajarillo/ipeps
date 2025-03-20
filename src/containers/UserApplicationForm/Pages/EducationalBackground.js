@@ -3,8 +3,6 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { Autocomplete } from "@mui/material";
-import { useSelector, useDispatch } from "react-redux";
-import * as actions from "../../../store/actions/index";
 import {
   Button,
   TextField,
@@ -20,8 +18,6 @@ import {
 import BackNextButton from "../backnextButton";
 import fieldOfStudyTypes from "../../../reusable/constants/fieldOfStudyTypes";
 import fetchData from "../api/fetchData";
-import axios from "../../../axios";
-import { auth } from "../../../store/actions";
 
 const schema = yup.object().shape({
   educationHistory: yup.array().of(
@@ -121,25 +117,14 @@ const EducationalBackground = ({
       educationHistory: [],
     },
   });
-  const dispatch = useDispatch();
-  const auth = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    dispatch(actions.getAuthStorage());
-  }, [dispatch]);
 
   // Fetch and transform data
   useEffect(() => {
     const fetchEducationalBackground = async () => {
       try {
-        const response = await axios.get("api/get-user-info", {
-          auth: {
-            username: auth.token,
-          },
-        });
-
-        if (response.data.educational_background) {
-          const transformedData = response.data.educational_background.map(
+        const response = await fetchData("api/get-user-info");
+        if (response.educational_background) {
+          const transformedData = response.educational_background.map(
             (edu) => ({
               schoolName: edu.school_name,
               degreeQualification: edu.degree_or_qualification,
@@ -216,173 +201,177 @@ const EducationalBackground = ({
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      {errors.educationHistory?.message && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>
-          {errors.educationHistory.message}
-        </div>
-      )}
+    <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+        {errors.educationHistory?.message && (
+          <div style={{ color: "red", marginBottom: "1rem" }}>
+            {errors.educationHistory.message}
+          </div>
+        )}
 
-      {educationHistory.map((item, index) => (
-        <Grid container spacing={2} key={index} sx={{ marginBottom: 5 }}>
-          <Grid item xs={12}>
-            <Autocomplete
-              freeSolo
-              options={schoolsList}
-              value={item.schoolName}
-              onChange={(_, newValue) => {
-                setValue(`educationHistory.${index}.schoolName`, newValue, {
-                  shouldValidate: true,
-                });
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  {...register(`educationHistory.${index}.schoolName`)}
-                  label="School Name"
-                  required
-                  error={!!errors.educationHistory?.[index]?.schoolName}
-                  helperText={
-                    errors.educationHistory?.[index]?.schoolName?.message
-                  }
-                />
-              )}
-            />
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              {...register(`educationHistory.${index}.dateFrom`)}
-              label="Date From"
-              type="date"
-              required
-              InputLabelProps={{ shrink: true }}
-              error={!!errors.educationHistory?.[index]?.dateFrom}
-              helperText={errors.educationHistory?.[index]?.dateFrom?.message}
-            />
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              {...register(`educationHistory.${index}.dateTo`)}
-              label="Date To"
-              type="date"
-              disabled={item.isCurrent}
-              InputLabelProps={{ shrink: true }}
-              error={!!errors.educationHistory?.[index]?.dateTo}
-              helperText={errors.educationHistory?.[index]?.dateTo?.message}
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={item.isCurrent}
-                  onChange={(e) =>
-                    handleCurrentCheckbox(index, e.target.checked)
-                  }
-                />
-              }
-              label="Currently Attending"
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
-              <InputLabel>Degree or Qualification</InputLabel>
-              <Select
-                {...register(`educationHistory.${index}.degreeQualification`)}
-                error={!!errors.educationHistory?.[index]?.degreeQualification}
-                value={item.degreeQualification || ""}
-              >
-                {degreeOptions.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-              <p className="text-red-500 text-sm">
-                {errors.educationHistory?.[index]?.degreeQualification?.message}
-              </p>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
-              <InputLabel>Field of Study</InputLabel>
-              <Select
-                {...register(`educationHistory.${index}.fieldOfStudy`)}
-                error={!!errors.educationHistory?.[index]?.fieldOfStudy}
-                value={item.fieldOfStudy || ""}
-              >
-                {fieldOfStudyTypes.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-              <p className="text-red-500 text-sm">
-                {errors.educationHistory?.[index]?.fieldOfStudy?.message}
-              </p>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              fullWidth
-              required
-              {...register(`educationHistory.${index}.programDuration`)}
-              label="Program Duration (Years)"
-              type="number"
-              inputProps={{ min: 0 }} // Ensures the input doesn't allow negatives
-              value={item.programDuration || ""}
-              error={!!errors.educationHistory?.[index]?.programDuration}
-              helperText={
-                errors.educationHistory?.[index]?.programDuration?.message
-              }
-            />
-          </Grid>
-
-          {educationHistory.length > 1 && (
+        {educationHistory.map((item, index) => (
+          <Grid container spacing={2} key={index} sx={{ marginBottom: 5 }}>
             <Grid item xs={12}>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => removeEducation(index)}
-              >
-                Remove
-              </Button>
+              <Autocomplete
+                freeSolo
+                options={schoolsList}
+                value={item.schoolName}
+                onChange={(_, newValue) => {
+                  setValue(`educationHistory.${index}.schoolName`, newValue, {
+                    shouldValidate: true,
+                  });
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    {...register(`educationHistory.${index}.schoolName`)}
+                    label="School Name"
+                    required
+                    error={!!errors.educationHistory?.[index]?.schoolName}
+                    helperText={
+                      errors.educationHistory?.[index]?.schoolName?.message
+                    }
+                  />
+                )}
+              />
             </Grid>
-          )}
-        </Grid>
-      ))}
 
-      <div className="mb-4 text-center">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={addEducation}
-          sx={{ marginBottom: 2 }}
-        >
-          Add Education
-        </Button>
-      </div>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                {...register(`educationHistory.${index}.dateFrom`)}
+                label="Date From"
+                type="date"
+                required
+                InputLabelProps={{ shrink: true }}
+                error={!!errors.educationHistory?.[index]?.dateFrom}
+                helperText={errors.educationHistory?.[index]?.dateFrom?.message}
+              />
+            </Grid>
 
-      <BackNextButton
-        activeStep={activeStep}
-        steps={steps}
-        handleBack={handleBack}
-        handleNext={handleNext}
-        isValid={isValid}
-        setIsValid={setIsValid}
-        schema={schema}
-        formData={educationHistory}
-        user_type={user_type}
-        api={"educational-background"}
-      />
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                {...register(`educationHistory.${index}.dateTo`)}
+                label="Date To"
+                type="date"
+                disabled={item.isCurrent}
+                InputLabelProps={{ shrink: true }}
+                error={!!errors.educationHistory?.[index]?.dateTo}
+                helperText={errors.educationHistory?.[index]?.dateTo?.message}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={item.isCurrent}
+                    onChange={(e) =>
+                      handleCurrentCheckbox(index, e.target.checked)
+                    }
+                  />
+                }
+                label="Currently Attending"
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Degree or Qualification</InputLabel>
+                <Select
+                  {...register(`educationHistory.${index}.degreeQualification`)}
+                  error={!!errors.educationHistory?.[index]?.degreeQualification}
+                  value={item.degreeQualification || ""}
+                >
+                  {degreeOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <p className="text-red-500 text-sm">
+                  {errors.educationHistory?.[index]?.degreeQualification?.message}
+                </p>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Field of Study</InputLabel>
+                <Select
+                  {...register(`educationHistory.${index}.fieldOfStudy`)}
+                  error={!!errors.educationHistory?.[index]?.fieldOfStudy}
+                  value={item.fieldOfStudy || ""}
+                >
+                  {fieldOfStudyTypes.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <p className="text-red-500 text-sm">
+                  {errors.educationHistory?.[index]?.fieldOfStudy?.message}
+                </p>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                required
+                {...register(`educationHistory.${index}.programDuration`)}
+                label="Program Duration (Years)"
+                type="number"
+                inputProps={{ min: 0 }} // Ensures the input doesn't allow negatives
+                value={item.programDuration || ""}
+                error={!!errors.educationHistory?.[index]?.programDuration}
+                helperText={
+                  errors.educationHistory?.[index]?.programDuration?.message
+                }
+              />
+            </Grid>
+
+            {educationHistory.length > 1 && (
+              <Grid item xs={12}>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => removeEducation(index)}
+                >
+                  Remove
+                </Button>
+              </Grid>
+            )}
+          </Grid>
+        ))}
+
+        <div className="mb-4 text-center">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={addEducation}
+            sx={{ marginBottom: 2 }}
+          >
+            Add Education
+          </Button>
+        </div>
+      </Box>
+
+      <Box sx={{ mt: 'auto', pt: 2 }}>
+        <BackNextButton
+          activeStep={activeStep}
+          steps={steps}
+          handleBack={handleBack}
+          handleNext={handleNext}
+          isValid={isValid}
+          setIsValid={setIsValid}
+          schema={schema}
+          formData={educationHistory}
+          user_type={user_type}
+          api={"educational-background"}
+        />
+      </Box>
     </Box>
   );
 };

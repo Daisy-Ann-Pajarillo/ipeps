@@ -3,11 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Box, Grid, TextField, Button, Autocomplete } from "@mui/material";
 import BackNextButton from "../backnextButton";
-
-import { useSelector, useDispatch } from "react-redux";
-import * as actions from "../../../store/actions/index";
-
-
+import fetchData from "../api/fetchData";
 import { professionalEligibilitySchema } from "../components/schema";
 import axios from "../../../axios";
 
@@ -28,22 +24,11 @@ const EligibilityProfessionalLicense = ({
   const [professionalLicenses, setProfessionalLicenses] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
-    const dispatch = useDispatch();
-    const auth = useSelector((state) => state.auth);
-  
-    useEffect(() => {
-      dispatch(actions.getAuthStorage());
-    }, [dispatch]);
   // Fetch user data first
   useEffect(() => {
     const fetchProfessionalLicenses = async () => {
       try {
-        const response = await axios.get("api/get-user-info", {
-          auth: {
-            username: auth.token,
-          },
-        });
+        const response = await axios.get("api/get-user-info");
         setProfessionalLicenses(response.data.professional_license);
       } catch (error) {
         console.error("Error fetching user info:", error);
@@ -129,154 +114,158 @@ const EligibilityProfessionalLicense = ({
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Grid container>
-        {professional_license.map((eligibility, index) => (
-          <Box key={index} sx={{ marginBottom: 5, width: "100%" }}>
-            <Grid container spacing={3}>
-              {/* Select License - Using Controller for Autocomplete */}
-              <Grid item xs={12}>
-                <Controller
-                  name={`professional_license.${index}.license`}
-                  control={control}
-                  render={({ field }) => (
-                    <Autocomplete
-                      options={eligibilityTypeOptions}
-                      getOptionLabel={(option) => option || ""}
-                      value={field.value || null}
-                      onChange={(_, newValue) => {
-                        field.onChange(newValue);
-                        handleLicenseTypeChange(index, newValue);
-                      }}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Select License"
-                          required
-                          error={
-                            !!errors?.professional_license?.[index]?.license
-                          }
-                          helperText={
-                            errors?.professional_license?.[index]?.license
-                              ?.message || ""
-                          }
-                        />
-                      )}
-                    />
-                  )}
-                />
-              </Grid>
+    <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+        <Grid container>
+          {professional_license.map((eligibility, index) => (
+            <Box key={index} sx={{ marginBottom: 5, width: "100%" }}>
+              <Grid container spacing={3}>
+                {/* Select License - Using Controller for Autocomplete */}
+                <Grid item xs={12}>
+                  <Controller
+                    name={`professional_license.${index}.license`}
+                    control={control}
+                    render={({ field }) => (
+                      <Autocomplete
+                        options={eligibilityTypeOptions}
+                        getOptionLabel={(option) => option || ""}
+                        value={field.value || null}
+                        onChange={(_, newValue) => {
+                          field.onChange(newValue);
+                          handleLicenseTypeChange(index, newValue);
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Select License"
+                            required
+                            error={
+                              !!errors?.professional_license?.[index]?.license
+                            }
+                            helperText={
+                              errors?.professional_license?.[index]?.license
+                                ?.message || ""
+                            }
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                </Grid>
 
-              {/* Name Field */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Name"
-                  {...register(`professional_license.${index}.name`)}
-                  error={!!errors?.professional_license?.[index]?.name}
-                  helperText={
-                    errors?.professional_license?.[index]?.name?.message || ""
-                  }
-                />
-              </Grid>
-
-              {/* Date Field */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Date"
-                  type="date"
-                  InputLabelProps={{ shrink: true }}
-                  {...register(`professional_license.${index}.date`)}
-                  error={!!errors?.professional_license?.[index]?.date}
-                  helperText={
-                    errors?.professional_license?.[index]?.date?.message || ""
-                  }
-                />
-              </Grid>
-
-              {/* Rating Field for Civil Service Eligibility */}
-              {eligibility.license === "Civil Service Eligibility" && (
-                <Grid item xs={12} md={6}>
+                {/* Name Field */}
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     required
-                    label="Rating"
-                    type="number"
-                    inputProps={{ step: "0.01" }}
-                    {...register(`professional_license.${index}.rating`)}
-                    error={!!errors?.professional_license?.[index]?.rating}
+                    label="Name"
+                    {...register(`professional_license.${index}.name`)}
+                    error={!!errors?.professional_license?.[index]?.name}
                     helperText={
-                      errors?.professional_license?.[index]?.rating?.message ||
-                      ""
+                      errors?.professional_license?.[index]?.name?.message || ""
                     }
                   />
                 </Grid>
-              )}
 
-              {/* Valid Until Field for PRC Professional License */}
-              {eligibility.license === "PRC Professional License" && (
+                {/* Date Field */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     required
-                    label="Valid Until"
+                    label="Date"
                     type="date"
                     InputLabelProps={{ shrink: true }}
-                    {...register(`professional_license.${index}.valid_until`)}
-                    error={!!errors?.professional_license?.[index]?.valid_until}
+                    {...register(`professional_license.${index}.date`)}
+                    error={!!errors?.professional_license?.[index]?.date}
                     helperText={
-                      errors?.professional_license?.[index]?.valid_until
-                        ?.message || ""
+                      errors?.professional_license?.[index]?.date?.message || ""
                     }
                   />
                 </Grid>
-              )}
 
-              {/* Remove Button */}
-              {professional_license.length > 1 && (
-                <Grid item xs={12}>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => removeEligibility(index)}
-                  >
-                    Remove
-                  </Button>
-                </Grid>
-              )}
-            </Grid>
-          </Box>
-        ))}
-      </Grid>
+                {/* Rating Field for Civil Service Eligibility */}
+                {eligibility.license === "Civil Service Eligibility" && (
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      required
+                      label="Rating"
+                      type="number"
+                      inputProps={{ step: "0.01" }}
+                      {...register(`professional_license.${index}.rating`)}
+                      error={!!errors?.professional_license?.[index]?.rating}
+                      helperText={
+                        errors?.professional_license?.[index]?.rating?.message ||
+                        ""
+                      }
+                    />
+                  </Grid>
+                )}
 
-      {/* Add Eligibility Button */}
-      <div className="mb-4 text-center">
-        <Button
-          variant="contained"
-          onClick={addEligibility}
-          color="primary"
-          sx={{ marginBottom: 2 }}
-        >
-          Add Eligibility
-        </Button>
-      </div>
+                {/* Valid Until Field for PRC Professional License */}
+                {eligibility.license === "PRC Professional License" && (
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      required
+                      label="Valid Until"
+                      type="date"
+                      InputLabelProps={{ shrink: true }}
+                      {...register(`professional_license.${index}.valid_until`)}
+                      error={!!errors?.professional_license?.[index]?.valid_until}
+                      helperText={
+                        errors?.professional_license?.[index]?.valid_until
+                          ?.message || ""
+                      }
+                    />
+                  </Grid>
+                )}
 
-      <BackNextButton
-        activeStep={activeStep}
-        steps={steps}
-        handleBack={handleBack}
-        handleNext={handleNext}
-        isValid={isValid}
-        setIsValid={setIsValid}
-        schema={professionalEligibilitySchema}
-        canSkip={true}
-        formData={{ professional_license }}
-        user_type={user_type}
-        api={"professional-license"}
-      />
+                {/* Remove Button */}
+                {professional_license.length > 1 && (
+                  <Grid item xs={12}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => removeEligibility(index)}
+                    >
+                      Remove
+                    </Button>
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+          ))}
+        </Grid>
+
+        {/* Add Eligibility Button */}
+        <div className="mb-4 text-center">
+          <Button
+            variant="contained"
+            onClick={addEligibility}
+            color="primary"
+            sx={{ marginBottom: 2 }}
+          >
+            Add Eligibility
+          </Button>
+        </div>
+      </Box>
+
+      <Box sx={{ mt: 'auto', pt: 2 }}>
+        <BackNextButton
+          activeStep={activeStep}
+          steps={steps}
+          handleBack={handleBack}
+          handleNext={handleNext}
+          isValid={isValid}
+          setIsValid={setIsValid}
+          schema={professionalEligibilitySchema}
+          canSkip={true}
+          formData={{ professional_license }}
+          user_type={user_type}
+          api={"professional-license"}
+        />
+      </Box>
     </Box>
   );
 };

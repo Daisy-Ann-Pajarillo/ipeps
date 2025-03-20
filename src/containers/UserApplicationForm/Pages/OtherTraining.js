@@ -5,8 +5,6 @@ import { TextField, Button, Grid, Box } from "@mui/material";
 import { otherTrainingsSchema } from "../components/schema";
 import BackNextButton from "../backnextButton";
 import axios from "../../../axios";
-import { useSelector, useDispatch } from "react-redux";
-import * as actions from "../../../store/actions/index";
 
 const OtherTraining = ({
   activeStep,
@@ -20,22 +18,11 @@ const OtherTraining = ({
   const [otherTrainings, setOtherTrainings] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const dispatch = useDispatch();
-  const auth = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    dispatch(actions.getAuthStorage());
-  }, [dispatch]);
-
   // Fetch user data first
   useEffect(() => {
     const fetchOtherTrainings = async () => {
       try {
-        const response = await axios.get("api/get-user-info", {
-          auth: {
-            username: auth.token,
-          },
-        });
+        const response = await axios.get("api/get-user-info");
         setOtherTrainings(response.data.other_training);
       } catch (error) {
         console.error("Error fetching user info:", error);
@@ -112,160 +99,166 @@ const OtherTraining = ({
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      {other_training.map((entry, index) => (
-        <Grid container spacing={2} key={index} sx={{ marginBottom: 5 }}>
-          <Grid item xs={12} sm={11}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  {...register(`other_training.${index}.course_name`)}
-                  label="Course Name"
-                  fullWidth
-                  required
-                  error={!!errors?.other_training?.[index]?.course_name}
-                  helperText={
-                    errors?.other_training?.[index]?.course_name?.message
-                  }
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  {...register(`other_training.${index}.start_date`)}
-                  type="date"
-                  label="Start Date"
-                  fullWidth
-                  required
-                  InputLabelProps={{ shrink: true }}
-                  error={!!errors?.other_training?.[index]?.start_date}
-                  helperText={
-                    errors?.other_training?.[index]?.start_date?.message
-                  }
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  {...register(`other_training.${index}.end_date`)}
-                  type="date"
-                  label="End Date"
-                  fullWidth
-                  InputLabelProps={{ shrink: true }}
-                  error={!!errors?.other_training?.[index]?.end_date}
-                  helperText={
-                    errors?.other_training?.[index]?.end_date?.message
-                  }
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  {...register(`other_training.${index}.training_institution`)}
-                  label="Training Institution"
-                  fullWidth
-                  required
-                  error={
-                    !!errors?.other_training?.[index]?.training_institution
-                  }
-                  helperText={
-                    errors?.other_training?.[index]?.training_institution
-                      ?.message
-                  }
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  {...register(`other_training.${index}.certificates_received`)}
-                  label="Certificates Received"
-                  fullWidth
-                  required
-                  error={
-                    !!errors?.other_training?.[index]?.certificates_received
-                  }
-                  helperText={
-                    errors?.other_training?.[index]?.certificates_received
-                      ?.message
-                  }
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  {...register(`other_training.${index}.hours_of_training`)}
-                  type="number"
-                  label="Hours of Training"
-                  fullWidth
-                  required
-                  error={!!errors?.other_training?.[index]?.hours_of_training}
-                  helperText={
-                    errors?.other_training?.[index]?.hours_of_training?.message
-                  }
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  {...register(`other_training.${index}.skills_acquired`)}
-                  label="Skills Acquired"
-                  fullWidth
-                  error={!!errors?.other_training?.[index]?.skills_acquired}
-                  helperText={
-                    errors?.other_training?.[index]?.skills_acquired?.message
-                  }
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  {...register(`other_training.${index}.credential_id`)}
-                  label="Credential ID"
-                  fullWidth
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  {...register(`other_training.${index}.credential_url`)}
-                  label="Credential URL"
-                  fullWidth
-                  error={!!errors?.other_training?.[index]?.credential_url}
-                  helperText={
-                    errors?.other_training?.[index]?.credential_url?.message
-                  }
-                />
+    <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+        {other_training.map((entry, index) => (
+          <Grid container spacing={2} key={index} sx={{ marginBottom: 5 }}>
+            <Grid item xs={12} sm={11}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    {...register(`other_training.${index}.course_name`)}
+                    label="Course Name"
+                    fullWidth
+                    required
+                    error={!!errors?.other_training?.[index]?.course_name}
+                    helperText={
+                      errors?.other_training?.[index]?.course_name?.message
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    {...register(`other_training.${index}.start_date`)}
+                    type="date"
+                    label="Start Date"
+                    fullWidth
+                    required
+                    InputLabelProps={{ shrink: true }}
+                    error={!!errors?.other_training?.[index]?.start_date}
+                    helperText={
+                      errors?.other_training?.[index]?.start_date?.message
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    {...register(`other_training.${index}.end_date`)}
+                    type="date"
+                    label="End Date"
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    error={!!errors?.other_training?.[index]?.end_date}
+                    helperText={
+                      errors?.other_training?.[index]?.end_date?.message
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    {...register(`other_training.${index}.training_institution`)}
+                    label="Training Institution"
+                    fullWidth
+                    required
+                    error={
+                      !!errors?.other_training?.[index]?.training_institution
+                    }
+                    helperText={
+                      errors?.other_training?.[index]?.training_institution
+                        ?.message
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    {...register(`other_training.${index}.certificates_received`)}
+                    label="Certificates Received"
+                    fullWidth
+                    required
+                    error={
+                      !!errors?.other_training?.[index]?.certificates_received
+                    }
+                    helperText={
+                      errors?.other_training?.[index]?.certificates_received
+                        ?.message
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    {...register(`other_training.${index}.hours_of_training`)}
+                    type="number"
+                    label="Hours of Training"
+                    fullWidth
+                    required
+                    error={!!errors?.other_training?.[index]?.hours_of_training}
+                    helperText={
+                      errors?.other_training?.[index]?.hours_of_training?.message
+                    }
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    {...register(`other_training.${index}.skills_acquired`)}
+                    label="Skills Acquired"
+                    fullWidth
+                    error={!!errors?.other_training?.[index]?.skills_acquired}
+                    helperText={
+                      errors?.other_training?.[index]?.skills_acquired?.message
+                    }
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    {...register(`other_training.${index}.credential_id`)}
+                    label="Credential ID"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    {...register(`other_training.${index}.credential_url`)}
+                    label="Credential URL"
+                    fullWidth
+                    error={!!errors?.other_training?.[index]?.credential_url}
+                    helperText={
+                      errors?.other_training?.[index]?.credential_url?.message
+                    }
+                  />
+                </Grid>
               </Grid>
             </Grid>
+            <Grid item xs={12}>
+              {other_training.length > 1 && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => removeTrainingHistory(index)}
+                >
+                  Remove Entry
+                </Button>
+              )}
+            </Grid>
           </Grid>
-          <Grid item xs={12}>
-            {other_training.length > 1 && (
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => removeTrainingHistory(index)}
-              >
-                Remove Entry
-              </Button>
-            )}
-          </Grid>
-        </Grid>
-      ))}
-      <div className="mb-4 text-center">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={addTrainingHistory}
-          sx={{ marginBottom: 2 }}
-        >
-          Add Training
-        </Button>
-      </div>
-      <BackNextButton
-        activeStep={activeStep}
-        steps={steps}
-        handleBack={handleBack}
-        handleNext={handleNext}
-        isValid={isValid}
-        setIsValid={setIsValid}
-        canSkip={true}
-        schema={otherTrainingsSchema}
-        formData={other_training}
-        user_type={user_type}
-        api={"other-training"}
-      />
+        ))}
+
+        <div className="mb-4 text-center">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={addTrainingHistory}
+            sx={{ marginBottom: 2 }}
+          >
+            Add Training
+          </Button>
+        </div>
+      </Box>
+
+      <Box sx={{ mt: 'auto', pt: 2 }}>
+        <BackNextButton
+          activeStep={activeStep}
+          steps={steps}
+          handleBack={handleBack}
+          handleNext={handleNext}
+          isValid={isValid}
+          setIsValid={setIsValid}
+          canSkip={true}
+          schema={otherTrainingsSchema}
+          formData={other_training}
+          user_type={user_type}
+          api={"other-training"}
+        />
+      </Box>
     </Box>
   );
 };
