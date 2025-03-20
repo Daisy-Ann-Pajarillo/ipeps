@@ -2,6 +2,8 @@ import {
     PeopleOutlined,
     ReceiptOutlined,
     ContactsOutlined,
+    SettingsOutlined,
+    LogoutOutlined,
 } from "@mui/icons-material";
 
 const AcademeMenuItems = [
@@ -26,8 +28,14 @@ const AcademeMenuItems = [
         items: [
             { title: "Settings", to: "/dashboard/academe/settings", icon: <ContactsOutlined /> },
             { title: "Application Settings", to: "/dashboard/academe/application-settings", icon: <ReceiptOutlined /> },
+            {
+                title: "Logout",
+                to: "/",
+                icon: <LogoutOutlined />,
+            },
         ],
     },
+
 ];
 
 export default AcademeMenuItems;
