@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../store/actions/index";
 import {
   Box,
   Typography,
@@ -32,11 +34,21 @@ const LanguageDialectProficiency = ({
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const [availableLanguages, setAvailableLanguages] = useState(languagesList);
 
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
   // Fetch user data first
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
-        const response = await axios.get("api/get-user-info");
+        const response = await axios.get("api/get-user-info", {
+          auth: {
+            username: auth.token,
+          },
+        });
         console.log(response.data.language_proficiency);
         setLanguageProficiency(response.data.language_proficiency);
       } catch (error) {
@@ -136,143 +148,138 @@ const LanguageDialectProficiency = ({
     return <p>Loading...</p>;
   }
   return (
-    <Box sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
-        {/* Language Selection */}
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Autocomplete
-              options={availableLanguages}
-              getOptionLabel={(option) => `${option.name} (${option.value})`}
-              value={selectedLanguage}
-              onChange={(event, newValue) => setSelectedLanguage(newValue)}
-              renderInput={(params) => (
-                <TextField {...params} label="Select Language" />
-              )}
-              isOptionEqualToValue={(option, value) =>
-                option.name === value?.name
-              }
-            />
-          </Grid>
+    <Box sx={{ p: 3 }}>
+      {/* Language Selection */}
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Autocomplete
+            options={availableLanguages}
+            getOptionLabel={(option) => `${option.name} (${option.value})`}
+            value={selectedLanguage}
+            onChange={(event, newValue) => setSelectedLanguage(newValue)}
+            renderInput={(params) => (
+              <TextField {...params} label="Select Language" />
+            )}
+            isOptionEqualToValue={(option, value) =>
+              option.name === value?.name
+            }
+          />
         </Grid>
+      </Grid>
 
-        {/* Added Languages */}
-        {language_proficiency.length > 0 && (
-          <>
-            <Typography variant="h6" gutterBottom sx={{ marginTop: 3 }}>
-              Selected Languages
-            </Typography>
-            <Grid container spacing={2}>
-              {language_proficiency.map((lang, index) => (
-                <Grid item xs={12} md={6} key={index}>
-                  <Box
-                    sx={{ border: "1px solid #ccc", padding: 2, borderRadius: 1 }}
+      {/* Added Languages */}
+      {language_proficiency.length > 0 && (
+        <>
+          <Typography variant="h6" gutterBottom sx={{ marginTop: 3 }}>
+            Selected Languages
+          </Typography>
+          <Grid container spacing={2}>
+            {language_proficiency.map((lang, index) => (
+              <Grid item xs={12} md={6} key={index}>
+                <Box
+                  sx={{ border: "1px solid #ccc", padding: 2, borderRadius: 1 }}
+                >
+                  <Typography variant="subtitle1" gutterBottom>
+                    {lang.language}
+                  </Typography>
+
+                  <Controller
+                    name={`language_proficiency.${index}.can_read`}
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        }
+                        label="Read"
+                      />
+                    )}
+                  />
+                  <Controller
+                    name={`language_proficiency.${index}.can_write`}
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        }
+                        label="Write"
+                      />
+                    )}
+                  />
+                  <Controller
+                    name={`language_proficiency.${index}.can_speak`}
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        }
+                        label="Speak"
+                      />
+                    )}
+                  />
+                  <Controller
+                    name={`language_proficiency.${index}.can_understand`}
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        }
+                        label="Understand"
+                      />
+                    )}
+                  />
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => removeLanguage(lang.language)}
+                    sx={{ marginTop: 1 }}
                   >
-                    <Typography variant="subtitle1" gutterBottom>
-                      {lang.language}
-                    </Typography>
-
-                    <Controller
-                      name={`language_proficiency.${index}.can_read`}
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={field.value}
-                              onChange={(e) => field.onChange(e.target.checked)}
-                            />
-                          }
-                          label="Read"
-                        />
-                      )}
-                    />
-                    <Controller
-                      name={`language_proficiency.${index}.can_write`}
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={field.value}
-                              onChange={(e) => field.onChange(e.target.checked)}
-                            />
-                          }
-                          label="Write"
-                        />
-                      )}
-                    />
-                    <Controller
-                      name={`language_proficiency.${index}.can_speak`}
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={field.value}
-                              onChange={(e) => field.onChange(e.target.checked)}
-                            />
-                          }
-                          label="Speak"
-                        />
-                      )}
-                    />
-                    <Controller
-                      name={`language_proficiency.${index}.can_understand`}
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={field.value}
-                              onChange={(e) => field.onChange(e.target.checked)}
-                            />
-                          }
-                          label="Understand"
-                        />
-                      )}
-                    />
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => removeLanguage(lang.language)}
-                      sx={{ marginTop: 1 }}
-                    >
-                      Remove
-                    </Button>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </>
-        )}
-        <div className="mb-4 text-center">
-          <Button
-            variant="contained"
-            sx={{ marginTop: 2 }}
-            onClick={addLanguage}
-            disabled={!selectedLanguage}
-          >
-            Add Language
-          </Button>
-        </div>
-      </Box>
-      
+                    Remove
+                  </Button>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
+      <div className="mb-4 text-center">
+        <Button
+          variant="contained"
+          sx={{ marginTop: 2 }}
+          onClick={addLanguage}
+          disabled={!selectedLanguage}
+        >
+          Add Language
+        </Button>
+      </div>
       {/* Back & Next Buttons */}
-      <Box sx={{ mt: 'auto', pt: 2 }}>
-        <BackNextButton
-          activeStep={activeStep}
-          steps={steps}
-          handleBack={handleBack}
-          handleNext={handleNext}
-          isValid={isValid}
-          setIsValid={setIsValid}
-          schema={languageProficiencySchema}
-          formData={{ language_proficiency }}
-          user_type={user_type}
-          api={"language-proficiency"}
-        />
-      </Box>
+      <BackNextButton
+        activeStep={activeStep}
+        steps={steps}
+        handleBack={handleBack}
+        handleNext={handleNext}
+        isValid={isValid}
+        setIsValid={setIsValid}
+        schema={languageProficiencySchema}
+        formData={{ language_proficiency }}
+        user_type={user_type}
+        api={"language-proficiency"}
+      />
     </Box>
   );
 };

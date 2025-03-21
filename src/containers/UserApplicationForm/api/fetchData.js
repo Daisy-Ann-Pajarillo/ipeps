@@ -79,172 +79,172 @@ const fetchData = async (url, method = "GET", body = null, headers = {}) => {
   try {
     // Simulating the response as if it's coming from a real API
     const dummyData = {
-      "educational_background": [
+      educational_background: [
         {
-          "date_from": "Mon, 10 Feb 2025 00:00:00 GMT",
-          "date_to": "Tue, 15 Feb 2025 00:00:00 GMT",
-          "degree_or_qualification": "Bachelor",
-          "field_of_study": "BUSINESS ADMINISTRATION",
-          "program_duration": 4,
-          "school_name": "ISATU"
+          date_from: "Mon, 10 Feb 2025 00:00:00 GMT",
+          date_to: "Tue, 15 Feb 2025 00:00:00 GMT",
+          degree_or_qualification: "Bachelor",
+          field_of_study: "BUSINESS ADMINISTRATION",
+          program_duration: 4,
+          school_name: "ISATU",
         },
         {
-          "date_from": "Mon, 10 Feb 2025 00:00:00 GMT",
-          "date_to": "Tue, 11 Feb 2025 00:00:00 GMT",
-          "degree_or_qualification": "Elementary",
-          "field_of_study": "ARCHITECTURE",
-          "program_duration": 4,
-          "school_name": "TIONCO"
-        }
+          date_from: "Mon, 10 Feb 2025 00:00:00 GMT",
+          date_to: "Tue, 11 Feb 2025 00:00:00 GMT",
+          degree_or_qualification: "Elementary",
+          field_of_study: "ARCHITECTURE",
+          program_duration: 4,
+          school_name: "TIONCO",
+        },
       ],
-      "job_preference": [
+      job_preference: [
         {
-          "country": "Philippines",
-          "industry": "[A] Agriculture, forestry and fishing",
-          "municipality": "Buenavista",
-          "preferred_occupation": "Software Engineer",
-          "province": "Agusan del Norte",
-          "salary_from": 30000.0,
-          "salary_to": 50000.0
-        }
+          country: "Philippines",
+          industry: "[A] Agriculture, forestry and fishing",
+          municipality: "Buenavista",
+          preferred_occupation: "Software Engineer",
+          province: "Agusan del Norte",
+          salary_from: 30000.0,
+          salary_to: 50000.0,
+        },
       ],
-      "language_proficiency": [
+      language_proficiency: [
         {
-          "can_read": true,
-          "can_speak": true,
-          "can_understand": false,
-          "can_write": true,
-          "language": "Filipino"
+          can_read: true,
+          can_speak: true,
+          can_understand: false,
+          can_write: true,
+          language: "Filipino",
         },
         {
-          "can_read": true,
-          "can_speak": true,
-          "can_understand": true,
-          "can_write": true,
-          "language": "English"
-        }
+          can_read: true,
+          can_speak: true,
+          can_understand: true,
+          can_write: true,
+          language: "English",
+        },
       ],
-      "other_skills": [
+      other_skills: [
         {
-          "skills": "beautician"
+          skills: "beautician",
         },
         {
-          "skills": "carpentry"
+          skills: "carpentry",
         },
         {
-          "skills": "embroidery"
+          skills: "embroidery",
         },
         {
-          "skills": "Sample skill"
+          skills: "Sample skill",
         },
         {
-          "skills": "auto mechanic"
+          skills: "auto mechanic",
         },
         {
-          "skills": "gardening"
+          skills: "gardening",
         },
         {
-          "skills": "Sample"
-        }
+          skills: "Sample",
+        },
       ],
-      "other_training": [
+      other_training: [
         {
-          "certificates_received": "Sample 1 Cert",
-          "course_name": "Sample 1",
-          "credential_id": "kflksng 1",
-          "credential_url": "https://www.facebook.com/",
-          "end_date": "Tue, 11 Feb 2025 00:00:00 GMT",
-          "hours_of_training": 3,
-          "skills_acquired": "Sample 1 Skill ",
-          "start_date": "Mon, 03 Feb 2025 00:00:00 GMT",
-          "training_institution": "Sample 1 Institution"
+          certificates_received: "Sample 1 Cert",
+          course_name: "Sample 1",
+          credential_id: "kflksng 1",
+          credential_url: "https://www.facebook.com/",
+          end_date: "Tue, 11 Feb 2025 00:00:00 GMT",
+          hours_of_training: 3,
+          skills_acquired: "Sample 1 Skill ",
+          start_date: "Mon, 03 Feb 2025 00:00:00 GMT",
+          training_institution: "Sample 1 Institution",
         },
         {
-          "certificates_received": "Sample 2 Cert ",
-          "course_name": "Sample 2",
-          "credential_id": "2342342",
-          "credential_url": "https://www.facebook.com/",
-          "end_date": "Mon, 10 Feb 2025 00:00:00 GMT",
-          "hours_of_training": 2,
-          "skills_acquired": "Sample 2 Skills",
-          "start_date": "Sat, 01 Feb 2025 00:00:00 GMT",
-          "training_institution": "Sample 2"
-        }
+          certificates_received: "Sample 2 Cert ",
+          course_name: "Sample 2",
+          credential_id: "2342342",
+          credential_url: "https://www.facebook.com/",
+          end_date: "Mon, 10 Feb 2025 00:00:00 GMT",
+          hours_of_training: 2,
+          skills_acquired: "Sample 2 Skills",
+          start_date: "Sat, 01 Feb 2025 00:00:00 GMT",
+          training_institution: "Sample 2",
+        },
       ],
-      "personal_info": [
+      personal_info: [
         {
-          "_4ps_household_id_no": "98538475",
-          "cellphone_number": "099843208",
-          "civil_status": "Single",
-          "date_of_birth": "Sun, 02 Feb 2025 00:00:00 GMT",
-          "disability": "visual, hearing",
-          "employment_status": "Employed",
-          "first_name": "Edjay",
-          "former_ofw_country": "United Arab Emirates",
-          "former_ofw_country_date_return": "Fri, 28 Feb 2025 00:00:00 GMT",
-          "height": 172.0,
-          "is_4ps_beneficiary": true,
-          "is_former_ofw": true,
-          "is_looking_for_work": true,
-          "is_ofw": true,
-          "is_willing_to_work_immediately": true,
-          "landline_number": null,
-          "last_name": "Lindayao",
-          "middle_name": "Cantero",
-          "ofw_country": "Philippines",
-          "pag_ibig_number": "43242211",
-          "permanent_barangay": null,
-          "permanent_country": "Philippines",
-          "permanent_house_no_street_village": null,
-          "permanent_municipality": null,
-          "permanent_province": "Iloilo",
-          "permanent_zip_code": "5000",
-          "phil_health_no": "87463823",
-          "place_of_birth": "Antique",
-          "religion": "Aglipay",
-          "sex": "Male",
-          "since_when_looking_for_work": "Sat, 01 Feb 2025 00:00:00 GMT",
-          "sss_gsis_number": "5435353",
-          "suffix": "Jr",
-          "temporary_barangay": "Tabuc Suba",
-          "temporary_country": "Philippines",
-          "temporary_house_no_street_village": "Ilaya",
-          "temporary_municipality": "Bangued",
-          "temporary_province": "Abra",
-          "temporary_zip_code": "5000",
-          "tin": "43242344",
-          "valid_id_url": null,
-          "weight": 55.0
-        }
+          _4ps_household_id_no: "98538475",
+          cellphone_number: "099843208",
+          civil_status: "Single",
+          date_of_birth: "Sun, 02 Feb 2025 00:00:00 GMT",
+          disability: "visual, hearing",
+          employment_status: "Employed",
+          first_name: "Edjay",
+          former_ofw_country: "United Arab Emirates",
+          former_ofw_country_date_return: "Fri, 28 Feb 2025 00:00:00 GMT",
+          height: 172.0,
+          is_4ps_beneficiary: true,
+          is_former_ofw: true,
+          is_looking_for_work: true,
+          is_ofw: true,
+          is_willing_to_work_immediately: true,
+          landline_number: null,
+          last_name: "Lindayao",
+          middle_name: "Cantero",
+          ofw_country: "Philippines",
+          pag_ibig_number: "43242211",
+          permanent_barangay: null,
+          permanent_country: "Philippines",
+          permanent_house_no_street_village: null,
+          permanent_municipality: null,
+          permanent_province: "Iloilo",
+          permanent_zip_code: "5000",
+          phil_health_no: "87463823",
+          place_of_birth: "Antique",
+          religion: "Aglipay",
+          sex: "Male",
+          since_when_looking_for_work: "Sat, 01 Feb 2025 00:00:00 GMT",
+          sss_gsis_number: "5435353",
+          suffix: "Jr",
+          temporary_barangay: "Tabuc Suba",
+          temporary_country: "Philippines",
+          temporary_house_no_street_village: "Ilaya",
+          temporary_municipality: "Bangued",
+          temporary_province: "Abra",
+          temporary_zip_code: "5000",
+          tin: "43242344",
+          valid_id_url: null,
+          weight: 55.0,
+        },
       ],
-      "professional_license": [
+      professional_license: [
         {
-          "date": "Wed, 12 Feb 2025 00:00:00 GMT",
-          "license": "Civil Service Eligibility",
-          "name": "Sampleee121241",
-          "rating": 1,
-          "valid_until": null
-        }
+          date: "Wed, 12 Feb 2025 00:00:00 GMT",
+          license: "Civil Service Eligibility",
+          name: "Sampleee121241",
+          rating: 1,
+          valid_until: null,
+        },
       ],
-      "work_experience": [
+      work_experience: [
         {
-          "company_address": "Sample 1",
-          "company_name": "Sample 1",
-          "date_end": "Tue, 11 Feb 2025 00:00:00 GMT",
-          "date_start": "Sun, 09 Feb 2025 00:00:00 GMT",
-          "employment_status": "Full-Time",
-          "position": "Sample 1"
+          company_address: "Sample 1",
+          company_name: "Sample 1",
+          date_end: "Tue, 11 Feb 2025 00:00:00 GMT",
+          date_start: "Sun, 09 Feb 2025 00:00:00 GMT",
+          employment_status: "Full-Time",
+          position: "Sample 1",
         },
         {
-          "company_address": "Sample 2",
-          "company_name": "Sample 2",
-          "date_end": "Tue, 11 Feb 2025 00:00:00 GMT",
-          "date_start": "Mon, 10 Feb 2025 00:00:00 GMT",
-          "employment_status": "Full-Time",
-          "position": "Sample 2"
-        }
-      ]
-    }
+          company_address: "Sample 2",
+          company_name: "Sample 2",
+          date_end: "Tue, 11 Feb 2025 00:00:00 GMT",
+          date_start: "Mon, 10 Feb 2025 00:00:00 GMT",
+          employment_status: "Full-Time",
+          position: "Sample 2",
+        },
+      ],
+    };
     convertDatesInObject(dummyData);
 
     // Simulate a network delay for testing (optional)

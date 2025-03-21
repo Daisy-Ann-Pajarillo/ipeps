@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 import { Button } from "@mui/material";
 import axios from "../../axios";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../store/actions/index";
 
 const BackNextButton = ({
   activeStep,
@@ -15,6 +17,19 @@ const BackNextButton = ({
   user_type,
   api,
 }) => {
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
+  const AuthAPI = {
+    auth: {
+      username: auth.token,
+    },
+  };
+
   useEffect(() => {
     if (canSkip) {
       setIsValid(true);
@@ -53,7 +68,7 @@ const BackNextButton = ({
       if (api === "personal-info") {
         console.log("Data: ", formData);
         axios
-          .post("/api/add-employer-personal-information", formData)
+          .post("/api/add-employer-personal-information", formData, AuthAPI)
           .then((response) => {
             console.log("Response:", response.data);
           })
@@ -69,7 +84,11 @@ const BackNextButton = ({
       if (api === "personal-info") {
         console.log("Data: ", formData);
         axios
-          .post("/api/add-jobseeker-student-personal-information", formData)
+          .post(
+            "/api/add-jobseeker-student-personal-information",
+            formData,
+            AuthAPI
+          )
           .then((response) => {
             console.log("Response:", response.data);
           })
@@ -80,7 +99,7 @@ const BackNextButton = ({
       if (api === "job-preference") {
         console.log("Data: ", formData);
         axios
-          .post("/api/add-jobseeker-student-job-preference", formData)
+          .post("/api/add-jobseeker-student-job-preference", formData, AuthAPI)
           .then((response) => {
             console.log("Response:", response.data);
           })
@@ -93,7 +112,8 @@ const BackNextButton = ({
         axios
           .post(
             "/api/add-jobseeker-student-language-proficiency",
-            formData.language_proficiency
+            formData.language_proficiency,
+            AuthAPI
           )
           .then((response) => {
             console.log("Response:", response.data);
@@ -105,7 +125,11 @@ const BackNextButton = ({
       if (api === "educational-background") {
         console.log("Data: ", formData);
         axios
-          .post("/api/add-jobseeker-student-educational-background", formData)
+          .post(
+            "/api/add-jobseeker-student-educational-background",
+            formData,
+            AuthAPI
+          )
           .then((response) => {
             console.log("Response:", response.data);
           })
@@ -116,7 +140,11 @@ const BackNextButton = ({
       if (api === "educational-background") {
         console.log("Data: ", formData);
         axios
-          .post("/api/add-jobseeker-student-educational-background", formData)
+          .post(
+            "/api/add-jobseeker-student-educational-background",
+            formData,
+            AuthAPI
+          )
           .then((response) => {
             console.log("Response:", response.data);
           })
@@ -127,7 +155,7 @@ const BackNextButton = ({
       if (api === "other-training") {
         console.log("Data: ", formData);
         axios
-          .post("/api/add-jobseeker-student-other-training", formData)
+          .post("/api/add-jobseeker-student-other-training", formData, AuthAPI)
           .then((response) => {
             console.log("Response:", response.data);
           })
@@ -140,7 +168,8 @@ const BackNextButton = ({
         axios
           .post(
             "/api/add-jobseeker-student-professional-license",
-            formData.professional_license
+            formData.professional_license,
+            AuthAPI
           )
           .then((response) => {
             console.log("Response:", response.data);
@@ -155,7 +184,8 @@ const BackNextButton = ({
         axios
           .post(
             "/api/add-jobseeker-student-work-experience",
-            formData.work_experience
+            formData.work_experience,
+            AuthAPI
           )
           .then((response) => {
             console.log("Response:", response.data);
@@ -168,7 +198,7 @@ const BackNextButton = ({
       if (api === "other-skills") {
         console.log("Data: ", formData);
         axios
-          .post("/api/add-jobseeker-student-other-skills", formData)
+          .post("/api/add-jobseeker-student-other-skills", formData, AuthAPI)
           .then((response) => {
             console.log("Response:", response.data);
           })
@@ -182,7 +212,7 @@ const BackNextButton = ({
       console.log("ACADEME");
       console.log("Academe Personal Information: ", formData);
       axios
-        .post("/api/add-academe-personal-information", formData)
+        .post("/api/add-academe-personal-information", formData, AuthAPI)
         .then((response) => {
           console.log("Response:", response.data);
         })
