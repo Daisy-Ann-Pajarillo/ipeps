@@ -263,8 +263,8 @@ const BackNextButton = ({
         {!isValid
           ? "Please fill all fields with *"
           : activeStep === steps.length - 2
-          ? "Finish"
-          : "Next"}
+            ? "Finish"
+            : "Next"}
       </Button>
     </div>
   );

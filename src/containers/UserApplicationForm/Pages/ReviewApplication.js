@@ -32,8 +32,8 @@ const DataCard = ({ title, data = [] }) => {
                   {item[key] === true
                     ? "Yes"
                     : item[key] === false
-                    ? "No"
-                    : item[key] || "-"}
+                      ? "No"
+                      : item[key] || "-"}
                 </span>
               </div>
             ))}
@@ -61,7 +61,9 @@ const ReviewApplication = ({ user_type }) => {
       username: auth.token,
     },
   };
+
   useEffect(() => {
+
     const fetchData = async () => {
       try {
         if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
