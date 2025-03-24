@@ -59,6 +59,8 @@ const BackNextButton = ({
 
   let isConfirmed = false;
 
+  console.log("dataaaaa", formData)
+
   const pushToDataBase = () => {
     if (user_type === "ADMIN") {
       console.log("ADMIN");

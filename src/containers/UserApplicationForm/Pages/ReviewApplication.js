@@ -150,6 +150,11 @@ const ReviewApplication = ({ user_type }) => {
       {sections.map(({ title, key }) => (
         <DataCard key={key} title={title} data={data[key] || []} />
       ))}
+      <a href="/dashboard">
+        <button className="bg-blue-500 rounded-md px-3 py-2">
+          Done
+        </button>
+      </a>
     </div>
   );
 };
