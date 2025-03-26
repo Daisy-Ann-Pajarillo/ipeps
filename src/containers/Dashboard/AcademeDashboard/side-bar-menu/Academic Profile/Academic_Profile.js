@@ -1,272 +1,96 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import {
-  Box,
-  Typography,
-  Grid,
-  TextField,
-  Button,
-  Paper,
-  Divider,
-  Avatar,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Card,
-  CardContent,
-  CardHeader,
-} from "@mui/material";
-import { Edit as EditIcon, Save as SaveIcon } from "@mui/icons-material";
+import axios from "../../../../../axios";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
 
-const Academic_Profile = () => {
-  // Get logged in user data from Redux store
-  const userAuth = useSelector((state) => state.auth);
-  const userData = useSelector((state) => state.user);
+const AcademicProfile = () => {
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+  const [profileData, setProfileData] = useState(null);
 
-  // State for profile data
-  const [profileData, setProfileData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    username: "",
-    dateOfBirth: "",
-    placeOfBirth: "",
-    sex: "",
-    address: "",
-    profilePicture: null,
-  });
-
-  // State for edit mode
-  const [isEditing, setIsEditing] = useState(false);
-
-  // State for profile image
-  const [profileImage, setProfileImage] = useState(null);
-
-  // Load user data on component mount
   useEffect(() => {
-    // Simulate fetching user data
-    // In a real app, you would fetch this from your API
-    setProfileData({
-      firstName: userData?.firstName || "John",
-      lastName: userData?.lastName || "Doe",
-      email: userData?.email || userAuth?.email || "john.doe@example.com",
-      username: userData?.username || userAuth?.username || "johndoe",
-      dateOfBirth: "1990-01-01", // Changed to string format for standard date input
-      placeOfBirth: "City Name",
-      sex: "Male",
-      address: "123 Main St, City, Country",
-      profilePicture: null,
-    });
-  }, [userData, userAuth]);
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
 
-  // Handle input change
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  useEffect(() => {
+    axios
+      .get("api/get-user-info", {
+        auth: { username: auth.token }
+      })
+      .then((response) => {
+        setProfileData(response.data.personal_information[0]);
+      })
+      .catch((error) => {
+        console.error("There was an error fetching the profile data!", error);
+      });
+  }, [auth]);
 
-  // Handle profile image change
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setProfileImage(event.target.result);
-        // In a real app, you would upload this to your server
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  };
-
-  // Toggle edit mode
-  const toggleEditMode = () => {
-    setIsEditing(!isEditing);
-  };
-
-  // Save profile data
-  const saveProfile = () => {
-    // In a real app, you would save the data to your server here
-    console.log("Saving profile data:", profileData);
-    
-    // For now, just turn off edit mode
-    setIsEditing(false);
-  };
+  const getValue = (value) => (value ? value : "N/A");
 
   return (
-    <Box p={3}>
-      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h4">Academic Profile</Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
-            onClick={isEditing ? saveProfile : toggleEditMode}
-          >
-            {isEditing ? "Save Profile" : "Edit Profile"}
-          </Button>
-        </Box>
-        <Divider sx={{ mb: 3 }} />
+    <div className="p-6 shadow-lg rounded-xl max-w-xl mx-auto mt-6">
+      <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6 text-center">Academic Profile</h2>
 
-        <Grid container spacing={3}>
-          {/* Profile Picture */}
-          <Grid item xs={12} display="flex" justifyContent="center" mb={2}>
-            <Box textAlign="center">
-              <Avatar
-                src={profileImage}
-                sx={{ width: 150, height: 150, mb: 2, margin: "0 auto" }}
-              />
-              {isEditing && (
-                <Button variant="outlined" component="label">
-                  Upload Picture
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                </Button>
-              )}
-            </Box>
-          </Grid>
+      <div className="flex flex-col gap-3 ">
+        {profileData ? (
+          <>
+            <ProfileItem label="First Name" value={profileData?.first_name} />
+            <ProfileItem label="Last Name" value={profileData?.last_name} />
+            <ProfileItem label="Middle Name" value={profileData?.middle_name} />
+            <ProfileItem label="Email" value={profileData?.email} />
+            <ProfileItem label="Cellphone Number" value={profileData?.cellphone_number} />
+            <ProfileItem label="Landline Number" value={profileData?.landline_number} />
+            <ProfileItem label="Employer ID" value={profileData?.employer_id_number} />
+            <ProfileItem label="Employer Position" value={profileData?.employer_position} />
+            <ProfileItem label="Institution Name" value={profileData?.institution_name} />
+            <ProfileItem label="Institution Type" value={profileData?.institution_type} />
 
-          {/* Account Information Card */}
-          <Grid item xs={12}>
-            <Card>
-              <CardHeader 
-                title="Account Information" 
-                sx={{ 
-                  backgroundColor: 'primary.main', 
-                  color: 'white',
-                }}
-              />
-              <CardContent>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Username"
-                      name="username"
-                      value={profileData.username}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      name="email"
-                      value={profileData.email}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      margin="normal"
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
+            <ProfileItem
+              label="Permanent Address"
+              value={`${getValue(profileData?.permanent_house_no_street_village)}, ${getValue(
+                profileData?.permanent_barangay
+              )}, ${getValue(profileData?.permanent_municipality)}, ${getValue(
+                profileData?.permanent_province
+              )}, ${getValue(profileData?.permanent_country)}`}
+            />
 
-          {/* Personal Information Card */}
-          <Grid item xs={12}>
-            <Card>
-              <CardHeader 
-                title="Personal Information" 
-                sx={{ 
-                  backgroundColor: 'primary.main', 
-                  color: 'white',
-                }}
-              />
-              <CardContent>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="First Name"
-                      name="firstName"
-                      value={profileData.firstName}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Last Name"
-                      name="lastName"
-                      value={profileData.lastName}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Date of Birth"
-                      name="dateOfBirth"
-                      type="date"
-                      value={profileData.dateOfBirth}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      margin="normal"
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Place of Birth"
-                      name="placeOfBirth"
-                      value={profileData.placeOfBirth}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      margin="normal"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth margin="normal">
-                      <InputLabel>Sex</InputLabel>
-                      <Select
-                        name="sex"
-                        value={profileData.sex}
-                        onChange={handleInputChange}
-                        disabled={!isEditing}
-                        label="Sex"
-                      >
-                        <MenuItem value="Male">Male</MenuItem>
-                        <MenuItem value="Female">Female</MenuItem>
-                        <MenuItem value="Other">Other</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Address"
-                      name="address"
-                      value={profileData.address}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      margin="normal"
-                      multiline
-                      rows={2}
-                    />
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Paper>
-    </Box>
+            <ProfileItem
+              label="Temporary Address"
+              value={`${getValue(profileData?.temporary_house_no_street_village)}, ${getValue(
+                profileData?.temporary_barangay
+              )}, ${getValue(profileData?.temporary_municipality)}, ${getValue(
+                profileData?.temporary_province
+              )}, ${getValue(profileData?.temporary_country)}`}
+            />
+          </>
+        ) : (
+          <p className="col-span-2 text-center text-gray-600">Loading profile data...</p>
+        )}
+      </div>
+
+      <div className="text-center mt-6">
+        <a href="/user-application-form">
+          <button className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200">
+            Edit Profile
+          </button>
+        </a>
+      </div>
+    </div>
   );
 };
 
-export default Academic_Profile;
+const ProfileItem = ({ label, value }) => {
+  return (
+    <div className="flex justify-start items-center border-b border-gray-300 dark:border-gray-600 p-3">
+      <p className="font-medium text-gray-700 dark:text-gray-300 text-md text-left w-2/5">
+        {label}:
+      </p>
+      <span className="text-gray-600 dark:text-gray-400 text-left w-3/5">
+        {value ? value : "N/A"}
+      </span>
+    </div>
+
+  );
+};
+
+export default AcademicProfile;

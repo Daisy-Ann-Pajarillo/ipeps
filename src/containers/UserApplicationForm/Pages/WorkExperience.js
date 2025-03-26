@@ -31,12 +31,12 @@ const WorkExperience = ({
   const [workExperiences, setWorkExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
 
-      const dispatch = useDispatch();
-      const auth = useSelector((state) => state.auth);
-    
-      useEffect(() => {
-        dispatch(actions.getAuthStorage());
-      }, [dispatch]);
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
   // Fetch user work experience data
   useEffect(() => {
     const fetchWorkExperiences = async () => {
@@ -254,6 +254,7 @@ const WorkExperience = ({
         isValid={isValid}
         setIsValid={setIsValid}
         schema={workExperienceSchema}
+        canSkip={true}
         formData={{ work_experience }}
         user_type={user_type}
         api={"work-experience"}

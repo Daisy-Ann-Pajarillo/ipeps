@@ -45,15 +45,6 @@ const StudentDashboardScreen = () => {
                     <Route path="/companies" element={<Companies isCollapsed={isCollapsed} />} />
                     <Route path="/settings" element={
                         <Box sx={{
-                            position: 'fixed',
-                            top: 0,
-                            left: isCollapsed ? '80px' : '250px',
-                            right: 0,
-                            height: '100vh',
-                            backgroundColor: 'white',
-                            zIndex: 1000,
-                            overflowY: 'auto',
-                            transition: 'left 0.3s' // Add transition here too
                         }}>
                             <Settings />
                         </Box>

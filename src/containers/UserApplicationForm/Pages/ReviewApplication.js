@@ -32,8 +32,8 @@ const DataCard = ({ title, data = [] }) => {
                   {item[key] === true
                     ? "Yes"
                     : item[key] === false
-                    ? "No"
-                    : item[key] || "-"}
+                      ? "No"
+                      : item[key] || "-"}
                 </span>
               </div>
             ))}
@@ -61,7 +61,9 @@ const ReviewApplication = ({ user_type }) => {
       username: auth.token,
     },
   };
+
   useEffect(() => {
+
     const fetchData = async () => {
       try {
         if (user_type === "JOBSEEKER" || user_type === "STUDENT") {
@@ -148,6 +150,11 @@ const ReviewApplication = ({ user_type }) => {
       {sections.map(({ title, key }) => (
         <DataCard key={key} title={title} data={data[key] || []} />
       ))}
+      <a href="/dashboard">
+        <button className="bg-blue-500 rounded-md px-3 py-2">
+          Done
+        </button>
+      </a>
     </div>
   );
 };

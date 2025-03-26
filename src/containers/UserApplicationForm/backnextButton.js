@@ -59,6 +59,8 @@ const BackNextButton = ({
 
   let isConfirmed = false;
 
+  console.log("dataaaaa", formData)
+
   const pushToDataBase = () => {
     if (user_type === "ADMIN") {
       console.log("ADMIN");
@@ -263,8 +265,8 @@ const BackNextButton = ({
         {!isValid
           ? "Please fill all fields with *"
           : activeStep === steps.length - 2
-          ? "Finish"
-          : "Next"}
+            ? "Finish"
+            : "Next"}
       </Button>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
+
 import StudentMenuItems from "./StudentMenuItems";
 import JobseekerMenuItems from "./JobseekerMenuItems";
 import EmployerMenuItems from "./EmployerMenuItems";
@@ -8,9 +8,10 @@ import AdministratorMenuItems from "./AdminMenuItems";
 import AcademeMenuItems from "./AcademeMenuItems";
 import { ExpandMore, ExpandLess, Menu, ChevronLeft, DarkMode, LightMode } from "@mui/icons-material";
 import ToggleDarkMode from "../../../../reusable/components/toggleDarkMode";
-import { useDispatch } from 'react-redux';
-
 import * as actions from '../../../../store/actions/auth';
+import axios from "../../../../axios";
+import { useSelector, useDispatch } from "react-redux";
+
 
 const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) => (
     <>
@@ -72,12 +73,34 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
     const location = useLocation();
     const [menuItems, setMenuItems] = useState([]);
 
+    const dispatch = useDispatch();
+    const auth = useSelector((state) => state.auth);
+    const [profileData, setProfileData] = useState(null);
+
+    useEffect(() => {
+        dispatch(actions.getAuthStorage());
+    }, [dispatch]);
+
+    useEffect(() => {
+        axios
+            .get("api/get-user-info", {
+                auth: { username: auth.token }
+            })
+            .then((response) => {
+                setProfileData(response.data.personal_information[0]);
+            })
+            .catch((error) => {
+                console.error("There was an error fetching the profile data!", error);
+            });
+    }, [auth]);
+
+
     useEffect(() => {
         if (userType === "STUDENT") {
             setMenuItems(StudentMenuItems);
         } else if (userType === "JOBSEEKER") {
             setMenuItems(JobseekerMenuItems);
-        }  else if (userType === "EMPLOYER") {
+        } else if (userType === "EMPLOYER") {
             setMenuItems(EmployerMenuItems);
         } else if (userType === "ADMIN") {
             setMenuItems(AdministratorMenuItems);
@@ -91,6 +114,7 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
         setOpenSections(Object.fromEntries(menuItems.map(({ key }) => [key, true])));
     }, [menuItems]);
 
+    console.log(profileData)
     return (
         <div
             className={`
@@ -130,7 +154,7 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
                         </label>
                         <input id="profile-upload" type="file" accept="image/*" className="hidden" />
                     </div>
-                    <p className="text-gray-900 dark:text-white text-lg font-semibold mt-2.5">Emily Smith</p>
+                    <p className="text-gray-900 dark:text-white text-lg font-semibold mt-2.5">{profileData?.first_name} {profileData?.last_name}</p>
                     <p className="text-gray-700 dark:text-gray-300 text-sm opacity-75">{userType}</p>
                 </div>
             )}
@@ -158,7 +182,7 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
                     </SidebarGroupItems>
                 ))}
             </div>
-           
+
         </div>
     );
 };

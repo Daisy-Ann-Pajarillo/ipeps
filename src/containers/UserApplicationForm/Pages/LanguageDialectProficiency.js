@@ -139,8 +139,8 @@ const LanguageDialectProficiency = ({
   useEffect(() => {
     setIsValid(
       Array.isArray(languageProficiency) &&
-        language_proficiency.length > 0 &&
-        formIsValid
+      language_proficiency.length > 0 &&
+      formIsValid
     );
   }, [formIsValid, language_proficiency]);
 
