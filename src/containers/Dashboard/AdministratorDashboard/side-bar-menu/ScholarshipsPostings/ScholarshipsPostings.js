@@ -1,84 +1,102 @@
-import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
-  IconButton,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
+import axios from "../../../../../axios";
+import { toast, ToastContainer } from "react-toastify";
 import SearchData from "../../../components/layout/Search";
 
-
 const Scholarships_Postings = () => {
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
   const [query, setQuery] = useState("");
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState("");
-  const [selectedScholarship, setSelectedScholarship] = useState(null);
+  const [scholarships, setScholarships] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [adminRemark, setAdminRemark] = useState("");
+  const [selectedScholarship, setSelectedScholarship] = useState(null);
 
-  const [scholarships, setScholarships] = useState([
-    { id: 1, title: "Global Scholarship Program", organization: "Rakuten", status: "Finished for Approval", description: "Financial support for students worldwide with academic excellence and financial need." },
-    { id: 2, title: "Merit-Based Scholarship", organization: "XYZ Foundation", status: "Approved", description: "Awarded to students with exceptional merit in academics and extracurricular activities." },
-    { id: 3, title: "Need-Based Financial Aid", organization: "ABC Org", status: "Rejected", description: "Providing financial aid to underprivileged students globally." },
-  ]);
-
-  const openModal = (scholarship) => {
-    setSelectedScholarship(scholarship);
-    setModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setSelectedScholarship(null);
-    setAdminRemark("");
-    setModalOpen(false);
-  };
-
-  const updateStatus = (id, newStatus) => {
-    setScholarships((prev) =>
-      prev.map((scholarship) =>
-        scholarship.id === id ? { ...scholarship, status: newStatus } : scholarship
-      )
-    );
-    closeModal();
-  };
-
-  // **Filter Scholarships Based on Search Query & Dropdown Selections**
   const filteredScholarships = scholarships.filter((scholarship) => {
     const matchesQuery =
-      query === "" ||
-      scholarship.title.toLowerCase().includes(query.toLowerCase()) ||
-      scholarship.organization.toLowerCase().includes(query.toLowerCase());
+      !query || scholarship.title.toLowerCase().includes(query.toLowerCase());
 
-    const matchesStatus = status === "" || scholarship.status.toLowerCase() === status.toLowerCase();
-    const matchesCompany = company === "" || scholarship.organization.toLowerCase() === company.toLowerCase();
+    const matchesStatus =
+      !status || scholarship.status.toLowerCase() === status.toLowerCase();
+
+    const matchesCompany =
+      !company ||
+      (scholarship.employer?.company_name &&
+        scholarship.employer.company_name.toLowerCase() ===
+          company.toLowerCase());
 
     return matchesQuery && matchesStatus && matchesCompany;
   });
 
+  const fetchScholarship = () => {
+    axios
+      .get("/api/public/all-postings", {
+        auth: { username: auth.token },
+      })
+      .then((response) => {
+        setScholarships(response.data.scholarship_postings.data || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching postings:", error);
+      });
+  };
+
+  useEffect(() => {
+    if (auth.token) {
+      fetchScholarship();
+    }
+  }, [auth.token]);
+
+  const updateScholarshipStatus = async (scholarshipId, newStatus) => {
+    await axios
+      .put(
+        "/api/update-posting-status",
+        {
+          posting_type: "scholarship",
+          posting_id: scholarshipId,
+          status: newStatus,
+        },
+        { auth: { username: auth.token } }
+      )
+      .then((response) => {
+        if (response.data.success) {
+          toast.info(
+            `Job post ${newStatus === "active" ? "accepted" : newStatus}`
+          );
+          fetchScholarship();
+        }
+      })
+      .catch(() => toast.info("Failed to update training posting."));
+  };
   return (
-    <Box >
-      {/* Search & Filter Component */}
+    <div className="p-4 dark:bg-gray-900 min-h-screen">
       <SearchData
         placeholder="Search scholarships..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full"
+        className="w-full dark:text-white"
         componentData={[
           {
             title: "Company",
-            options: ["", ...new Set(scholarships.map((scholarship) => scholarship.organization))],
+            options: [
+              "",
+              ...new Set(
+                scholarships.map((t) => t.employer?.company_name || "")
+              ),
+            ],
           },
           {
             title: "Status",
-            options: ["", "Finished for Approval", "Approved", "Rejected", "Expired Scholarship Post", "Edit Request for Approval"],
+            options: ["", ...new Set(scholarships.map((s) => s.status))],
           },
         ]}
         onComponentChange={(index, value) => {
@@ -86,71 +104,87 @@ const Scholarships_Postings = () => {
           if (index === 1) setStatus(value);
         }}
       />
-
-      {/* Scholarship Cards */}
-      <Grid container display="flex" flexDirection="column" gap={3} p={2}>
+      <ToastContainer
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
         {filteredScholarships.length > 0 ? (
           filteredScholarships.map((scholarship) => (
-            <Grid item xs={12} sm={6} md={4} key={scholarship.id}>
-              <Card
-                onClick={() => openModal(scholarship)}
-                sx={{ cursor: "pointer", "&:hover": { boxShadow: 6 } }}
+            <div
+              key={scholarship.id}
+              className="relative p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md cursor-pointer hover:shadow-lg"
+            >
+              <span
+                className={`absolute top-3 right-3 px-2 py-1 text-xs text-white rounded-md uppercase ${
+                  scholarship.status === "pending"
+                    ? "bg-orange-500"
+                    : scholarship.status === "active"
+                    ? "bg-green-500"
+                    : scholarship.status === "expired"
+                    ? "bg-gray-500"
+                    : "bg-red-500"
+                }`}
               >
-                <CardContent>
-                  <Typography variant="h6">{scholarship.title}</Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {scholarship.organization}
-                  </Typography>
-                  <Typography variant="body2" color="primary">
-                    Status: {scholarship.status}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+                {scholarship.status}
+              </span>
+              <h2 className="text-lg font-semibold dark:text-white">
+                {scholarship.title}
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {scholarship.employer.company_name}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {scholarship.description}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Contact: {scholarship.employer.email}
+              </p>
+              <p className="text-sm text-blue-600 dark:text-blue-400">
+                Status: {scholarship.status}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Expires on: {scholarship.expiration_date}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Updated at: {scholarship.updated_at}
+              </p>
+              {scholarship.status === "pending" && (
+                <div className="flex space-x-2 mt-4">
+                  <button
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    onClick={() =>
+                      updateScholarshipStatus(scholarship.id, "active")
+                    }
+                  >
+                    Accept
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                    onClick={() =>
+                      updateScholarshipStatus(scholarship.id, "rejected")
+                    }
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
+            </div>
           ))
         ) : (
-          <Typography textAlign="center" width="100%">No scholarships found.</Typography>
+          <p className="text-center text-gray-600 dark:text-gray-300">
+            No scholarships found.
+          </p>
         )}
-      </Grid>
-
-      {/* Modal for Detailed Scholarship Information */}
-      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {selectedScholarship?.title}
-          <IconButton onClick={closeModal} sx={{ position: "absolute", right: 8, top: 8 }}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" paragraph>
-            {selectedScholarship?.description}
-          </Typography>
-          <Typography variant="subtitle1" color="textSecondary">
-            Organization: {selectedScholarship?.organization}
-          </Typography>
-          <Typography variant="subtitle1" color="textSecondary">
-            Status: {selectedScholarship?.status}
-          </Typography>
-          <TextField
-            fullWidth
-            label="Admin Remark"
-            multiline
-            rows={3}
-            value={adminRemark}
-            onChange={(e) => setAdminRemark(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <Box mt={2} display="flex" gap={2}>
-            <Button variant="contained" color="success" onClick={() => updateStatus(selectedScholarship.id, "Approved")}>
-              Approve
-            </Button>
-            <Button variant="contained" color="error" onClick={() => updateStatus(selectedScholarship.id, "Rejected")}>
-              Reject
-            </Button>
-          </Box>
-        </DialogContent>
-      </Dialog>
-    </Box >
+      </div>
+    </div>
   );
 };
 

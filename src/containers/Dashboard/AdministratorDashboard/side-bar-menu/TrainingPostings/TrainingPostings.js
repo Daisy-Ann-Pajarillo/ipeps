@@ -1,151 +1,186 @@
-import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  TextField,
-  IconButton,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
+import axios from "../../../../../axios";
+import { toast, ToastContainer } from "react-toastify";
 import SearchData from "../../../components/layout/Search";
-const Training_Postings = () => {
+
+const TrainingPostings = () => {
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
   const [query, setQuery] = useState("");
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState("");
-  const [selectedTraining, setSelectedTraining] = useState(null);
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [adminRemark, setAdminRemark] = useState("");
+  const [trainings, setTrainings] = useState([]);
 
-  const [trainings, setTrainings] = useState([
-    { id: 1, title: "Java Full Stack Training", organization: "Rakuten", status: "Finished for Approval", description: ["Comprehensive full-stack development training", "Covers Java, Spring Boot, and React"] },
-    { id: 2, title: "Data Science Bootcamp", organization: "XYZ Foundation", status: "Approved", description: ["Python-based data science training", "Includes hands-on machine learning projects"] },
-    { id: 3, title: "Cloud Computing Essentials", organization: "ABC Org", status: "Rejected", description: ["AWS and Azure cloud fundamentals", "Focus on DevOps and cloud security"] },
-  ]);
-
-  const openModal = (training) => {
-    setSelectedTraining(training);
-    setModalOpen(true);
+  const fetchTrainings = () => {
+    axios
+      .get("/api/public/all-postings", {
+        auth: { username: auth.token },
+      })
+      .then((response) => {
+        setTrainings(response.data.training_postings.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching postings:", error);
+      });
   };
 
-  const closeModal = () => {
-    setSelectedTraining(null);
-    setAdminRemark("");
-    setModalOpen(false);
-  };
+  useEffect(() => {
+    fetchTrainings();
+  }, [auth.token]);
 
-  const updateStatus = (id, newStatus) => {
-    setTrainings((prev) =>
-      prev.map((training) =>
-        training.id === id ? { ...training, status: newStatus } : training
+  const updateTrainingStatus = async (trainingId, newStatus) => {
+    await axios
+      .put(
+        "/api/update-posting-status",
+        {
+          posting_type: "training",
+          posting_id: trainingId,
+          status: newStatus,
+        },
+        { auth: { username: auth.token } }
       )
-    );
-    closeModal();
+      .then((response) => {
+        if (response.data.success) {
+          toast.info(
+            `Job post ${newStatus === "active" ? "accepted" : newStatus}`
+          );
+          fetchTrainings();
+        }
+      })
+      .catch(() => toast.info("Failed to update training posting."));
   };
 
-  // **Filter Trainings Based on Search Query & Dropdown Selections**
   const filteredTrainings = trainings.filter((training) => {
     const matchesQuery =
       query === "" ||
-      training.title.toLowerCase().includes(query.toLowerCase()) ||
-      training.organization.toLowerCase().includes(query.toLowerCase());
-
-    const matchesStatus = status === "" || training.status.toLowerCase() === status.toLowerCase();
-    const matchesCompany = company === "" || training.organization.toLowerCase() === company.toLowerCase();
-
-    return matchesQuery && matchesStatus && matchesCompany;
+      training.title?.toLowerCase().includes(query.toLowerCase());
+    const matchesCompany =
+      company === "" ||
+      training.employer.company_name?.toLowerCase() === company.toLowerCase();
+    const matchesStatus =
+      status === "" || training.status?.toLowerCase() === status.toLowerCase();
+    return matchesQuery && matchesCompany && matchesStatus;
   });
 
   return (
-    <Box >
-      {/* Search & Filter Component */}
+    <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen">
       <SearchData
         placeholder="Search trainings..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full"
         componentData={[
           {
-            title: "Company",
-            options: ["", ...new Set(trainings.map((training) => training.organization))],
+            title: "Status",
+            options: ["", ...new Set(trainings.map((t) => t.status))],
           },
           {
-            title: "Status",
-            options: ["", "Finished for Approval", "Approved", "Rejected", "Expired Training Post", "Edit Request for Approval"],
+            title: "Company",
+            options: [
+              "",
+              ...new Set(trainings.map((t) => t.employer.company_name)),
+            ],
           },
         ]}
         onComponentChange={(index, value) => {
-          if (index === 0) setCompany(value);
-          if (index === 1) setStatus(value);
+          if (index === 0) setStatus(value);
+          if (index === 1) setCompany(value);
         }}
       />
-
-      {/* Training Cards */}
-      <Grid container spacing={3} display="flex" flexDirection="column" gap={3} p={2}>
+      <ToastContainer
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
         {filteredTrainings.length > 0 ? (
           filteredTrainings.map((training) => (
-            <Grid item xs={12} sm={6} md={4} key={training.id}>
-              <Card
-                onClick={() => openModal(training)}
-                sx={{ cursor: "pointer", "&:hover": { boxShadow: 6 } }}
+            <div
+              key={training.id}
+              className="relative p-4 bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+              <span
+                className={`absolute top-3 right-3 px-2 py-1 text-xs text-white rounded-md uppercase ${
+                  training.status === "pending"
+                    ? "bg-orange-500"
+                    : training.status === "active"
+                    ? "bg-green-500"
+                    : training.status === "expired"
+                    ? "bg-gray-500"
+                    : "bg-red-500"
+                }`}
               >
-                <CardContent>
-                  <Typography variant="h6">{training.title}</Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {training.organization}
-                  </Typography>
-                  <Typography variant="body2" color="primary">
-                    Status: {training.status}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+                {training.status}
+              </span>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {training.title || "Unknown Title"}
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400">
+                {training.employer?.company_name || "Unknown Organization"}
+              </p>
+              <p className="text-gray-700 dark:text-gray-300 mt-2">
+                {training.description || "No description available."}
+              </p>
+              <div className="mt-4 text-sm space-y-1">
+                <p>
+                  <span className="font-semibold">Expiration Date:</span>{" "}
+                  {training.expiration_date || "N/A"}
+                </p>
+                <p>
+                  <span className="font-semibold">Employer:</span>{" "}
+                  {training.employer?.email || "N/A"}
+                </p>
+                <p>
+                  <span className="font-semibold">Location:</span>{" "}
+                  {training.location || "Unknown Location"}
+                </p>
+                <p>
+                  <span className="font-semibold">Skills Gained:</span>{" "}
+                  {training.skills_gained || "N/A"}
+                </p>
+              </div>
+              {training.status === "pending" && (
+                <div className="flex space-x-2 mt-4">
+                  <button
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    onClick={() => updateTrainingStatus(training.id, "active")}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                    onClick={() =>
+                      updateTrainingStatus(training.id, "rejected")
+                    }
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
+            </div>
           ))
         ) : (
-          <Typography textAlign="center" width="100%">No trainings found.</Typography>
+          <p className="text-center w-full">No trainings found.</p>
         )}
-      </Grid>
+      </div>
 
-      {/* Modal for Detailed Training Information */}
-      <Dialog open={isModalOpen} onClose={closeModal} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {selectedTraining?.title}
-          <IconButton onClick={closeModal} sx={{ position: "absolute", right: 8, top: 8 }}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent>
-          <ul>
-            {selectedTraining?.description.map((item, index) => (
-              <li key={index}>{item}</li>
-            ))}
-          </ul>
-          <TextField
-            fullWidth
-            label="Admin Remark"
-            multiline
-            rows={3}
-            value={adminRemark}
-            onChange={(e) => setAdminRemark(e.target.value)}
-            sx={{ mt: 2 }}
-          />
-          <Box mt={2} display="flex" gap={2}>
-            <Button variant="contained" color="success" onClick={() => updateStatus(selectedTraining.id, "Approved")}>
-              Approve
-            </Button>
-            <Button variant="contained" color="error" onClick={() => updateStatus(selectedTraining.id, "Rejected")}>
-              Reject
-            </Button>
-          </Box>
-        </DialogContent>
-      </Dialog>
-    </Box>
+    </div>
   );
 };
 
-export default Training_Postings;
+export default TrainingPostings;
+
+
+

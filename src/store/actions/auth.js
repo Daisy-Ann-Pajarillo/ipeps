@@ -145,9 +145,13 @@ export const auth = (username, password) => {
             },
           })
           .then((statusResponse) => {
-            window.location.href = statusResponse.data.has_personal_info
-              ? "/dashboard"
-              : "/user-application-form";
+            console.log("user type: ", statusResponse.data.user_type);
+
+            statusResponse.data.user_type === "ADMIN"
+              ? (window.location.href = "/dashboard")
+              : (window.location.href = statusResponse.data.has_personal_info
+                  ? "/dashboard"
+                  : "/user-application-form");
           });
       })
       .catch((error) => {

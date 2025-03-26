@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -12,14 +11,23 @@ import {
 import { Edit } from "@mui/icons-material";
 import EditUserModal from "./Edit_Users_Modal";
 import SearchData from "../../../components/layout/Search";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
+import axios from "../../../../../axios";
 
 const ManageUsers = () => {
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
 
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
-
+  const [users, setUsers] = useState([]);
   const handleOpenModal = (user) => {
     setSelectedUser(user);
     setModalOpen(true);
@@ -28,300 +36,59 @@ const ManageUsers = () => {
   const handleCloseModal = () => {
     setModalOpen(false);
   };
+  const fetchScholarship = () => {
+    axios
+      .get("/api/all-users", {
+        auth: { username: auth.token },
+      })
+      .then((response) => {
+        setUsers(response.data.users || []);
+      })
+      .catch((error) => {
+        console.error("Error fetching postings:", error);
+      });
+  };
 
-  const users = [
-    {
-      userId: "U001",
-      username: "john_doe",
-      userType: "Admin",
-      accessLevel: "Full",
-      firstName: "John",
-      lastName: "Doe",
-      sex: "Male",
-      nationality: "American",
-      email: "john.doe@example.com",
-      status: "Active", // Status field
-      userImgFileUrl: "https://example.com/john_doe.jpg",
-    },
-    {
-      userId: "U002",
-      username: "jane_doe",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Jane",
-      lastName: "Doe",
-      sex: "Female",
-      nationality: "Canadian",
-      email: "jane.doe@example.com",
-      status: "Inactive", // Status field
-      userImgFileUrl: "https://example.com/jane_doe.jpg",
-    },
-    {
-      userId: "U003",
-      username: "bob_smith",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Bob",
-      lastName: "Smith",
-      sex: "Male",
-      nationality: "British",
-      email: "bob.smith@example.com",
-      status: "Hibernate", // Status field
-      userImgFileUrl: "https://example.com/bob_smith.jpg",
-    },
-    {
-      userId: "U004",
-      username: "susan_martin",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Susan",
-      lastName: "Martin",
-      sex: "Female",
-      nationality: "Australian",
-      email: "susan.martin@example.com",
-      status: "Active",
-      userImgFileUrl: "https://example.com/susan_martin.jpg",
-    },
-    {
-      userId: "U005",
-      username: "mark_taylor",
-      userType: "Admin",
-      accessLevel: "Full",
-      firstName: "Mark",
-      lastName: "Taylor",
-      sex: "Male",
-      nationality: "American",
-      email: "mark.taylor@example.com",
-      status: "Inactive",
-      userImgFileUrl: "https://example.com/mark_taylor.jpg",
-    },
-    {
-      userId: "U006",
-      username: "alice_wilson",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Alice",
-      lastName: "Wilson",
-      sex: "Female",
-      nationality: "Canadian",
-      email: "alice.wilson@example.com",
-      status: "Hibernate",
-      userImgFileUrl: "https://example.com/alice_wilson.jpg",
-    },
-    {
-      userId: "U007",
-      username: "jack_jones",
-      userType: "Admin",
-      accessLevel: "Full",
-      firstName: "Jack",
-      lastName: "Jones",
-      sex: "Male",
-      nationality: "American",
-      email: "jack.jones@example.com",
-      status: "Active",
-      userImgFileUrl: "https://example.com/jack_jones.jpg",
-    },
-    {
-      userId: "U008",
-      username: "laura_clark",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Laura",
-      lastName: "Clark",
-      sex: "Female",
-      nationality: "Canadian",
-      email: "laura.clark@example.com",
-      status: "Inactive",
-      userImgFileUrl: "https://example.com/laura_clark.jpg",
-    },
-    {
-      userId: "U009",
-      username: "charlie_davis",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Charlie",
-      lastName: "Davis",
-      sex: "Male",
-      nationality: "British",
-      email: "charlie.davis@example.com",
-      status: "Hibernate",
-      userImgFileUrl: "https://example.com/charlie_davis.jpg",
-    },
-    {
-      userId: "U010",
-      username: "emily_white",
-      userType: "Admin",
-      accessLevel: "Full",
-      firstName: "Emily",
-      lastName: "White",
-      sex: "Female",
-      nationality: "American",
-      email: "emily.white@example.com",
-      status: "Active",
-      userImgFileUrl: "https://example.com/emily_white.jpg",
-    },
-    {
-      userId: "U011",
-      username: "henry_harris",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Henry",
-      lastName: "Harris",
-      sex: "Male",
-      nationality: "Australian",
-      email: "henry.harris@example.com",
-      status: "Inactive",
-      userImgFileUrl: "https://example.com/henry_harris.jpg",
-    },
-    {
-      userId: "U012",
-      username: "lily_martinez",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Lily",
-      lastName: "Martinez",
-      sex: "Female",
-      nationality: "Canadian",
-      email: "lily.martinez@example.com",
-      status: "Hibernate",
-      userImgFileUrl: "https://example.com/lily_martinez.jpg",
-    },
-    {
-      userId: "U013",
-      username: "paul_smith",
-      userType: "Admin",
-      accessLevel: "Full",
-      firstName: "Paul",
-      lastName: "Smith",
-      sex: "Male",
-      nationality: "American",
-      email: "paul.smith@example.com",
-      status: "Active",
-      userImgFileUrl: "https://example.com/paul_smith.jpg",
-    },
-    {
-      userId: "U014",
-      username: "olivia_king",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Olivia",
-      lastName: "King",
-      sex: "Female",
-      nationality: "Canadian",
-      email: "olivia.king@example.com",
-      status: "Inactive",
-      userImgFileUrl: "https://example.com/olivia_king.jpg",
-    },
-    {
-      userId: "U015",
-      username: "george_williams",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "George",
-      lastName: "Williams",
-      sex: "Male",
-      nationality: "British",
-      email: "george.williams@example.com",
-      status: "Hibernate",
-      userImgFileUrl: "https://example.com/george_williams.jpg",
-    },
-    {
-      userId: "U016",
-      username: "isabella_moore",
-      userType: "Admin",
-      accessLevel: "Full",
-      firstName: "Isabella",
-      lastName: "Moore",
-      sex: "Female",
-      nationality: "American",
-      email: "isabella.moore@example.com",
-      status: "Active",
-      userImgFileUrl: "https://example.com/isabella_moore.jpg",
-    },
-    {
-      userId: "U017",
-      username: "michael_johnson",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Michael",
-      lastName: "Johnson",
-      sex: "Male",
-      nationality: "Canadian",
-      email: "michael.johnson@example.com",
-      status: "Inactive",
-      userImgFileUrl: "https://example.com/michael_johnson.jpg",
-    },
-    {
-      userId: "U018",
-      username: "sophia_brown",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Sophia",
-      lastName: "Brown",
-      sex: "Female",
-      nationality: "American",
-      email: "sophia.brown@example.com",
-      status: "Hibernate",
-      userImgFileUrl: "https://example.com/sophia_brown.jpg",
-    },
-    {
-      userId: "U019",
-      username: "benjamin_lee",
-      userType: "Admin",
-      accessLevel: "Full",
-      firstName: "Benjamin",
-      lastName: "Lee",
-      sex: "Male",
-      nationality: "Australian",
-      email: "benjamin.lee@example.com",
-      status: "Active",
-      userImgFileUrl: "https://example.com/benjamin_lee.jpg",
-    },
-    {
-      userId: "U020",
-      username: "emma_garcia",
-      userType: "User",
-      accessLevel: "Limited",
-      firstName: "Emma",
-      lastName: "Garcia",
-      sex: "Female",
-      nationality: "British",
-      email: "emma.garcia@example.com",
-      status: "Inactive",
-      userImgFileUrl: "https://example.com/emma_garcia.jpg",
-    },
-  ];
-
+  useEffect(() => {
+    if (auth.token) {
+      fetchScholarship();
+    }
+  }, [auth.token]);
   // **Filter Users Based on Search Query & Status**
   const filteredUsers = users.filter((user) => {
     const matchesQuery =
       query === "" ||
-      user.firstName.toLowerCase().includes(query.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(query.toLowerCase()) ||
-      user.email.toLowerCase().includes(query.toLowerCase());
+      user.username.toLowerCase().includes(query.toLowerCase()) ||
+      query === "" ||
+      user.user_type.toLowerCase().includes(query.toLowerCase());
 
-    const matchesStatus = status === "" || user.status.toLowerCase() === status.toLowerCase();
+    const matchesStatus =
+      status === "" || user.status.toLowerCase() === status.toLowerCase();
 
     return matchesQuery && matchesStatus;
   });
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Active": return "green";
-      case "Inactive": return "red";
-      case "Hibernate": return "orange";
-      default: return "gray";
+      case "Active":
+        return "green";
+      case "Inactive":
+        return "red";
+      case "Hibernate":
+        return "orange";
+      default:
+        return "gray";
     }
   };
 
   return (
-    <Box>
+    <div className="container mx-auto p-4">
       {/* SearchData Component */}
       <SearchData
         placeholder="Search user..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full"
+        className="w-full mb-4"
         componentData={[
           { title: "Status", options: ["", "Active", "Inactive", "Hibernate"] },
         ]}
@@ -330,45 +97,136 @@ const ManageUsers = () => {
         }}
       />
 
-      <Grid container spacing={2} className="p-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
         {filteredUsers.length > 0 ? (
           filteredUsers.map((user) => (
-            <Grid item xs={12} sm={6} md={4} key={user.userId} onClick={() => handleOpenModal(user)}>
-              <Card elevation={2} sx={{ borderRadius: 2 }}>
-                <CardContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2 }}>
-                  <Avatar
-                    src={user.userImgFileUrl || "/default-avatar.png"}
-                    alt={user.firstName}
-                    sx={{ width: 80, height: 80 }}
+            <div
+              key={user.user_id}
+              className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 border border-gray-100 dark:border-gray-700 flex flex-col space-y-3 relative overflow-hidden"
+            >
+              {/* Color indicator based on user type */}
+              <div
+                className={`absolute top-0 left-0 w-full h-1.5 
+              ${user.user_type === "employer" ? "bg-blue-500" : ""} 
+              ${user.user_type === "student" ? "bg-green-500" : ""} 
+              ${user.user_type === "jobseeker" ? "bg-purple-500" : ""} 
+              ${user.user_type === "academe" ? "bg-yellow-500" : ""}`}
+              />
+
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                    {user.username}
+                  </h2>
+
+                  {/* Improved user type display */}
+                  <div className="flex items-center mt-1">
+                    <div
+                      className={`w-3 h-3 rounded-full mr-2
+                  ${
+                    user.user_type.toLowerCase() === "employer"
+                      ? "bg-blue-500"
+                      : ""
+                  } 
+                  ${
+                    user.user_type.toLowerCase() === "student"
+                      ? "bg-green-500"
+                      : ""
+                  } 
+                  ${
+                    user.user_type.toLowerCase() === "jobseeker"
+                      ? "bg-purple-500"
+                      : ""
+                  } 
+                  ${
+                    user.user_type.toLowerCase() === "academe"
+                      ? "bg-yellow-500"
+                      : ""
+                  }`}
+                    />
+                    <span
+                      className={`text-sm font-medium
+                  ${
+                    user.user_type.toLowerCase() === "employer"
+                      ? "text-blue-700 dark:text-blue-300"
+                      : ""
+                  } 
+                  ${
+                    user.user_type.toLowerCase() === "student"
+                      ? "text-green-700 dark:text-green-300"
+                      : ""
+                  } 
+                  ${
+                    user.user_type.toLowerCase() === "jobseeker"
+                      ? "text-purple-700 dark:text-purple-300"
+                      : ""
+                  } 
+                  ${
+                    user.user_type.toLowerCase() === "academe"
+                      ? "text-yellow-700 dark:text-yellow-300"
+                      : ""
+                  }`}
+                    >
+                      {user.user_type.charAt(0).toUpperCase() +
+                        user.user_type.slice(1)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-1">
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full 
+                ${user.access_level >= 2 ? "bg-red-500" : "bg-gray-400"}`}
                   />
-                  <Box textAlign="center" sx={{ mt: 1, mb: 1 }}>
-                    <Typography variant="body1" fontWeight="bold">
-                      {user.firstName} {user.lastName}
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary" noWrap>
-                      {user.email}
-                    </Typography>
-                    <Typography variant="body2" fontWeight="bold" sx={{ color: getStatusColor(user.status) }}>
-                      {user.status}
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                    {user.access_level >= 2 ? "Admin" : "User"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-1">
+                <div className="flex items-center text-sm mb-1.5">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                  <span className="text-gray-600 dark:text-gray-300 truncate">
+                    {user.email}
+                  </span>
+                </div>
+
+                <div className="flex items-center text-sm">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="text-gray-600 dark:text-gray-300">
+                    Created {user.created_at}
+                  </span>
+                </div>
+              </div>
+            </div>
           ))
         ) : (
-          <Grid item xs={12}>
-            <Typography textAlign="center" width="100%" variant="body1" color="textSecondary">
-              No users found.
-            </Typography>
-          </Grid>
+          <div className="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
+            No users found.
+          </div>
         )}
-      </Grid>
-
-
-      {/* Edit User Modal */}
-      <EditUserModal isModalOpen={isModalOpen} handleCloseModal={handleCloseModal} selectedUser={selectedUser} />
-    </Box>
+      </div>
+    </div>
   );
 };
 
