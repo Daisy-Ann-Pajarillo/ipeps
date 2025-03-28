@@ -18,7 +18,7 @@ import {
   Box,
 } from "@mui/material";
 import BackNextButton from "../backnextButton";
-import fieldOfStudyTypes from "../../../reusable/constants/fieldOfStudyTypes";
+import field_of_study_options from "../../../reusable/constants/fieldOfStudyTypes";
 import fetchData from "../api/fetchData";
 import axios from "../../../axios";
 import { auth } from "../../../store/actions";
@@ -26,45 +26,45 @@ import { auth } from "../../../store/actions";
 const schema = yup.object().shape({
   educationHistory: yup.array().of(
     yup.object().shape({
-      schoolName: yup
+      school_name: yup
         .string()
         .min(3, "School Name should be at least 3 characters long")
         .required("School name is required"),
-      degreeQualification: yup
+      degree_or_qualification: yup
         .string()
         .required("Degree qualification is required"),
-      dateFrom: yup
+      date_from: yup
         .date()
         .required("Start date is required")
         .max(new Date(), "Start date cannot be in the future"),
-      dateTo: yup
+      date_to: yup
         .date()
         .nullable()
         .notRequired()
-        .when("dateFrom", (dateFrom, schema) =>
-          dateFrom
+        .when("date_from", (date_from, schema) =>
+          date_from
             ? schema
-                .test(
-                  "end-date-after-start",
-                  "End date must be after start date",
-                  (dateTo) =>
-                    !dateTo ||
-                    (dateFrom && new Date(dateTo) > new Date(dateFrom))
-                )
-                .max(new Date(), "End date cannot be in the future")
+              .test(
+                "end-date-after-start",
+                "End date must be after start date",
+                (date_to) =>
+                  !date_to ||
+                  (date_from && new Date(date_to) > new Date(date_from))
+              )
+              .max(new Date(), "End date cannot be in the future")
             : schema
         )
         .transform((value, originalValue) =>
           originalValue === "" ? null : value
         ),
-      isCurrent: yup.boolean().default(false),
-      fieldOfStudy: yup
+      is_current: yup.boolean().default(false),
+      field_of_study: yup
         .string()
-        .nullable()
+        .required()
         .transform((value, originalValue) =>
           originalValue === "" ? null : value
         ),
-      programDuration: yup
+      program_duration: yup
         .number()
         .typeError("Program duration must be a number")
         .positive("Must be a positive number")
@@ -128,7 +128,6 @@ const EducationalBackground = ({
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-  // Fetch and transform data
   useEffect(() => {
     const fetchEducationalBackground = async () => {
       try {
@@ -137,30 +136,16 @@ const EducationalBackground = ({
             username: auth.token,
           },
         });
-
-        if (response.data.educational_background) {
-          const transformedData = response.data.educational_background.map(
-            (edu) => ({
-              schoolName: edu.school_name,
-              degreeQualification: edu.degree_or_qualification,
-              dateFrom: new Date(edu.date_from).toISOString().split("T")[0],
-              dateTo: new Date(edu.date_to).toISOString().split("T")[0],
-              isCurrent: false,
-              fieldOfStudy: edu.field_of_study,
-              programDuration: edu.program_duration,
-            })
-          );
-          setEducationHistory(transformedData);
-          setValue("educationHistory", transformedData);
-        }
+        console.log("educationallll", response.data)
+        setEducationHistory(response.data.educational_background);
       } catch (error) {
-        console.error("Error fetching educational background:", error);
+        console.error("Error fetching user info:", error);
       } finally {
         setLoading(false);
       }
     };
     fetchEducationalBackground();
-  }, [setValue]);
+  }, []);
 
   const watchEducationHistory = watch("educationHistory");
 
@@ -170,13 +155,13 @@ const EducationalBackground = ({
 
   const addEducation = () => {
     const newEntry = {
-      schoolName: "",
-      degreeQualification: "",
-      dateFrom: "",
-      dateTo: "",
-      isCurrent: false,
-      fieldOfStudy: "",
-      programDuration: "",
+      school_name: "",
+      degree_or_qualification: "",
+      date_from: "",
+      date_to: "",
+      is_current: false,
+      field_of_study: "",
+      program_duration: "",
     };
 
     const updatedEducationHistory = [...educationHistory, newEntry];
@@ -198,13 +183,13 @@ const EducationalBackground = ({
 
   const handleCurrentCheckbox = (index, checked) => {
     const updatedHistory = [...educationHistory];
-    updatedHistory[index].isCurrent = checked;
+    updatedHistory[index].is_current = checked;
     if (checked) {
-      updatedHistory[index].dateTo = null;
+      updatedHistory[index].date_to = null;
     }
     setEducationHistory(updatedHistory);
-    setValue(`educationHistory.${index}.isCurrent`, checked);
-    setValue(`educationHistory.${index}.dateTo`, null);
+    setValue(`educationHistory.${index}.is_current`, checked);
+    setValue(`educationHistory.${index}.date_to`, null);
   };
 
   useEffect(() => {
@@ -229,21 +214,21 @@ const EducationalBackground = ({
             <Autocomplete
               freeSolo
               options={schoolsList}
-              value={item.schoolName}
+              value={item.school_name}
               onChange={(_, newValue) => {
-                setValue(`educationHistory.${index}.schoolName`, newValue, {
+                setValue(`educationHistory.${index}.school_name`, newValue, {
                   shouldValidate: true,
                 });
               }}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  {...register(`educationHistory.${index}.schoolName`)}
+                  {...register(`educationHistory.${index}.school_name`)}
                   label="School Name"
                   required
-                  error={!!errors.educationHistory?.[index]?.schoolName}
+                  error={!!errors.educationHistory?.[index]?.school_name}
                   helperText={
-                    errors.educationHistory?.[index]?.schoolName?.message
+                    errors.educationHistory?.[index]?.school_name?.message
                   }
                 />
               )}
@@ -253,26 +238,26 @@ const EducationalBackground = ({
           <Grid item xs={6}>
             <TextField
               fullWidth
-              {...register(`educationHistory.${index}.dateFrom`)}
+              {...register(`educationHistory.${index}.date_from`)}
               label="Date From"
               type="date"
               required
               InputLabelProps={{ shrink: true }}
-              error={!!errors.educationHistory?.[index]?.dateFrom}
-              helperText={errors.educationHistory?.[index]?.dateFrom?.message}
+              error={!!errors.educationHistory?.[index]?.date_from}
+              helperText={errors.educationHistory?.[index]?.date_from?.message}
             />
           </Grid>
 
           <Grid item xs={6}>
             <TextField
               fullWidth
-              {...register(`educationHistory.${index}.dateTo`)}
+              {...register(`educationHistory.${index}.date_to`)}
               label="Date To"
               type="date"
-              disabled={item.isCurrent}
+              disabled={item.is_current}
               InputLabelProps={{ shrink: true }}
-              error={!!errors.educationHistory?.[index]?.dateTo}
-              helperText={errors.educationHistory?.[index]?.dateTo?.message}
+              error={!!errors.educationHistory?.[index]?.date_to}
+              helperText={errors.educationHistory?.[index]?.date_to?.message}
             />
           </Grid>
 
@@ -280,7 +265,7 @@ const EducationalBackground = ({
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={item.isCurrent}
+                  checked={item.is_current}
                   onChange={(e) =>
                     handleCurrentCheckbox(index, e.target.checked)
                   }
@@ -294,9 +279,9 @@ const EducationalBackground = ({
             <FormControl fullWidth required>
               <InputLabel>Degree or Qualification</InputLabel>
               <Select
-                {...register(`educationHistory.${index}.degreeQualification`)}
-                error={!!errors.educationHistory?.[index]?.degreeQualification}
-                value={item.degreeQualification || ""}
+                {...register(`educationHistory.${index}.degree_or_qualification`)}
+                error={!!errors.educationHistory?.[index]?.degree_or_qualification}
+                value={item.degree_or_qualification || ""}
               >
                 {degreeOptions.map((option) => (
                   <MenuItem key={option} value={option}>
@@ -305,27 +290,27 @@ const EducationalBackground = ({
                 ))}
               </Select>
               <p className="text-red-500 text-sm">
-                {errors.educationHistory?.[index]?.degreeQualification?.message}
+                {errors.educationHistory?.[index]?.degree_or_qualification?.message}
               </p>
             </FormControl>
           </Grid>
 
           <Grid item xs={12} sm={6}>
-            <FormControl fullWidth>
+            <FormControl fullWidth required>
               <InputLabel>Field of Study</InputLabel>
               <Select
-                {...register(`educationHistory.${index}.fieldOfStudy`)}
-                error={!!errors.educationHistory?.[index]?.fieldOfStudy}
-                value={item.fieldOfStudy || ""}
+                {...register(`educationHistory.${index}.field_of_study`)}
+                error={!!errors.educationHistory?.[index]?.field_of_study}
+                value={item.field_of_study || ""}
               >
-                {fieldOfStudyTypes.map((option) => (
+                {field_of_study_options.map((option) => (
                   <MenuItem key={option} value={option}>
                     {option}
                   </MenuItem>
                 ))}
               </Select>
               <p className="text-red-500 text-sm">
-                {errors.educationHistory?.[index]?.fieldOfStudy?.message}
+                {errors.educationHistory?.[index]?.field_of_study?.message}
               </p>
             </FormControl>
           </Grid>
@@ -334,14 +319,14 @@ const EducationalBackground = ({
             <TextField
               fullWidth
               required
-              {...register(`educationHistory.${index}.programDuration`)}
+              {...register(`educationHistory.${index}.program_duration`)}
               label="Program Duration (Years)"
               type="number"
               inputProps={{ min: 0 }} // Ensures the input doesn't allow negatives
-              value={item.programDuration || ""}
-              error={!!errors.educationHistory?.[index]?.programDuration}
+              value={item.program_duration || ""}
+              error={!!errors.educationHistory?.[index]?.program_duration}
               helperText={
-                errors.educationHistory?.[index]?.programDuration?.message
+                errors.educationHistory?.[index]?.program_duration?.message
               }
             />
           </Grid>
