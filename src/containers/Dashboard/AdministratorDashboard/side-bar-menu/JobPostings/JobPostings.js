@@ -160,10 +160,8 @@ export default function JobBoard() {
               </div>
 
               <div className="flex items-center text-gray-500 dark:text-gray-400 mt-2">
-                <AttachMoneyIcon className="mr-1 text-green-500" size={18} />
                 <span>
-                  ${job.estimated_salary_from.toLocaleString() || "-"} - $
-                  {job.estimated_salary_to.toLocaleString() || "-"} / year
+                  Php {job.estimated_salary_from.toLocaleString() || "-"} - Php {job.estimated_salary_to.toLocaleString() || "-"} / year
                 </span>
               </div>
 

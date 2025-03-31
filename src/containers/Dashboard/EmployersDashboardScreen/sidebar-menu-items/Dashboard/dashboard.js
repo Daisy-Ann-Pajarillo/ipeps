@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-
-import {
-    Box, Typography, Paper, Fab, Tooltip, Grid,
-    IconButton,
-    Avatar, Button,
-
-    IconButton as MuiIconButton
-} from "@mui/material";
+import {Box, Typography, Paper, Fab, Tooltip, Grid, IconButton, Avatar, Button,IconButton as MuiIconButton} from "@mui/material";
 import { Fade } from '@mui/material';
 import { Chip } from '@mui/material';
-
-
 import CloseIcon from '@mui/icons-material/Close';
+
 
 import {
     School,
@@ -449,44 +441,6 @@ const Dashboard = ({ isCollapsed }) => {
 
     return (
         <Box className="'max-w-[400px]'">
-
-            {/* Welcome Message Popup */}
-            <Paper elevation={3}
-                className='max-w-[400px]'
-            >
-                <Box sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    // mb: 2
-                }}>
-                    <Box sx={{
-                        flex: 1
-                    }}>
-                        <Typography variant="h4" gutterBottom>
-                            Welcome back, John! 👋
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                            {hasAnnouncements
-                                ? "Your hiring journey continues! Here's what's new today."
-                                : "Your hiring journey continues! No news today."}
-                        </Typography>
-                    </Box>
-                    <IconButton
-                        onClick={handleCloseWelcome}
-                        sx={{
-                            color: 'rgba(0, 0, 0, 0.54)',
-                            padding: '4px',
-                            marginTop: '-8px',
-                            marginRight: '-8px'
-                        }}
-                    >
-                        <CloseIcon fontSize="small" />
-                    </IconButton>
-                </Box>
-            </Paper>
-
-
 
             {/* Floating Announcement Button */}
             {showAnnouncementButton && (
