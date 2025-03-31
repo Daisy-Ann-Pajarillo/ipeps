@@ -19,6 +19,17 @@ import {
 import * as yup from "yup";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+//Pop Up Noify
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import VisibilityIcon from "@mui/icons-material/Visibility"; // Eye icon for showing password
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff"; // Eye icon for hiding password
+
+
+
 
 // Registration validation schema using Yup
 const registrationSchema = yup.object().shape({
@@ -55,6 +66,9 @@ const loginSchema = yup.object().shape({
 });
 
 function Registration(props) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(1);
   const [errors, setErrors] = useState({
@@ -142,6 +156,9 @@ function Registration(props) {
         },
       }));
 
+      // Display success toast notification
+      toast.success("Registration successful! Please log in.");
+
       // Reset form after successful registration
       resetRegisterForm();
 
@@ -158,6 +175,11 @@ function Registration(props) {
             "Registration failed. Please try again.",
         },
       }));
+
+      // Display error toast notification
+      toast.error(
+        error.response?.data?.message || "Registration failed. Please try again."
+      );
     }
   };
 
@@ -171,6 +193,7 @@ function Registration(props) {
 
   return (
     <Box className="rounded-md m-4 px-4 py-3 min-w-[250px] sm:min-w-[350px] max-w-[450px] bg-neutral-100 dark:bg-neutral-800">
+      <ToastContainer />
       <Tabs
         value={tabValue}
         onChange={handleTabChange}
@@ -294,15 +317,26 @@ function Registration(props) {
               <TextField
                 {...field}
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"} // Toggle between text and password
                 fullWidth
                 className="bg-white dark:bg-neutral-700"
                 error={!!registerFormErrors.password}
                 helperText={registerFormErrors.password?.message}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword((prev) => !prev)} // Toggle visibility
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             )}
           />
-
           {/* Confirm Password Field */}
           <Controller
             name="confirmPassword"
@@ -311,15 +345,26 @@ function Registration(props) {
               <TextField
                 {...field}
                 label="Confirm Password"
-                type="password"
+                type={showConfirmPassword ? "text" : "password"} // Toggle between text and password
                 fullWidth
                 className="bg-white dark:bg-neutral-700"
                 error={!!registerFormErrors.confirmPassword}
                 helperText={registerFormErrors.confirmPassword?.message}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword((prev) => !prev)} // Toggle visibility
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             )}
           />
-
           <Button variant="contained" type="submit">
             Register
           </Button>
@@ -364,11 +409,23 @@ function Registration(props) {
               <TextField
                 {...field}
                 label="Password"
-                type="password"
+                type={showLoginPassword ? "text" : "password"} // Toggle between text and password
                 fullWidth
                 className="bg-white dark:bg-neutral-700"
                 error={!!loginFormErrors.loginPassword}
                 helperText={loginFormErrors.loginPassword?.message}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowLoginPassword((prev) => !prev)} // Toggle visibility
+                        edge="end"
+                      >
+                        {showLoginPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             )}
           />

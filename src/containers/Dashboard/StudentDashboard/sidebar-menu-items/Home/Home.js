@@ -42,7 +42,7 @@ const Dashboard = () => {
       let allJobs = [];
       const fetchJobs = async (page = 1) => {
         try {
-          const response = await axios.get("http://localhost:5000/api/recommend/job-posting", {
+          const response = await axios.get("/api/recommend/job-posting", {
             params: { page }, // Assuming the API supports pagination via `page`
             auth: { username: auth.token },
           });
