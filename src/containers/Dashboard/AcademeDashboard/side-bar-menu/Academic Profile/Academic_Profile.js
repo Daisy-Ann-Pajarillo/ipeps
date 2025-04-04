@@ -69,7 +69,7 @@ const AcademicProfile = () => {
       </div>
 
       <div className="text-center mt-6">
-        <a href="/user-application-form">
+        <a href="/user-application-form?click_from=profile">
           <button className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition duration-200">
             Edit Profile
           </button>

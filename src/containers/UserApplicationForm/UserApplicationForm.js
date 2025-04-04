@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-
+import { useLocation } from "react-router-dom";
 import * as actions from "../../store/actions/index";
 
 // Material-UI Components
@@ -95,6 +95,11 @@ const UserApplicationForm = (props) => {
   const [steps, setSteps] = useState([]);
   const navigate = useNavigate();
 
+  const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+
+  const clickFrom = queryParams.get("click_from");
   // Initial auth check
   useEffect(() => {
     const checkAuth = async () => {
@@ -110,7 +115,7 @@ const UserApplicationForm = (props) => {
         navigate("/login");
       }
     };
-    
+
     checkAuth();
   }, []);
 
@@ -118,7 +123,7 @@ const UserApplicationForm = (props) => {
   useEffect(() => {
     if (props.auth && props.auth.user) {
       const userType = props.auth.user.user_type;
-      
+
       // Set steps based on user type
       if (userType === "JOBSEEKER" || userType === "STUDENT") {
         setSteps(stepsForJobseekers);
@@ -129,7 +134,7 @@ const UserApplicationForm = (props) => {
         console.warn("Unknown user type:", userType);
         setSteps([]);
       }
-      
+
       setIsLoading(false);
     }
   }, [props.auth]);
@@ -224,8 +229,8 @@ const UserApplicationForm = (props) => {
           <Typography sx={{ mt: 2 }}>
             Please check your inbox and follow the instructions to verify your email.
           </Typography>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={() => setUserRequestedEmailConfirmation(false)}
             sx={{ mt: 2 }}
           >
@@ -250,7 +255,7 @@ const UserApplicationForm = (props) => {
               to="/logout"
               className="mt-4"
             >
-              Log Out
+              {props.backOrExit === "Exit" ? "Exit" : "Log Out"}
             </Button>
           </CardContent>
         </Card>
@@ -258,25 +263,41 @@ const UserApplicationForm = (props) => {
     );
   }
 
+
+
   return (
     <div className="fixed inset-0 flex justify-center items-center gap-2 px-3">
       <ToggleDarkMode className="fixed bottom-0 right-0 z-50" />
       <Container className="max-w-[700px] h-full overflow-y-auto py-5 mx-0 flex flex-col items-start justify-center">
-        <div className="mb-4 text-left">
-          <Button
-            variant="contained"
-            color="primary"
-            component={Link}
-            to="/logout"
-          >
-            Log Out
-          </Button>
-        </div>
+        {clickFrom === "profile" ?
+          <div>
+            <Button
+              variant="contained"
+              color="primary"
+              component={Link}
+              to="/dashboard/settings"
+            >
+              Back
+            </Button>
+          </div>
+          :
+          <div className="mb-4 text-left">
+            <Button
+              variant="contained"
+              color="primary"
+              component={Link}
+              to="/logout"
+            >
+              Exit
+            </Button>
+          </div>
+
+        }
+
         <Card className="overflow-y-scroll w-full">
           <CardHeader
-            title={`${steps[activeStep]?.label || "Loading"} (${activeStep + 1}/${
-              steps.length
-            })`}
+            title={`${steps[activeStep]?.label || "Loading"} (${activeStep + 1}/${steps.length
+              })`}
             className="[&_.MuiCardHeader-title]:text-md"
           />
           <CardContent>{getCurrentComponent()}</CardContent>

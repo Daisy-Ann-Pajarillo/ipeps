@@ -134,7 +134,7 @@ const Settings = () => {
             selectedSetting={selectedSetting}
           />
           {/* Link to Profile Information */}
-          <a href="/user-application-form" className="block mt-4 text-blue-500 hover:underline">
+          <a href="/user-application-form?click_from=profile" className="block mt-4 text-blue-500 hover:underline">
             Profile Information
           </a>
         </div>

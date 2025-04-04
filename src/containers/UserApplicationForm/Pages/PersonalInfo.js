@@ -307,13 +307,13 @@ const PersonalInfo = ({
         setSelectedCivilStatus(civil_status);
         setSelectedReligion(religion);
         setEmploymentStatus(employment_status);
-        setLookingForAWork(is_looking_for_work ? "YES" : "NO");
-        setWillingToWork(is_willing_to_work_immediately ? "YES" : "NO");
-        setAnOfw(is_ofw ? "YES" : "NO");
+        setLookingForAWork(is_looking_for_work !== "" ? (is_looking_for_work ? "YES" : "NO") : "");
+        setWillingToWork(is_willing_to_work_immediately !== "" ? (is_willing_to_work_immediately ? "YES" : "NO") : "");
+        setAnOfw(is_ofw !== "" ? (is_ofw ? "YES" : "NO") : "");
         setOfwCountry(ofw_country);
-        setFormerOfw(is_former_ofw ? "YES" : "NO");
+        setFormerOfw(is_former_ofw !== "" ? (is_former_ofw ? "YES" : "NO") : "");
         setFormerOfwCountry(former_ofw_country);
-        setFourPs(is_4ps_beneficiary ? "YES" : "NO");
+        setFourPs(is_4ps_beneficiary !== "" ? (is_4ps_beneficiary ? "YES" : "NO") : "");
       }
 
       if (user_type === "EMPLOYER") {
@@ -367,66 +367,61 @@ const PersonalInfo = ({
   return (
     <Box sx={{ p: 3 }}>
       <Grid container spacing={2}>
-        {/* Basic Information */}
-        <>
-          <Grid item xs={12} sm={6}>
-            <Autocomplete
-              options={["Mr.", "Ms.", "Mrs."]}
-              getOptionLabel={(option) => option}
-              value={selectedPrefix}
-              onChange={(event, newValue) => {
-                setSelectedPrefix(newValue);
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Prefix"
-                  variant="outlined"
-                  required
-                  {...register("prefix")}
-                  error={!!errors?.prefix}
-                  helperText={errors?.prefix?.message}
-                />
-              )}
-            />
+        {(user_type === "ACADEME" || user_type === "EMPLOYER") && (
+          <Grid item xs={12}>
+            <h1><b>{user_type.toLowerCase().replace(/^./, user_type[0].toUpperCase())}</b></h1>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              required
-              label="First Name"
-              {...register("first_name")}
-              error={!!errors?.first_name}
-              helperText={errors?.first_name?.message}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Middle Name"
-              {...register("middle_name")}
-              error={!!errors?.middle_name}
-              helperText={errors?.middle_name?.message}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              required
-              label="Last Name"
-              {...register("last_name")}
-              error={!!errors?.last_name}
-              helperText={errors?.last_name?.message}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Suffix" {...register("suffix")} />
-          </Grid>
-        </>
+        )}
+        {user_type === "ACADEME" && (
+          <>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                value={formData.institution_name}
+                label="Institution Name"
+                {...register("institution_name")}
+                required
+                error={!!errors?.institution_name}
+                helperText={errors?.institution_name?.message}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <Autocomplete
+                options={[
+                  "Public Universities",
+                  "Private Universities",
+                  "Community Colleges",
+                  "Technical Colleges",
+                  "Vocational Colleges",
+                  "Nursing Schools",
+                  "Special Interest Colleges",
+                  "Art Colleges",
+                ]}
+                getOptionLabel={(option) => option}
+                value={selectedInstitutionType}
+                onChange={(event, newValue) => {
+                  setSelectedInstitutionType(newValue);
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Type"
+                    variant="outlined"
+                    required
+                    {...register("institution_type")}
+                    error={!!errors?.institution_type}
+                    helperText={errors?.institution_type?.message}
+                  />
+                )}
+              />
+            </Grid>
+          </>
+        )}
         {/*********************************  EMPLOYER  *********************************/}
         {user_type === "EMPLOYER" && (
           <>
-            <ApplicationDivider />
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -529,460 +524,707 @@ const PersonalInfo = ({
             </Grid>
           </>
         )}
-        {user_type === "ACADEME" && (
-          <>
-            <ApplicationDivider />
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                value={formData.institution_name}
-                label="Institution Name"
-                {...register("institution_name")}
-                required
-                error={!!errors?.institution_name}
-                helperText={errors?.institution_name?.message}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <Autocomplete
-                options={[
-                  "Public Universities",
-                  "Private Universities",
-                  "Community Colleges",
-                  "Technical Colleges",
-                  "Vocational Colleges",
-                  "Nursing Schools",
-                  "Special Interest Colleges",
-                  "Art Colleges",
-                ]}
-                getOptionLabel={(option) => option}
-                value={selectedInstitutionType}
-                onChange={(event, newValue) => {
-                  setSelectedInstitutionType(newValue);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Type"
-                    variant="outlined"
-                    required
-                    {...register("institution_type")}
-                    error={!!errors?.institution_type}
-                    helperText={errors?.institution_type?.message}
-                  />
-                )}
-              />
-            </Grid>
-          </>
-        )}
+        <ApplicationDivider />
         {(user_type === "EMPLOYER" || user_type === "ACADEME") && (
           <>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                required
-                type="email"
-                label="Email Address"
-                {...register("email")}
-                error={!!errors?.email}
-                helperText={errors?.email?.message}
-              />
-            </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                label="Employer's Position / Designation"
-                {...register("employer_position")}
-                error={!!errors?.employer_position}
-                helperText={errors?.employer_position?.message}
-              />
+              <h1><b>Address</b></h1>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                label="Employer's ID Number"
-                {...register("employer_id_number")}
-                error={!!errors?.employer_id_number}
-                helperText={errors?.employer_id_number?.message}
-              />
-            </Grid>
-          </>
-        )}
-        {/*********************************  JOBSEEKER *** STUDENT  *********************************/}
-        {(user_type === "JOBSEEKER" || user_type === "STUDENT") && (
-          <>
-            <Grid item xs={12} sm={6}>
-              <Autocomplete
-                options={["Male", "Female"]}
-                getOptionLabel={(option) => option}
-                value={selectedSex}
-                onChange={(event, newValue) => {
-                  setSelectedSex(newValue);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Sex"
-                    variant="outlined"
-                    required
-                    {...register("sex")}
-                    error={!!errors?.sex}
-                    helperText={errors?.sex?.message}
+            {/*********************************  Address *********************************/}
+            <>
+              {/* Switch */}
+              <Grid item xs={12} sx={{ display: "flex", justifyItems: "center" }}>
+                <label>
+                  {!isPermanent ? "Temporary Address" : "Permanent Address"}
+                  <Switch
+                    {...register("permanent")}
+                    checked={isPermanent}
+                    onChange={() => {
+                      setIsPermanent((val) => !val);
+                    }}
+                    color="primary"
                   />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                required
-                label="Date of Birth"
-                type="date"
-                {...register("date_of_birth")}
-                InputLabelProps={{ shrink: true }}
-                error={!!errors?.date_of_birth}
-                helperText={errors?.date_of_birth?.message}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                required
-                label="Place of Birth"
-                {...register("place_of_birth")}
-                error={!!errors?.place_of_birth}
-                helperText={errors?.place_of_birth?.message}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Autocomplete
-                options={["Single", "Married", "Divorced", "Widowed"]}
-                getOptionLabel={(option) => option}
-                value={selectedCivilStatus}
-                onChange={(event, newValue) => {
-                  setSelectedCivilStatus(newValue);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Civil Status"
-                    variant="outlined"
-                    required
-                    {...register("civil_status")}
-                    error={!!errors?.civil_status}
-                    helperText={errors?.civil_status?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                required
-                label="Height (cm)"
-                {...register("height")}
-                error={!!errors?.height}
-                helperText={errors?.height?.message}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                required
-                label="Weight (kg)"
-                {...register("weight")}
-                error={!!errors?.weight}
-                helperText={errors?.weight?.message}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Autocomplete
-                options={religionOption}
-                getOptionLabel={(option) => option}
-                value={selectedReligion}
-                onChange={(event, newValue) => {
-                  setSelectedReligion(newValue);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Select Religion"
-                    variant="outlined"
-                    {...register("religion")}
-                    error={!!errors?.religion}
-                    helperText={errors?.religion?.message}
-                  />
-                )}
-              />
-            </Grid>
-          </>
-        )}
-        <ApplicationDivider />
-        {/*********************************  Address *********************************/}
-        <>
-          {/* Switch */}
-          <Grid item xs={12} sx={{ display: "flex", justifyItems: "center" }}>
-            <label>
-              {!isPermanent ? "Temporary Address" : "Permanent Address"}
-              <Switch
-                {...register("permanent")}
-                checked={isPermanent}
-                onChange={() => {
-                  setIsPermanent((val) => !val);
-                }}
-                color="primary"
-              />
-            </label>
-          </Grid>
-          {/* Temporary Address */}
-          <>
-            {!isPermanent && (
+                </label>
+              </Grid>
+              {/* Temporary Address */}
               <>
+                {!isPermanent && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        options={countriesList}
+                        getOptionLabel={(option) => option}
+                        value={selectedCountry}
+                        onChange={(event, newValue) => {
+                          setSelectedCountry(newValue);
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...register("temporary_country")}
+                            {...params}
+                            required
+                            label="Country"
+                            error={!!errors?.temporary_country}
+                            helperText={errors?.temporary_country?.message}
+                          />
+                        )}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        options={addressData.provinces}
+                        getOptionLabel={(option) => option}
+                        value={selectedProvince}
+                        onChange={(event, newValue) => {
+                          setSelectedProvince(newValue);
+                          setSelectedMunicipality(null);
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            required={selectedCountry === "Philippines"}
+                            {...register("temporary_province")}
+                            {...params}
+                            label="Province"
+                            error={!!errors?.temporary_province}
+                            helperText={errors?.temporary_province?.message}
+                          />
+                        )}
+                        disabled={selectedCountry !== "Philippines"}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        options={addressData.municipalities}
+                        getOptionLabel={(option) => option}
+                        value={selectedMunicipality}
+                        onChange={(event, newValue) =>
+                          setSelectedMunicipality(newValue)
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...register("temporary_municipality")}
+                            required={selectedProvince}
+                            {...params}
+                            label="Municipality"
+                            error={!!errors?.temporary_municipality}
+                            helperText={errors?.temporary_municipality?.message}
+                          />
+                        )}
+                        disabled={!selectedProvince} // Disable if no province is selected
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        required={selectedMunicipality}
+                        disabled={!selectedMunicipality}
+                        label="Zip Code"
+                        {...register("temporary_zip_code")}
+                        error={!!errors?.temporary_zip_code}
+                        helperText={errors?.temporary_zip_code?.message}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        options={addressData.barangays}
+                        getOptionLabel={(option) => option || ""}
+                        value={selectedBarangay}
+                        onChange={(event, newValue) =>
+                          setSelectedBarangay(newValue)
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...register("temporary_barangay")}
+                            required={selectedMunicipality}
+                            {...params}
+                            label="Barangay"
+                            error={!!errors?.temporary_barangay}
+                            helperText={errors?.temporary_barangay?.message}
+                          />
+                        )}
+                        disabled={!selectedMunicipality} // Disable if no province is selected
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        value={formData.temporary_house_no_street_village}
+                        disabled={!selectedMunicipality}
+                        label="House No./Street Village"
+                        {...register("temporary_house_no_street_village")}
+                      />
+                    </Grid>
+                  </>
+                )}
+              </>
+              {/* Permanent Address */}
+              <>
+                <Grid item xs={12}>
+                  <Typography>{!isPermanent && "Permanent Address"}</Typography>
+                </Grid>
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
                     options={countriesList}
                     getOptionLabel={(option) => option}
-                    value={selectedCountry}
+                    value={selectedPermanentCountry}
                     onChange={(event, newValue) => {
-                      setSelectedCountry(newValue);
+                      setSelectedPermanentCountry(newValue);
+                      if (newValue !== "Philippines") {
+                        setSelectedPermanentProvince(null);
+                        setSelectedPermanentMunicipality(null);
+                        setSelectedPermanentBarangay(null);
+                        setValue("permanent_zip_code", null);
+                        setValue("permanent_house_no_street_village", null);
+                      }
                     }}
                     renderInput={(params) => (
                       <TextField
-                        {...register("temporary_country")}
+                        {...register("permanent_country")}
                         {...params}
                         required
                         label="Country"
-                        error={!!errors?.temporary_country}
-                        helperText={errors?.temporary_country?.message}
+                        error={!!errors?.permanent_country}
+                        helperText={errors?.permanent_country?.message}
                       />
                     )}
                   />
                 </Grid>
+
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
-                    options={addressData.provinces}
+                    options={addressData.permanentProvinces}
                     getOptionLabel={(option) => option}
-                    value={selectedProvince}
+                    value={selectedPermanentProvince}
                     onChange={(event, newValue) => {
-                      setSelectedProvince(newValue);
-                      setSelectedMunicipality(null);
+                      setSelectedPermanentProvince(newValue);
+                      setSelectedPermanentMunicipality(null);
+                      setSelectedPermanentBarangay(null);
+                      setValue("permanent_zip_code", null);
+                      setValue("permanent_house_no_street_village", null);
                     }}
                     renderInput={(params) => (
                       <TextField
-                        required={selectedCountry === "Philippines"}
-                        {...register("temporary_province")}
+                        required={selectedPermanentCountry === "Philippines"}
+                        {...register("permanent_province")}
                         {...params}
                         label="Province"
-                        error={!!errors?.temporary_province}
-                        helperText={errors?.temporary_province?.message}
+                        error={!!errors?.permanent_province}
+                        helperText={errors?.permanent_province?.message}
                       />
                     )}
-                    disabled={selectedCountry !== "Philippines"}
+                    disabled={selectedPermanentCountry !== "Philippines"}
                   />
                 </Grid>
-
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
-                    options={addressData.municipalities}
+                    options={addressData.permanentMunicipalities}
                     getOptionLabel={(option) => option}
-                    value={selectedMunicipality}
-                    onChange={(event, newValue) =>
-                      setSelectedMunicipality(newValue)
-                    }
+                    value={selectedPermanentMunicipality}
+                    onChange={(event, newValue) => {
+                      setSelectedPermanentMunicipality(newValue);
+                      setSelectedPermanentBarangay(null);
+                      setValue("permanent_zip_code", null);
+                      setValue("permanent_house_no_street_village", null);
+                    }}
                     renderInput={(params) => (
                       <TextField
-                        {...register("temporary_municipality")}
-                        required={selectedProvince}
+                        {...register("permanent_municipality")}
+                        required={selectedPermanentProvince}
                         {...params}
                         label="Municipality"
-                        error={!!errors?.temporary_municipality}
-                        helperText={errors?.temporary_municipality?.message}
+                        error={!!errors?.permanent_municipality}
+                        helperText={errors?.permanent_municipality?.message}
                       />
                     )}
-                    disabled={!selectedProvince} // Disable if no province is selected
+                    disabled={!selectedPermanentProvince} // Disable if no province is selected
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    required={selectedMunicipality}
-                    disabled={!selectedMunicipality}
+                    required={selectedPermanentMunicipality}
+                    disabled={!selectedPermanentMunicipality}
                     label="Zip Code"
-                    {...register("temporary_zip_code")}
-                    error={!!errors?.temporary_zip_code}
-                    helperText={errors?.temporary_zip_code?.message}
+                    {...register("permanent_zip_code")}
+                    error={!!errors?.permanent_zip_code}
+                    helperText={errors?.permanent_zip_code?.message}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Autocomplete
-                    options={addressData.barangays}
+                    options={addressData.permanentBarangays}
                     getOptionLabel={(option) => option || ""}
-                    value={selectedBarangay}
+                    value={selectedPermanentBarangay}
                     onChange={(event, newValue) =>
-                      setSelectedBarangay(newValue)
+                      setSelectedPermanentBarangay(newValue)
                     }
                     renderInput={(params) => (
                       <TextField
-                        {...register("temporary_barangay")}
-                        required={selectedMunicipality}
+                        {...register("permanent_barangay")}
+                        required={selectedPermanentMunicipality}
                         {...params}
+                        error={!!errors?.permanent_barangay}
+                        helperText={errors?.permanent_barangay?.message}
                         label="Barangay"
-                        error={!!errors?.temporary_barangay}
-                        helperText={errors?.temporary_barangay?.message}
                       />
                     )}
-                    disabled={!selectedMunicipality} // Disable if no province is selected
+                    disabled={!selectedPermanentMunicipality} // Disable if no province is selected
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
-                    value={formData.temporary_house_no_street_village}
-                    disabled={!selectedMunicipality}
+                    value={formData.permanent_house_no_street_village}
+                    disabled={!selectedPermanentMunicipality}
                     label="House No./Street Village"
-                    {...register("temporary_house_no_street_village")}
+                    error={!!errors?.permanent_house_no_street_village}
+                    helperText={errors?.permanent_house_no_street_village?.message}
+                    {...register("permanent_house_no_street_village")}
                   />
                 </Grid>
               </>
-            )}
+            </>
           </>
-          {/* Permanent Address */}
-          <>
-            <Grid item xs={12}>
-              <Typography>{!isPermanent && "Permanent Address"}</Typography>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Autocomplete
-                options={countriesList}
-                getOptionLabel={(option) => option}
-                value={selectedPermanentCountry}
-                onChange={(event, newValue) => {
-                  setSelectedPermanentCountry(newValue);
-                  if (newValue !== "Philippines") {
-                    setSelectedPermanentProvince(null);
-                    setSelectedPermanentMunicipality(null);
-                    setSelectedPermanentBarangay(null);
-                    setValue("permanent_zip_code", null);
-                    setValue("permanent_house_no_street_village", null);
-                  }
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...register("permanent_country")}
-                    {...params}
-                    required
-                    label="Country"
-                    error={!!errors?.permanent_country}
-                    helperText={errors?.permanent_country?.message}
-                  />
-                )}
-              />
-            </Grid>
+        )}
+        <ApplicationDivider />
+        {/* Basic Information */}
+        <>
+          <Grid item xs={12}>
+            {(user_type === "EMPLOYER" || user_type === "ACADEME") && (
 
-            <Grid item xs={12} sm={6}>
-              <Autocomplete
-                options={addressData.permanentProvinces}
-                getOptionLabel={(option) => option}
-                value={selectedPermanentProvince}
-                onChange={(event, newValue) => {
-                  setSelectedPermanentProvince(newValue);
-                  setSelectedPermanentMunicipality(null);
-                  setSelectedPermanentBarangay(null);
-                  setValue("permanent_zip_code", null);
-                  setValue("permanent_house_no_street_village", null);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    required={selectedPermanentCountry === "Philippines"}
-                    {...register("permanent_province")}
-                    {...params}
-                    label="Province"
-                    error={!!errors?.permanent_province}
-                    helperText={errors?.permanent_province?.message}
-                  />
-                )}
-                disabled={selectedPermanentCountry !== "Philippines"}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Autocomplete
-                options={addressData.permanentMunicipalities}
-                getOptionLabel={(option) => option}
-                value={selectedPermanentMunicipality}
-                onChange={(event, newValue) => {
-                  setSelectedPermanentMunicipality(newValue);
-                  setSelectedPermanentBarangay(null);
-                  setValue("permanent_zip_code", null);
-                  setValue("permanent_house_no_street_village", null);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...register("permanent_municipality")}
-                    required={selectedPermanentProvince}
-                    {...params}
-                    label="Municipality"
-                    error={!!errors?.permanent_municipality}
-                    helperText={errors?.permanent_municipality?.message}
-                  />
-                )}
-                disabled={!selectedPermanentProvince} // Disable if no province is selected
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                required={selectedPermanentMunicipality}
-                disabled={!selectedPermanentMunicipality}
-                label="Zip Code"
-                {...register("permanent_zip_code")}
-                error={!!errors?.permanent_zip_code}
-                helperText={errors?.permanent_zip_code?.message}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <Autocomplete
-                options={addressData.permanentBarangays}
-                getOptionLabel={(option) => option || ""}
-                value={selectedPermanentBarangay}
-                onChange={(event, newValue) =>
-                  setSelectedPermanentBarangay(newValue)
-                }
-                renderInput={(params) => (
-                  <TextField
-                    {...register("permanent_barangay")}
-                    required={selectedPermanentMunicipality}
-                    {...params}
-                    error={!!errors?.permanent_barangay}
-                    helperText={errors?.permanent_barangay?.message}
-                    label="Barangay"
-                  />
-                )}
-                disabled={!selectedPermanentMunicipality} // Disable if no province is selected
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                value={formData.permanent_house_no_street_village}
-                disabled={!selectedPermanentMunicipality}
-                label="House No./Street Village"
-                error={!!errors?.permanent_house_no_street_village}
-                helperText={errors?.permanent_house_no_street_village?.message}
-                {...register("permanent_house_no_street_village")}
-              />
-            </Grid>
-          </>
+              <h1><b>Point of Contact</b></h1>
+            )}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Autocomplete
+              options={["Mr.", "Ms.", "Mrs."]}
+              getOptionLabel={(option) => option}
+              value={selectedPrefix}
+              onChange={(event, newValue) => {
+                setSelectedPrefix(newValue);
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Prefix"
+                  variant="outlined"
+                  required
+                  {...register("prefix")}
+                  error={!!errors?.prefix}
+                  helperText={errors?.prefix?.message}
+                />
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              required
+              label="First Name"
+              {...register("first_name")}
+              error={!!errors?.first_name}
+              helperText={errors?.first_name?.message}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              label="Middle Name"
+              {...register("middle_name")}
+              error={!!errors?.middle_name}
+              helperText={errors?.middle_name?.message}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              required
+              label="Last Name"
+              {...register("last_name")}
+              error={!!errors?.last_name}
+              helperText={errors?.last_name?.message}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField fullWidth label="Suffix" {...register("suffix")} />
+          </Grid>
         </>
+
+
+        {/*********************************  JOBSEEKER *** STUDENT  *********************************/}
+        {(user_type === "JOBSEEKER" || user_type === "STUDENT") && (
+          <>
+            <>
+              <Grid item xs={12} sm={6}>
+                <Autocomplete
+                  options={["Male", "Female"]}
+                  getOptionLabel={(option) => option}
+                  value={selectedSex}
+                  onChange={(event, newValue) => {
+                    setSelectedSex(newValue);
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Sex"
+                      variant="outlined"
+                      required
+                      {...register("sex")}
+                      error={!!errors?.sex}
+                      helperText={errors?.sex?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Date of Birth"
+                  type="date"
+                  {...register("date_of_birth")}
+                  InputLabelProps={{ shrink: true }}
+                  error={!!errors?.date_of_birth}
+                  helperText={errors?.date_of_birth?.message}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Place of Birth"
+                  {...register("place_of_birth")}
+                  error={!!errors?.place_of_birth}
+                  helperText={errors?.place_of_birth?.message}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Autocomplete
+                  options={["Single", "Married", "Divorced", "Widowed"]}
+                  getOptionLabel={(option) => option}
+                  value={selectedCivilStatus}
+                  onChange={(event, newValue) => {
+                    setSelectedCivilStatus(newValue);
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Civil Status"
+                      variant="outlined"
+                      required
+                      {...register("civil_status")}
+                      error={!!errors?.civil_status}
+                      helperText={errors?.civil_status?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Height (cm)"
+                  {...register("height")}
+                  error={!!errors?.height}
+                  helperText={errors?.height?.message}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  required
+                  label="Weight (kg)"
+                  {...register("weight")}
+                  error={!!errors?.weight}
+                  helperText={errors?.weight?.message}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Autocomplete
+                  options={religionOption}
+                  getOptionLabel={(option) => option}
+                  value={selectedReligion}
+                  onChange={(event, newValue) => {
+                    setSelectedReligion(newValue);
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Select Religion"
+                      variant="outlined"
+                      {...register("religion")}
+                      error={!!errors?.religion}
+                      helperText={errors?.religion?.message}
+                    />
+                  )}
+                />
+              </Grid>
+            </>
+            <ApplicationDivider />
+            {/*********************************  Address *********************************/}
+            <>
+              {/* Switch */}
+              <Grid item xs={12} sx={{ display: "flex", justifyItems: "center" }}>
+                <label>
+                  {!isPermanent ? "Temporary Address" : "Permanent Address"}
+                  <Switch
+                    {...register("permanent")}
+                    checked={isPermanent}
+                    onChange={() => {
+                      setIsPermanent((val) => !val);
+                    }}
+                    color="primary"
+                  />
+                </label>
+              </Grid>
+              {/* Temporary Address */}
+              <>
+                {!isPermanent && (
+                  <>
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        options={countriesList}
+                        getOptionLabel={(option) => option}
+                        value={selectedCountry}
+                        onChange={(event, newValue) => {
+                          setSelectedCountry(newValue);
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...register("temporary_country")}
+                            {...params}
+                            required
+                            label="Country"
+                            error={!!errors?.temporary_country}
+                            helperText={errors?.temporary_country?.message}
+                          />
+                        )}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        options={addressData.provinces}
+                        getOptionLabel={(option) => option}
+                        value={selectedProvince}
+                        onChange={(event, newValue) => {
+                          setSelectedProvince(newValue);
+                          setSelectedMunicipality(null);
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            required={selectedCountry === "Philippines"}
+                            {...register("temporary_province")}
+                            {...params}
+                            label="Province"
+                            error={!!errors?.temporary_province}
+                            helperText={errors?.temporary_province?.message}
+                          />
+                        )}
+                        disabled={selectedCountry !== "Philippines"}
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        options={addressData.municipalities}
+                        getOptionLabel={(option) => option}
+                        value={selectedMunicipality}
+                        onChange={(event, newValue) =>
+                          setSelectedMunicipality(newValue)
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...register("temporary_municipality")}
+                            required={selectedProvince}
+                            {...params}
+                            label="Municipality"
+                            error={!!errors?.temporary_municipality}
+                            helperText={errors?.temporary_municipality?.message}
+                          />
+                        )}
+                        disabled={!selectedProvince} // Disable if no province is selected
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        required={selectedMunicipality}
+                        disabled={!selectedMunicipality}
+                        label="Zip Code"
+                        {...register("temporary_zip_code")}
+                        error={!!errors?.temporary_zip_code}
+                        helperText={errors?.temporary_zip_code?.message}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Autocomplete
+                        options={addressData.barangays}
+                        getOptionLabel={(option) => option || ""}
+                        value={selectedBarangay}
+                        onChange={(event, newValue) =>
+                          setSelectedBarangay(newValue)
+                        }
+                        renderInput={(params) => (
+                          <TextField
+                            {...register("temporary_barangay")}
+                            required={selectedMunicipality}
+                            {...params}
+                            label="Barangay"
+                            error={!!errors?.temporary_barangay}
+                            helperText={errors?.temporary_barangay?.message}
+                          />
+                        )}
+                        disabled={!selectedMunicipality} // Disable if no province is selected
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        value={formData.temporary_house_no_street_village}
+                        disabled={!selectedMunicipality}
+                        label="House No./Street Village"
+                        {...register("temporary_house_no_street_village")}
+                      />
+                    </Grid>
+                  </>
+                )}
+              </>
+              {/* Permanent Address */}
+              <>
+                <Grid item xs={12}>
+                  <Typography>{!isPermanent && "Permanent Address"}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Autocomplete
+                    options={countriesList}
+                    getOptionLabel={(option) => option}
+                    value={selectedPermanentCountry}
+                    onChange={(event, newValue) => {
+                      setSelectedPermanentCountry(newValue);
+                      if (newValue !== "Philippines") {
+                        setSelectedPermanentProvince(null);
+                        setSelectedPermanentMunicipality(null);
+                        setSelectedPermanentBarangay(null);
+                        setValue("permanent_zip_code", null);
+                        setValue("permanent_house_no_street_village", null);
+                      }
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...register("permanent_country")}
+                        {...params}
+                        required
+                        label="Country"
+                        error={!!errors?.permanent_country}
+                        helperText={errors?.permanent_country?.message}
+                      />
+                    )}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Autocomplete
+                    options={addressData.permanentProvinces}
+                    getOptionLabel={(option) => option}
+                    value={selectedPermanentProvince}
+                    onChange={(event, newValue) => {
+                      setSelectedPermanentProvince(newValue);
+                      setSelectedPermanentMunicipality(null);
+                      setSelectedPermanentBarangay(null);
+                      setValue("permanent_zip_code", null);
+                      setValue("permanent_house_no_street_village", null);
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        required={selectedPermanentCountry === "Philippines"}
+                        {...register("permanent_province")}
+                        {...params}
+                        label="Province"
+                        error={!!errors?.permanent_province}
+                        helperText={errors?.permanent_province?.message}
+                      />
+                    )}
+                    disabled={selectedPermanentCountry !== "Philippines"}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Autocomplete
+                    options={addressData.permanentMunicipalities}
+                    getOptionLabel={(option) => option}
+                    value={selectedPermanentMunicipality}
+                    onChange={(event, newValue) => {
+                      setSelectedPermanentMunicipality(newValue);
+                      setSelectedPermanentBarangay(null);
+                      setValue("permanent_zip_code", null);
+                      setValue("permanent_house_no_street_village", null);
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...register("permanent_municipality")}
+                        required={selectedPermanentProvince}
+                        {...params}
+                        label="Municipality"
+                        error={!!errors?.permanent_municipality}
+                        helperText={errors?.permanent_municipality?.message}
+                      />
+                    )}
+                    disabled={!selectedPermanentProvince} // Disable if no province is selected
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    required={selectedPermanentMunicipality}
+                    disabled={!selectedPermanentMunicipality}
+                    label="Zip Code"
+                    {...register("permanent_zip_code")}
+                    error={!!errors?.permanent_zip_code}
+                    helperText={errors?.permanent_zip_code?.message}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Autocomplete
+                    options={addressData.permanentBarangays}
+                    getOptionLabel={(option) => option || ""}
+                    value={selectedPermanentBarangay}
+                    onChange={(event, newValue) =>
+                      setSelectedPermanentBarangay(newValue)
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...register("permanent_barangay")}
+                        required={selectedPermanentMunicipality}
+                        {...params}
+                        error={!!errors?.permanent_barangay}
+                        helperText={errors?.permanent_barangay?.message}
+                        label="Barangay"
+                      />
+                    )}
+                    disabled={!selectedPermanentMunicipality} // Disable if no province is selected
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    value={formData.permanent_house_no_street_village}
+                    disabled={!selectedPermanentMunicipality}
+                    label="House No./Street Village"
+                    error={!!errors?.permanent_house_no_street_village}
+                    helperText={errors?.permanent_house_no_street_village?.message}
+                    {...register("permanent_house_no_street_village")}
+                  />
+                </Grid>
+              </>
+            </>
+          </>
+        )}
         <ApplicationDivider />
         {/* Contact Number  */}
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
-            required
+
             label="Cellphone Number"
             {...register("cellphone_number")}
             error={!!errors?.cellphone_number}
@@ -1014,7 +1256,6 @@ const PersonalInfo = ({
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                required
                 label="SSS/GSIS Number"
                 {...register("sss_gsis_number")}
                 error={!!errors?.sss_gsis_number}
@@ -1024,7 +1265,6 @@ const PersonalInfo = ({
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                required
                 label="Pag-IBIG Number"
                 {...register("pag_ibig_number")}
                 error={!!errors?.pag_ibig_number}
@@ -1034,7 +1274,6 @@ const PersonalInfo = ({
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                required
                 label="PhilHealth Number"
                 {...register("phil_health_no")}
                 error={!!errors?.phil_health_no}
@@ -1305,6 +1544,41 @@ const PersonalInfo = ({
                 />
               </Grid>
             )}
+          </>
+        )}
+        {(user_type === "ACADEME" || user_type === "EMPLOYER") && (
+          <>
+            <Grid item xs={12} >
+              <TextField
+                fullWidth
+                required
+                type="email"
+                label="Email Address"
+                {...register("email")}
+                error={!!errors?.email}
+                helperText={errors?.email?.message}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                required
+                label="Employer's Position / Designation"
+                {...register("employer_position")}
+                error={!!errors?.employer_position}
+                helperText={errors?.employer_position?.message}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                required
+                label="Employer's ID Number"
+                {...register("employer_id_number")}
+                error={!!errors?.employer_id_number}
+                helperText={errors?.employer_id_number?.message}
+              />
+            </Grid>
           </>
         )}
       </Grid>

@@ -219,6 +219,7 @@ const BackNextButton = ({
           console.log("Response:", response.data);
         })
         .catch((error) => {
+          console.log("formdataaaa", formData)
           console.error("Error:", error);
         });
       isConfirmed = true;

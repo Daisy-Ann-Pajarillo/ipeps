@@ -5,9 +5,9 @@ export const baseSchema = yup.object().shape({
   last_name: yup.string().required("Last name is required"),
   cellphone_number: yup
     .string()
+    .nullable()
     .matches(/^\+?[0-9]+$/, "Must be a valid number")
-    .min(10, "Must be at least 10 digits")
-    .required("Cellphone number is required"),
+    .min(10, "Must be at least 10 digits"),
   permanent: yup.boolean(),
   permanent_country: yup.string().required("Country is required"),
   permanent_province: yup.string().when("country", {
@@ -99,9 +99,9 @@ export const jobseekerSchema = yup.object().shape({
   religion: yup.string().required("Religion is required"),
   //--------------------------------------------
   tin: yup.string().required("TIN is required"),
-  sss_gsis_number: yup.string().required("SSS/GSIS number is required"),
-  pag_ibig_number: yup.string().required("Pag-IBIG number is required"),
-  phil_health_no: yup.string().required("PhilHealth number is required"),
+  sss_gsis_number: yup.string().nullable(),
+  pag_ibig_number: yup.string().nullable(),
+  phil_health_no: yup.string().nullable(),
   //--------------------------------------------
   is_looking_for_work: yup.string().required("Answer is required"),
   since_when_looking_for_work: yup.string().when("is_looking_for_work", {
@@ -274,16 +274,16 @@ export const educationalBackgroundSchema = yup.object().shape({
         .when("date_from", (date_from, schema) =>
           date_from
             ? schema
-                .test(
-                  "end-date-after-start",
-                  "End date must be after start date",
-                  function (value) {
-                    const { date_from, date_to } = this.parent; // `this.parent` gives access to the form values for this validation
-                    if (!date_to || !date_from) return true; // Skip validation if either date is not set
-                    return new Date(date_to) > new Date(date_from); // Check if `date_to` is after `date_from`
-                  }
-                )
-                .max(new Date(), "End date cannot be in the future")
+              .test(
+                "end-date-after-start",
+                "End date must be after start date",
+                function (value) {
+                  const { date_from, date_to } = this.parent; // `this.parent` gives access to the form values for this validation
+                  if (!date_to || !date_from) return true; // Skip validation if either date is not set
+                  return new Date(date_to) > new Date(date_from); // Check if `date_to` is after `date_from`
+                }
+              )
+              .max(new Date(), "End date cannot be in the future")
             : schema
         )
         .transform((value, originalValue) =>
@@ -360,8 +360,8 @@ export const otherTrainingsSchema = yup.object().shape({
         .when("start_date", (start_date, schema) =>
           start_date
             ? schema
-                .min(yup.ref("start_date"), "End date must be after start date")
-                .max(new Date(), "End date cannot be in the future")
+              .min(yup.ref("start_date"), "End date must be after start date")
+              .max(new Date(), "End date cannot be in the future")
             : schema
         )
         .transform((value, originalValue) =>
@@ -405,14 +405,14 @@ export const workExperienceSchema = yup.object().shape({
           .when("date_start", (date_start, schema) =>
             date_start
               ? schema
-                  .test(
-                    "end-date-after-start",
-                    "End date must be after start date",
-                    (date_end) =>
-                      !date_end ||
-                      (date_start && new Date(date_end) > new Date(date_start))
-                  )
-                  .max(new Date(), "End date cannot be in the future")
+                .test(
+                  "end-date-after-start",
+                  "End date must be after start date",
+                  (date_end) =>
+                    !date_end ||
+                    (date_start && new Date(date_end) > new Date(date_start))
+                )
+                .max(new Date(), "End date cannot be in the future")
               : schema
           )
           .transform((value, originalValue) =>
