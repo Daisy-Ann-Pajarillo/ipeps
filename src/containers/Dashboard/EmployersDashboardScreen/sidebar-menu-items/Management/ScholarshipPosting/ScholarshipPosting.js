@@ -28,9 +28,9 @@ const scholarshipSchema = yup.object().shape({
     expiration_date: yup.date().required("Expiration Date is required"),
 });
 
- 
 
- 
+
+
 
 const maxImages = 5;
 
@@ -139,6 +139,18 @@ const ScholarshipPosting = () => {
                             fullWidth
                             error={!!errors.expiration_date}
                             helperText={errors.expiration_date?.message}
+                            InputLabelProps={{ shrink: true }}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <InputLabel>Slots</InputLabel>
+                        <TextField
+                            type="number"
+                            {...register("slots")}
+                            fullWidth
+                            placeholder='number of slots'
+                            error={!!errors.slot}
+                            helperText={errors.slot?.message}
                             InputLabelProps={{ shrink: true }}
                         />
                     </Grid>

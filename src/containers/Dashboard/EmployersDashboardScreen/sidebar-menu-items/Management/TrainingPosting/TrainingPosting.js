@@ -113,6 +113,18 @@ const TrainingPosting = ({ isCollapsed }) => {
                 <InputLabel>Expiration Date</InputLabel>
                 <TextField type="date" fullWidth {...register('expiration_date')} error={!!errors.expiration_date} helperText={errors.expiration_date?.message} InputLabelProps={{ shrink: true }} />
               </Grid>
+              <Grid item xs={12} md={6}>
+                <InputLabel>Slots</InputLabel>
+                <TextField
+                  type="number"
+                  {...register("slots")}
+                  fullWidth
+                  placeholder='number of slots'
+                  error={!!errors.slot}
+                  helperText={errors.slot?.message}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
               <Grid item xs={12}>
                 <Typography variant="subtitle1">Upload Images (Max {maxImages})</Typography>
                 <input accept="image/*" type="file" multiple onChange={handleImageUpload} hidden id="image-upload" />

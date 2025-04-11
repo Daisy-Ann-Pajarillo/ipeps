@@ -43,6 +43,11 @@ const AdministratorMenuItems = [
                 icon: <PeopleOutlined />,
             },
             {
+                title: "Job Postings",
+                to: "/dashboard/admin/job-postings",
+                icon: <PersonSearchOutlined />,
+            },
+            {
                 title: "Scholarship Postings",
                 to: "/dashboard/admin/scholarships-postings",
                 icon: <ContactsOutlined />,
@@ -52,14 +57,20 @@ const AdministratorMenuItems = [
                 to: "/dashboard/admin/training-postings",
                 icon: <ReceiptOutlined />,
             },
+
             {
-                title: "Job Postings",
-                to: "/dashboard/admin/job-postings",
+                title: "Job Applications",
+                to: "/dashboard/admin/job-applications",
                 icon: <PersonSearchOutlined />,
             },
             {
-                title: "Job Post Applicants",
-                to: "/dashboard/admin/job-posting-applicants",
+                title: "Scholarships Applications",
+                to: "/dashboard/admin/scholarship-applications",
+                icon: <PersonSearchOutlined />,
+            },
+            {
+                title: "Training Applications",
+                to: "/dashboard/admin/training-applications",
                 icon: <PersonSearchOutlined />,
             },
             {
@@ -80,7 +91,7 @@ const AdministratorMenuItems = [
         items: [
             {
                 title: "Logout",
-                to: "/dashboard/admin/",
+                to: "/",
                 icon: <LogoutOutlined />,
             },
         ],

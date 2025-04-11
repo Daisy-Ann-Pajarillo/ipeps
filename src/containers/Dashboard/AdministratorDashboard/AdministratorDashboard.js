@@ -9,7 +9,11 @@ import ManageUsers from "./side-bar-menu/ManageUsers/ManageUsers";
 import ScholarshipsPostings from "./side-bar-menu/ScholarshipsPostings/ScholarshipsPostings";
 import TrainingPostings from "./side-bar-menu/TrainingPostings/TrainingPostings";
 import JobPostings from "./side-bar-menu/JobPostings/JobPostings";
-import JobPostingApplicant from "./side-bar-menu/JobPostingApplicants/JobPostingApplicants";
+
+import JobApplications from "./side-bar-menu/JobApplications/JobApplications";
+import ScholarshipApplications from "./side-bar-menu/ScholarshipApplications/ScholarshipApplications";
+import TrainingApplications from "./side-bar-menu/TrainingApplications/TrainingApplications";
+
 import PlacementReports from "./side-bar-menu/PlacementReports/PlacementReports";
 import Employers from "./side-bar-menu/Employer/Employer";
 import Settings from "./side-bar-menu/Settings/Settings";
@@ -31,10 +35,16 @@ const AdministratorDashboard = () => {
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/admin/account-settings" element={<AccountSettings />} />
                     <Route path="/admin/manage-users" element={<ManageUsers />} />
+
+                    <Route path="/admin/job-postings" element={<JobPostings />} />
                     <Route path="/admin/scholarships-postings" element={<ScholarshipsPostings />} />
                     <Route path="/admin/training-postings" element={<TrainingPostings />} />
-                    <Route path="/admin/job-postings" element={<JobPostings />} />
-                    <Route path="/admin/job-posting-applicants" element={<JobPostingApplicant />} />
+
+                    <Route path="/admin/job-applications" element={<JobApplications />} />
+                    <Route path="/admin/scholarship-applications" element={<ScholarshipApplications />} />
+                    <Route path="/admin/training-applications" element={<TrainingApplications />} />
+
+
                     <Route path="/admin/placement-reports" element={<PlacementReports />} />
                     <Route path="/admin/employer" element={<Employers />} />
                     <Route path="/admin/settings" element={<Settings />} />
