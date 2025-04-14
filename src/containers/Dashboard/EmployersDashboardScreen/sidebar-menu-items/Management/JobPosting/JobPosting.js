@@ -39,15 +39,8 @@ const jobSchema = yup.object().shape({
   city_municipality: yup.string().required("City/Municipality is required"),
   expiration_date: yup.date().required("Expiration Date is required"),
   other_skills: yup.string().required("Other Skills are required"),
-  courses: yup.array().of(
-    yup.object().shape({
-      course_name: yup.string().required("Course Name is required"),
-      training_institution: yup
-        .string()
-        .required("Training Institution is required"),
-      certificate_received: yup.string().required("Certificate is required"),
-    })
-  ),
+  tech_voc_training: yup.string()
+
 });
 
 const JobPosting = ({ isCollapsed }) => {
@@ -351,7 +344,8 @@ const JobPosting = ({ isCollapsed }) => {
                       {...register("other_skills")}
                       fullWidth
                       multiline
-                      rows={2}
+                      minRows={2}
+                      maxRows={10} // optional limit to how tall it grows
                       error={!!errors.other_skills}
                       helperText={errors.other_skills?.message}
                     />
@@ -360,70 +354,19 @@ const JobPosting = ({ isCollapsed }) => {
               </div>
 
               <div>
-                <Typography variant="h6" className="font-semibold mb-2">
-                  Technical/Vocational Training
-                </Typography>
-                {fields.map((course, index) => (
-                  <Grid container spacing={2} key={course.id} className="mt-3">
-                    <Grid item xs={4}>
-                      <TextField
-                        label="Course Name"
-                        {...register(`courses.${index}.course_name`)}
-                        fullWidth
-                        error={!!errors.courses?.[index]?.course_name}
-                        helperText={
-                          errors.courses?.[index]?.course_name?.message
-                        }
-                      />
-                    </Grid>
-                    <Grid item xs={4}>
-                      <TextField
-                        label="Training Institution"
-                        {...register(`courses.${index}.training_institution`)}
-                        fullWidth
-                        error={!!errors.courses?.[index]?.training_institution}
-                        helperText={
-                          errors.courses?.[index]?.training_institution?.message
-                        }
-                      />
-                    </Grid>
-                    <Grid item xs={3}>
-                      <TextField
-                        label="Certificate Received"
-                        {...register(`courses.${index}.certificate_received`)}
-                        fullWidth
-                        error={!!errors.courses?.[index]?.certificate_received}
-                        helperText={
-                          errors.courses?.[index]?.certificate_received?.message
-                        }
-                      />
-                    </Grid>
-                    <Grid item xs={1} className="flex items-center">
-                      {index > 0 && (
-                        <button
-                          onClick={() => remove(index)}
-                          className="text-red-500 font-bold"
-                        >
-                          x
-                        </button>
-                      )}
-                    </Grid>
-                  </Grid>
-                ))}
-                <Button
-                  type="button"
-                  onClick={() =>
-                    append({
-                      course_name: "",
-                      training_institution: "",
-                      certificate_received: "",
-                    })
-                  }
-                  variant="outlined"
-                  className="mt-4"
-                >
-                  Add Course
-                </Button>
+
+                <Grid item xs={12}>
+                  <TextField
+                    label="Technical/Vocational Training"
+                    {...register("tech_voc_training")}
+                    fullWidth
+                    multiline
+                    minRows={2}
+                    maxRows={10} // optional limit to how tall it grows
+                    error={!!errors.tech_voc_training}
+                    helperText={errors.tech_voc_training?.message}
+                  />
+                </Grid>
               </div>
 
               <Button

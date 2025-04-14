@@ -3,6 +3,8 @@ import { connect } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import * as actions from "../../store/actions/index";
+import axios from "../../axios";
+import { useSelector, useDispatch } from "react-redux";
 
 // Material-UI Components
 import {
@@ -46,7 +48,7 @@ const stepsForJobseekers = [
 ];
 
 const stepsForEmployer = [
-  { label: "Personal Information", component: PersonalInfo },
+  { label: " ", component: PersonalInfo },
   { label: "Review", component: ReviewApplication },
 ];
 
@@ -93,6 +95,7 @@ const UserApplicationForm = (props) => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRequestedEmailConfirmation, setUserRequestedEmailConfirmation] = useState(false);
   const [steps, setSteps] = useState([]);
+  const [finishedFillUp, setFinishedFillUp] = useState(false);
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -138,6 +141,31 @@ const UserApplicationForm = (props) => {
       setIsLoading(false);
     }
   }, [props.auth]);
+
+
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+  // Fetch user work experience data
+  useEffect(() => {
+    const fetchWorkExperiences = async () => {
+      try {
+        const response = await axios.get("/api/check-personal-information-status", {
+          auth: {
+            username: auth.token,
+          },
+        });
+        setFinishedFillUp(response.data.has_personal_info);
+      } catch (error) {
+        console.error("Error fetching user work experience:", error);
+      }
+    };
+    fetchWorkExperiences();
+  }, []);
+
 
   // Handle navigation
   const handleNext = () => {
@@ -307,7 +335,7 @@ const UserApplicationForm = (props) => {
         <StyledStepper activeStep={activeStep} orientation="vertical">
           {steps.map((step, index) => (
             <Step key={step.label} completed={index < activeStep}>
-              <StepLabel onClick={() => handleStepClick(index)}>
+              <StepLabel onClick={() => { finishedFillUp && handleStepClick(index) }} >{/*/</Step>*/}
                 <span className="hidden sm:block">{step.label}</span>
               </StepLabel>
             </Step>

@@ -107,12 +107,12 @@ const SavedTrainings = ({ isCollapsed }) => {
         // Check enrollment status for all trainings
         checkEnrollmentStatuses(transformedTrainings);
       } else {
-        console.error("Invalid API response:", response.data);
-        toast.error("Failed to load saved trainings");
+        // console.error("Invalid API response:", response.data);
+        // toast.error("Failed to load saved trainings");
       }
     } catch (error) {
-      console.error("Error fetching saved trainings:", error);
-      toast.error("Failed to load saved trainings");
+      //console.error("Error fetching saved trainings:", error);
+      ////toast.error("Failed to load saved trainings");
     } finally {
       setIsLoading(false);
     }

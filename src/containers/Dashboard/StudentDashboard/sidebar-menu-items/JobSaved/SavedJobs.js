@@ -91,7 +91,7 @@ const SavedJobs = () => {
       }
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
-      toast.error(error.response?.data?.message || "Failed to load saved jobs");
+      //toast.error(error.response?.data?.message || "Failed to load saved jobs");
     } finally {
       setIsLoading(false);
     }
@@ -214,9 +214,8 @@ const SavedJobs = () => {
       <div className="flex flex-grow overflow-hidden">
         {/* Left Panel - Job List */}
         <div
-          className={`${
-            selectedJob ? "w-3/5" : "w-full"
-          } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700`}
+          className={`${selectedJob ? "w-3/5" : "w-full"
+            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700`}
         >
           <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
             Total: {sortedJobs.length} saved jobs
@@ -238,11 +237,10 @@ const SavedJobs = () => {
             sortedJobs.map((job) => (
               <div
                 key={job.saved_job_id}
-                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${
-                  selectedJob?.saved_job_id === job.saved_job_id
-                    ? "bg-gray-200 dark:bg-gray-800"
-                    : "bg-white dark:bg-gray-900"
-                } hover:bg-primary-400 dark:hover:bg-primary-600`}
+                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedJob?.saved_job_id === job.saved_job_id
+                  ? "bg-gray-200 dark:bg-gray-800"
+                  : "bg-white dark:bg-gray-900"
+                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
                 onClick={() => handleSelectJob(job)}
               >
                 <div className="flex gap-3">
