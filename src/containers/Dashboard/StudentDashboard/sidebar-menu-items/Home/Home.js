@@ -1,248 +1,520 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-  Box,
   Typography,
-  Paper,
-  Grid,
   Avatar,
-  Chip,
-  Rating,
   Button,
   Divider,
-  IconButton,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
-import LocationOn from "@mui/icons-material/LocationOn";
-import Payment from "@mui/icons-material/Payment";
-import AccessTime from "@mui/icons-material/AccessTime";
-import VerifiedUser from "@mui/icons-material/VerifiedUser"; // Correct import for Verified icon
-import Bookmark from "@mui/icons-material/Bookmark"; // Correct import for Bookmark icon
-import BookmarkBorder from "@mui/icons-material/BookmarkBorder"; // Correct import for BookmarkBorder icon
-import Stack from "@mui/material/Stack";
-import * as actions from "../../../../../store/actions/index";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PaymentIcon from "@mui/icons-material/Payment";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import SchoolIcon from "@mui/icons-material/School";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
 import axios from "../../../../../axios";
 
+// Simple Carousel Component
+const SimpleCarousel = ({ title, children }) => {
+  const carouselRef = useRef(null);
+  const scrollLeft = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: -300, behavior: "smooth" });
+    }
+  };
+  const scrollRight = () => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: 300, behavior: "smooth" });
+    }
+  };
+  return (
+    <div className="mb-8">
+      <div className="flex justify-between items-center mb-4">
+        <Typography variant="h5" className="font-medium">
+          {title}
+        </Typography>
+        <div className="flex gap-2">
+          <IconButton
+            onClick={scrollLeft}
+            className="bg-white shadow-md"
+            size="small"
+          >
+            <ChevronLeftIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            onClick={scrollRight}
+            className="bg-white shadow-md"
+            size="small"
+          >
+            <ChevronRightIcon fontSize="small" />
+          </IconButton>
+        </div>
+      </div>
+      <div
+        ref={carouselRef}
+        className="flex overflow-x-auto pb-4 gap-4 snap-x scrollbar-hide"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+// Main Dashboard Component
 const Dashboard = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   const [recommendedJobs, setRecommendedJobs] = useState([]);
-  const [bookmarkedJobs, setBookmarkedJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [recommendedTrainings, setRecommendedTrainings] = useState([]);
+  const [recommendedScholarships, setRecommendedScholarships] = useState([]);
+  const [bookmarkedItems, setBookmarkedItems] = useState({
+    jobs: [],
+    trainings: [],
+    scholarships: [],
+  });
+  const [loading, setLoading] = useState({
+    jobs: true,
+    trainings: true,
+    scholarships: true,
+  });
 
   // Fetch authentication data on component mount
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-  // Fetch all recommended job postings using auth token
+  // Function to fetch job recommendations
+  const fetchJobRecommendations = async () => {
+    if (!auth.token) return;
+    setLoading((prev) => ({ ...prev, jobs: true }));
+    try {
+      const response = await axios.get("/api/recommend/job-posting", {
+        auth: { username: auth.token },
+      });
+      console.log("Fetched job data:", response.data);
+      const recommendations = response.data.recommendations.map((item) => ({
+        ...item.job_posting,
+        match_score: item.match_score,
+        novelty_factors: item.novelty_factors,
+      }));
+      setRecommendedJobs(recommendations.slice(0, 10));
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, jobs: false }));
+    }
+  };
+
+  // Function to fetch training recommendations
+  const fetchTrainingRecommendations = async () => {
+    if (!auth.token) return;
+    setLoading((prev) => ({ ...prev, trainings: true }));
+    try {
+      const response = await axios.get("/api/recommend/training-posting", {
+        auth: { username: auth.token },
+      });
+      console.log("Fetched training data:", response.data);
+      const recommendations = response.data.recommendations.map((item) => ({
+        ...item.training_posting,
+        match_score: item.match_score,
+        novelty_factors: item.novelty_factors,
+      }));
+      setRecommendedTrainings(recommendations.slice(0, 10));
+    } catch (error) {
+      console.error("Error fetching trainings:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, trainings: false }));
+    }
+  };
+
+  // Function to fetch scholarship recommendations
+  const fetchScholarshipRecommendations = async () => {
+    if (!auth.token) return;
+    setLoading((prev) => ({ ...prev, scholarships: true }));
+    try {
+      const response = await axios.get("/api/recommend/scholarship-posting", {
+        auth: { username: auth.token },
+      });
+      console.log("Fetched scholarship data:", response.data);
+      const recommendations = response.data.recommendations.map((item) => ({
+        ...item.scholarship_posting,
+        match_score: item.match_score,
+        novelty_factors: item.novelty_factors,
+      }));
+      setRecommendedScholarships(recommendations.slice(0, 10));
+    } catch (error) {
+      console.error("Error fetching scholarships:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, scholarships: false }));
+    }
+  };
+
+  // Fetch all recommendations when auth token is available
   useEffect(() => {
     if (auth.token) {
-      setLoading(true);
-      let allJobs = [];
-      const fetchJobs = async (page = 1) => {
-        try {
-          const response = await axios.get("/api/recommend/job-posting", {
-            params: { page }, // Assuming the API supports pagination via `page`
-            auth: { username: auth.token },
-          });
-
-          const recommendations = response.data.recommendations.map((item) => ({
-            ...item.job_posting,
-            match_score: item.match_score,
-            novelty_factors: item.novelty_factors,
-          }));
-
-          allJobs = [...allJobs, ...recommendations]; // Accumulate jobs
-
-          // Check if there's more data to fetch
-          if (response.data.hasMore) {
-            fetchJobs(page + 1); // Recursive call for the next page
-          } else {
-            setRecommendedJobs(allJobs); // Set all fetched jobs to state
-          }
-        } catch (error) {
-          console.error("Error fetching job postings:", error);
-          alert("Failed to fetch recommended jobs. Please try again later.");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchJobs(); // Initial call to start fetching
+      fetchJobRecommendations();
+      fetchTrainingRecommendations();
+      fetchScholarshipRecommendations();
     }
   }, [auth.token]);
 
-  // Handle job application/enrollment logic here
-  const handleApplyJob = useCallback((jobId) => {
-    console.log(`Applied to job with ID: ${jobId}`);
+  // Handle application/enrollment logic
+  const handleApply = useCallback((id, type) => {
+    console.log(`Applied to ${type} with ID: ${id}`);
     // Add your application logic here
   }, []);
 
   // Handle bookmark toggling
-  const handleBookmark = useCallback(
-    (jobId) => {
-      if (bookmarkedJobs.includes(jobId)) {
-        setBookmarkedJobs(bookmarkedJobs.filter((id) => id !== jobId));
+  const handleBookmark = useCallback((id, type) => {
+    setBookmarkedItems((prev) => {
+      const currentList = prev[type];
+      if (currentList.includes(id)) {
+        return { ...prev, [type]: currentList.filter((itemId) => itemId !== id) };
       } else {
-        setBookmarkedJobs([...bookmarkedJobs, jobId]);
+        return { ...prev, [type]: [...currentList, id] };
       }
-    },
-    [bookmarkedJobs]
+    });
+  }, []);
+
+  // Render Job Card
+  const renderJobCard = (job) => (
+    <div className="min-w-72 w-72 snap-start bg-white rounded-lg border border-gray-200 p-4 h-full transition-all duration-300 hover:border-blue-500 hover:shadow-lg hover:-translate-y-1">
+      {/* Job Header */}
+      <div className="flex justify-between mb-4">
+        <div className="flex gap-3 items-start">
+          <Avatar variant="rounded" className="w-12 h-12 bg-blue-600">
+            {job.employer?.company_name?.[0] || "J"}
+          </Avatar>
+          <div>
+            <Typography variant="subtitle1" className="font-bold truncate flex items-center">
+              {job.job_title}
+              {job.status === "active" && (
+                <VerifiedUserIcon className="ml-1 text-blue-600" fontSize="small" />
+              )}
+            </Typography>
+            <Typography variant="body2" className="text-gray-600 truncate">
+              {job.employer?.company_name || "Company"}
+            </Typography>
+          </div>
+        </div>
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleBookmark(job.job_id, "jobs");
+          }}
+          aria-label={`Bookmark ${job.job_title}`}
+        >
+          {bookmarkedItems.jobs.includes(job.job_id) ? (
+            <BookmarkIcon color="primary" />
+          ) : (
+            <BookmarkBorderIcon />
+          )}
+        </IconButton>
+      </div>
+      {/* Job Description */}
+      <Typography variant="body2" className="text-gray-700 mb-4 line-clamp-3">
+        {job.job_description || "No description available."}
+      </Typography>
+      {/* Job Details */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <LocationOnIcon fontSize="small" className="mr-1 text-gray-500" />
+          {job.city_municipality || "Remote"}
+        </span>
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <PaymentIcon fontSize="small" className="mr-1 text-gray-500" />
+          {`${job.estimated_salary_from || 0} - ${job.estimated_salary_to || 0}`}
+        </span>
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <AccessTimeIcon fontSize="small" className="mr-1 text-gray-500" />
+          {job.experience_level || "Entry"}
+        </span>
+      </div>
+      {/* Skills */}
+      <div className="mb-4 min-h-16">
+        {job.other_skills &&
+          job.other_skills
+            .split(",")
+            .slice(0, 3)
+            .map((skill) => skill.trim())
+            .map((skill) => (
+              <span
+                key={skill}
+                className="inline-block bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full mr-2 mb-2"
+              >
+                {skill}
+              </span>
+            ))}
+      </div>
+      <Divider className="my-4" />
+      {/* Footer */}
+      <div className="flex justify-between items-center">
+        <Typography variant="body2" className="text-gray-600">
+          Vacancies: {job.no_of_vacancies || 1}
+        </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => handleApply(job.job_id, "job")}
+          className="bg-blue-600 hover:bg-blue-700 normal-case"
+        >
+          Apply Now
+        </Button>
+      </div>
+    </div>
   );
 
-  // Show a loading spinner while data is being fetched
-  if (loading) {
+  // Render Training Card
+  const renderTrainingCard = (training) => (
+    <div className="min-w-75 w-72 snap-start bg-white rounded-lg border border-gray-200 p-4 h-full transition-all duration-300 hover:border-purple-500 hover:shadow-lg hover:-translate-y-1">
+      {/* Training Header */}
+      <div className="flex justify-between mb-4">
+        <div className="flex gap-3 items-start">
+          <Avatar variant="rounded" className="w-12 h-12 bg-purple-600">
+            <MenuBookIcon />
+          </Avatar>
+          <div>
+            <Typography variant="subtitle1" className="font-bold truncate flex items-center">
+              {training.training_title || "Training Program"}
+              {training.status === "active" && (
+                <VerifiedUserIcon className="ml-1 text-purple-600" fontSize="small" />
+              )}
+            </Typography>
+            <Typography variant="body2" className="text-gray-600 truncate">
+              {training.provider || "Training Provider"}
+            </Typography>
+          </div>
+        </div>
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleBookmark(training.id, "trainings");
+          }}
+          aria-label={`Bookmark ${training.title}`}
+        >
+          {bookmarkedItems.trainings.includes(training.id) ? (
+            <BookmarkIcon className="text-purple-600" />
+          ) : (
+            <BookmarkBorderIcon />
+          )}
+        </IconButton>
+      </div>
+      {/* Training Description */}
+      <Typography variant="body2" className="text-gray-700 mb-4 line-clamp-3">
+        {training.training_description || "No description available."}
+      </Typography>
+      {/* Training Details */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <LocationOnIcon fontSize="small" className="mr-1 text-gray-500" />
+          {training.training_location || "null  "}
+        </span>
+      </div>
+      {/* Skills */}
+      <div className="mb-4 min-h-16">
+        {training.skills &&
+          training.skills.split(",").slice(0, 3).map((skill) => (
+            <span
+              key={skill}
+              className="inline-block bg-purple-100 text-purple-800 text-xs px-2.5 py-0.5 rounded-full mr-2 mb-2"
+            >
+              {skill.trim()}
+            </span>
+          ))}
+      </div>
+      <Divider className="my-4" />
+      {/* Footer */}
+      <div className="flex justify-between items-center">
+        <Typography variant="body2" className="text-gray-600">
+          Enrolled: {training.slots || 0}
+        </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => handleApply(training.id, "training")}
+          className="bg-purple-600 hover:bg-purple-700 normal-case"
+        >
+          Enroll Now
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Render Scholarship Card
+  const renderScholarshipCard = (scholarship) => (
+    <div className="min-w-72 w-72 snap-start bg-white rounded-lg border border-gray-200 p-4 h-full transition-all duration-300 hover:border-teal-500 hover:shadow-lg hover:-translate-y-1">
+      {/* Scholarship Header */}
+      <div className="flex justify-between mb-4">
+        <div className="flex gap-3 items-start">
+          <Avatar variant="rounded" className="w-12 h-12 bg-teal-600">
+            <SchoolIcon />
+          </Avatar>
+          <div>
+            <Typography variant="subtitle1" className="font-bold truncate flex items-center">
+              {scholarship.scholarship_title || "Scholarship Program"}
+              {scholarship.status === "active" && (
+                <VerifiedUserIcon className="ml-1 text-teal-600" fontSize="small" />
+              )}
+            </Typography>
+            <Typography variant="body2" className="text-gray-600 truncate">
+              {scholarship.provider || "Scholarship Provider"}
+            </Typography>
+          </div>
+        </div>
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleBookmark(scholarship.id, "scholarships");
+          }}
+          aria-label={`Bookmark ${scholarship.title}`}
+        >
+          {bookmarkedItems.scholarships.includes(scholarship.id) ? (
+            <BookmarkIcon className="text-teal-600" />
+          ) : (
+            <BookmarkBorderIcon />
+          )}
+        </IconButton>
+      </div>
+      {/* Scholarship Description */}
+      <Typography variant="body2" className="text-gray-700 mb-4 line-clamp-3">
+        {scholarship.scholarship_description || "No description available."}
+      </Typography>
+      {/* Scholarship Details */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <PaymentIcon fontSize="small" className="mr-1 text-gray-500" />
+          {scholarship.funding_amount || "Full funding"}
+        </span>
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <AccessTimeIcon fontSize="small" className="mr-1 text-gray-500" />
+          {`Deadline: ${scholarship.deadline || "Open"}`}
+        </span>
+      </div>
+      {/* Requirements */}
+      <div className="mb-4 min-h-16">
+        {scholarship.requirements &&
+          scholarship.requirements.split(",").slice(0, 3).map((req) => (
+            <span
+              key={req}
+              className="inline-block bg-teal-100 text-teal-800 text-xs px-2.5 py-0.5 rounded-full mr-2 mb-2"
+            >
+              {req.trim()}
+            </span>
+          ))}
+      </div>
+      <Divider className="my-4" />
+      {/* Footer */}
+      <div className="flex justify-between items-center">
+        <Typography variant="body2" className="text-teal-600 font-medium">
+          Eligibility: {scholarship.eligibility_criteria || "For Students"}
+        </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          onClick={() => handleApply(scholarship.id, "scholarship")}
+          className="bg-teal-600 hover:bg-teal-700 normal-case"
+        >
+          Apply Now
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Show a loading spinner while all data is being fetched
+  if (loading.jobs && loading.trainings && loading.scholarships) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <div className="flex justify-center items-center h-screen">
         <CircularProgress />
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Paper elevation={0} sx={{ p: 3, borderRadius: 2 }}>
-      <Typography variant="h5" gutterBottom>
-        Recommended Job Postings
-      </Typography>
-
-      <Grid container spacing={3}>
-        {recommendedJobs.length > 0 ? (
-          recommendedJobs.map((job) => (
-            <Grid item xs={12} md={6} key={job.job_id}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  cursor: "pointer",
-                  "&:hover": {
-                    borderColor: "primary.main",
-                    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                  },
-                }}
-              >
-                {/* Job Header */}
-                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                  <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-                    <Avatar variant="rounded" sx={{ width: 50, height: 50 }}>
-                      {job.employer.company_name[0]}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        {job.job_title}
-                        {job.status === "active" && (
-                          <VerifiedUser sx={{ ml: 1, fontSize: 16, color: "primary.main" }} />
-                        )}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {job.employer.company_name}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <IconButton
-                    size="small"
-                    onClick={() => handleBookmark(job.job_id)}
-                    aria-label={`Bookmark ${job.job_title}`}
-                  >
-                    {bookmarkedJobs.includes(job.job_id) ? <Bookmark /> : <BookmarkBorder />}
-                  </IconButton>
-                </Box>
-
-                {/* Job Details */}
-                <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                  <Chip
-                    icon={<LocationOn fontSize="small" />}
-                    label={job.city_municipality || "Remote"}
-                    size="small"
-                    variant="outlined"
-                  />
-                  <Chip
-                    icon={<Payment fontSize="small" />}
-                    label={`${job.estimated_salary_from} - ${job.estimated_salary_to}`}
-                    size="small"
-                    variant="outlined"
-                  />
-                  <Chip
-                    icon={<AccessTime fontSize="small" />}
-                    label={job.experience_level}
-                    size="small"
-                    variant="outlined"
-                  />
-                </Stack>
-
-                {/* Skills */}
-                <Box sx={{ mb: 2 }}>
-                  {job.other_skills
-                    .split(",")
-                    .map((skill) => skill.trim())
-                    .map((skill) => (
-                      <Chip key={skill} label={skill} size="small" sx={{ mr: 1, mb: 1 }} />
-                    ))}
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                {/* Footer (Rating, Match Score, and Apply Button) */}
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Rating value={5} readOnly size="small" />
-                    <Typography variant="body2" color="text.secondary">
-                      ({job.no_of_vacancies} vacancies)
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleApplyJob(job.job_id)}
-                    aria-label={`Apply to ${job.job_title}`}
-                    sx={{
-                      backgroundColor: "primary.main",
-                      color: "common.white",
-                      textTransform: "none",
-                      "&:hover": {
-                        backgroundColor: "primary.dark",
-                      },
-                    }}
-                  >
-                    Apply Now
-                  </Button>
-                </Box>
-              </Paper>
-            </Grid>
-          ))
-        ) : (
-          <Grid item xs={12}>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "200px",
-                border: "1px dashed",
-                borderColor: "divider",
-                borderRadius: 2,
-              }}
-            >
-              <Typography variant="body1" color="text.secondary" align="center">
-                No recommended jobs available.
-              </Typography>
-              <Button
-                variant="outlined"
-                size="small"
-                sx={{ mt: 2 }}
-                onClick={() => window.location.reload()}
-              >
-                Refresh
-              </Button>
-            </Box>
-          </Grid>
-        )}
-      </Grid>
-    </Paper>
+    <div className="bg-white p-6 rounded-lg">
+      {/* Main Title */}
+      <div className="mb-10 text-center">
+        <Typography
+          variant="h3"
+          component="h1"
+          className="font-bold text-gray-800 mb-2"
+        >
+          Start your Journey
+        </Typography>
+        <Typography
+          variant="h5"
+          component="h2"
+          className="font-normal text-gray-600"
+        >
+          Work, Train and Learn
+        </Typography>
+        <div className="w-24 h-1 bg-blue-600 mx-auto mt-4"></div>
+      </div>
+      {/* Jobs Section */}
+      {!loading.jobs && (
+        <SimpleCarousel title="Recommended Jobs">
+          {recommendedJobs.length > 0 ? (
+            recommendedJobs.map((job, index) => (
+              <div key={job.job_id || index}>{renderJobCard(job)}</div>
+            ))
+          ) : (
+            <div className="min-w-72 w-72">
+              {renderJobCard({
+                job_id: "placeholder1",
+                job_title: "No Jobs Available",
+                employer: { company_name: "Please try again later" },
+              })}
+            </div>
+          )}
+        </SimpleCarousel>
+      )}
+      {/* Trainings Section */}
+      {!loading.trainings && (
+        <SimpleCarousel title="Recommended Trainings">
+          {recommendedTrainings.length > 0 ? (
+            recommendedTrainings.map((training, index) => (
+              <div key={training.id || index}>{renderTrainingCard(training)}</div>
+            ))
+          ) : (
+            <div className="min-w-72 w-72">
+              {renderTrainingCard({
+                id: "placeholder1",
+                title: "No Training Programs Available",
+                provider: "Please try again later",
+              })}
+            </div>
+          )}
+        </SimpleCarousel>
+      )}
+      {/* Scholarships Section */}
+      {!loading.scholarships && (
+        <SimpleCarousel title="Recommended Scholarships">
+          {recommendedScholarships.length > 0 ? (
+            recommendedScholarships.map((scholarship, index) => (
+              <div key={scholarship.id || index}>{renderScholarshipCard(scholarship)}</div>
+            ))
+          ) : (
+            <div className="min-w-72 w-72">
+              {renderScholarshipCard({
+                id: "placeholder1",
+                title: "No Scholarships Available",
+                provider: "Please try again later",
+              })}
+            </div>
+          )}
+        </SimpleCarousel>
+      )}
+    </div>
   );
 };
 

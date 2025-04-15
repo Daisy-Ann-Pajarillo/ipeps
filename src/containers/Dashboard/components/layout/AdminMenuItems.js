@@ -17,7 +17,7 @@ const AdministratorMenuItems = [
         items: [
             {
                 title: "Dashboard",
-                to: "/dashboard/",
+                to: "/admin/",
                 icon: <HomeOutlined />,
             },
         ],
@@ -28,7 +28,7 @@ const AdministratorMenuItems = [
         items: [
             {
                 title: "Settings",
-                to: "/dashboard/admin/settings",
+                to: "/admin/settings",
                 icon: <SettingsOutlined />,
             },
         ],
@@ -39,48 +39,48 @@ const AdministratorMenuItems = [
         items: [
             {
                 title: "Manage Users",
-                to: "/dashboard/admin/manage-users",
+                to: "/admin/manage-users",
                 icon: <PeopleOutlined />,
             },
             {
                 title: "Job Postings",
-                to: "/dashboard/admin/job-postings",
+                to: "/admin/job-postings",
                 icon: <PersonSearchOutlined />,
             },
             {
                 title: "Scholarship Postings",
-                to: "/dashboard/admin/scholarships-postings",
+                to: "/admin/scholarships-postings",
                 icon: <ContactsOutlined />,
             },
             {
                 title: "Training Postings",
-                to: "/dashboard/admin/training-postings",
+                to: "/admin/training-postings",
                 icon: <ReceiptOutlined />,
             },
 
             {
                 title: "Job Applications",
-                to: "/dashboard/admin/job-applications",
+                to: "/admin/job-applications",
                 icon: <PersonSearchOutlined />,
             },
             {
                 title: "Scholarships Applications",
-                to: "/dashboard/admin/scholarship-applications",
+                to: "/admin/scholarship-applications",
                 icon: <PersonSearchOutlined />,
             },
             {
                 title: "Training Applications",
-                to: "/dashboard/admin/training-applications",
+                to: "/admin/training-applications",
                 icon: <PersonSearchOutlined />,
             },
             {
                 title: "Placement Reports",
-                to: "/dashboard/admin/placement-reports",
+                to: "/admin/placement-reports",
                 icon: <AssessmentRounded />,
             },
             {
                 title: "Employers",
-                to: "/dashboard/admin/employer",
+                to: "/admin/employer",
                 icon: <AccountBalanceOutlined />,
             },
         ],

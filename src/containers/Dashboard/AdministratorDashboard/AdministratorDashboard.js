@@ -33,30 +33,30 @@ const AdministratorDashboard = () => {
             <div className="w-full h-dvh overflow-y-auto">
                 <Routes>
                     <Route path="/" element={<Dashboard />} />
-                    <Route path="/admin/account-settings" element={<AccountSettings />} />
-                    <Route path="/admin/manage-users" element={<ManageUsers />} />
+                    <Route path="/account-settings" element={<AccountSettings />} />
+                    <Route path="/manage-users" element={<ManageUsers />} />
 
-                    <Route path="/admin/job-postings" element={<JobPostings />} />
-                    <Route path="/admin/scholarships-postings" element={<ScholarshipsPostings />} />
-                    <Route path="/admin/training-postings" element={<TrainingPostings />} />
+                    <Route path="/job-postings" element={<JobPostings />} />
+                    <Route path="/scholarships-postings" element={<ScholarshipsPostings />} />
+                    <Route path="/training-postings" element={<TrainingPostings />} />
 
-                    <Route path="/admin/job-applications" element={<JobApplications />} />
-                    <Route path="/admin/scholarship-applications" element={<ScholarshipApplications />} />
-                    <Route path="/admin/training-applications" element={<TrainingApplications />} />
+                    <Route path="/job-applications" element={<JobApplications />} />
+                    <Route path="/scholarship-applications" element={<ScholarshipApplications />} />
+                    <Route path="/training-applications" element={<TrainingApplications />} />
 
 
-                    <Route path="/admin/placement-reports" element={<PlacementReports />} />
-                    <Route path="/admin/employer" element={<Employers />} />
-                    <Route path="/admin/settings" element={<Settings />} />
+                    <Route path="/placement-reports" element={<PlacementReports />} />
+                    <Route path="/employer" element={<Employers />} />
+                    <Route path="/settings" element={<Settings />} />
 
                     {/* Nested Routes */}
-                    <Route path="/admin/jobseeker" element={<JobSeeker />} />
-                    <Route path="/admin/trends" element={<Trend />} />
-                    <Route path="/admin/placement" element={<Placement />} />
-                    <Route path="/admin/job-preference" element={<JobPreference />} />
+                    <Route path="/jobseeker" element={<JobSeeker />} />
+                    <Route path="/trends" element={<Trend />} />
+                    <Route path="/placement" element={<Placement />} />
+                    <Route path="/job-preference" element={<JobPreference />} />
 
                     {/* Catch-all route */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
+
                 </Routes>
             </div>
         </div>
