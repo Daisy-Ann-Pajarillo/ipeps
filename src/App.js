@@ -45,13 +45,14 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
       case "ADMIN":
         authRoutes = (
           <Route
-            path="/dashboard/*"
+            path="/admin/*"
             element={
               <React.Suspense fallback={loading}>
-                <AdministratorDashboard/>
+                <AdministratorDashboard />
               </React.Suspense>
             }
           />
+
         );
         break;
       case "EMPLOYER":
@@ -60,7 +61,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/dashboard/*"
             element={
               <React.Suspense fallback={loading}>
-                <EmployersDashboard/>
+                <EmployersDashboard />
               </React.Suspense>
             }
           />
@@ -72,7 +73,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/dashboard/*"
             element={
               <React.Suspense fallback={loading}>
-                <StudentDashboard/>
+                <StudentDashboard />
               </React.Suspense>
             }
           />
@@ -94,7 +95,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/dashboard/*"
             element={
               <React.Suspense fallback={loading}>
-                <AcademeDashboard/>
+                <AcademeDashboard />
               </React.Suspense>
             }
           />
@@ -106,7 +107,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
             path="/dashboard/*"
             element={
               <React.Suspense fallback={loading}>
-                <StudentDashboard/>
+                <StudentDashboard />
               </React.Suspense>
             }
           />
@@ -133,7 +134,7 @@ const App = ({ auth, getAuthStorage, setUserType }) => {
           {authRoutes}
 
           {/* Catch-all Route */}
-          <Route path="*" element={<Unauthorized/>} />
+          <Route path="*" element={<Unauthorized />} />
         </Routes>
       </React.Suspense>
     </Router>

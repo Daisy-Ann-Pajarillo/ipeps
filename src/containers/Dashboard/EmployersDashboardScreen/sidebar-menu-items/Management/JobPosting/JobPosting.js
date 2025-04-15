@@ -248,7 +248,7 @@ const JobPosting = ({ isCollapsed }) => {
                       {...register("job_description")}
                       fullWidth
                       multiline
-                      rows={4}
+                      minRows={3}
                       error={!!errors.job_description}
                       helperText={errors.job_description?.message}
                     />

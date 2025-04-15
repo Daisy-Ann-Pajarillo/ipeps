@@ -107,7 +107,13 @@ const TrainingPosting = ({ isCollapsed }) => {
               </Grid>
               <Grid item xs={12}>
                 <InputLabel>Training Description</InputLabel>
-                <TextField fullWidth multiline rows={4} {...register('training_description')} error={!!errors.training_description} helperText={errors.training_description?.message} />
+                <TextField
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  {...register('training_description')}
+                  error={!!errors.training_description}
+                  helperText={errors.training_description?.message} />
               </Grid>
               <Grid item xs={12} md={6}>
                 <InputLabel>Expiration Date</InputLabel>
