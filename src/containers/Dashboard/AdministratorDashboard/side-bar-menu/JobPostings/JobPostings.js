@@ -5,6 +5,8 @@ import SearchData from "../../../components/layout/Search";
 import axios from "../../../../../axios";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { toast, ToastContainer } from "react-toastify";
 
 export default function JobBoard() {
@@ -20,6 +22,9 @@ export default function JobBoard() {
   const [location, setLocation] = useState("");
   const [jobs, setJobs] = useState([]);
   const [status, setStatus] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
   function refresh() {
     axios
       .get("/api/public/all-postings", {
@@ -62,18 +67,33 @@ export default function JobBoard() {
       status === "" || job.status?.toLowerCase() === status.toLowerCase();
     return matchesTitle && matchesLocation && matchesStatus && matchesQuery;
   });
+
+  const indexOfLastJob = currentPage * itemsPerPage;
+  const indexOfFirstJob = indexOfLastJob - itemsPerPage;
+  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
+
+  const prevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const nextPage = () => {
+    setCurrentPage((prev) =>
+      Math.min(prev + 1, Math.ceil(filteredJobs.length / itemsPerPage))
+    );
+  };
+
   const acceptJobPosting = async (jobId, statusUpdate) => {
     console.log(jobId, statusUpdate);
     const jobPostingData = {
       posting_type: "job",
-      posting_id: jobId, // Fixed casing issue (jobid → jobId)
+      posting_id: jobId,
       status: statusUpdate,
     };
     console.log(jobPostingData);
     await axios
       .put("/api/update-posting-status", jobPostingData, {
         auth: {
-          username: auth.token, // Ensure `auth.token` is defined
+          username: auth.token,
         },
       })
       .then((response) => {
@@ -92,31 +112,37 @@ export default function JobBoard() {
 
   return (
     <div className="p-5 bg-gray-100 dark:bg-gray-800 min-h-screen">
-      <SearchData
-        placeholder="Search jobs..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full mb-4"
-        componentData={[
-          {
-            title: "Title",
-            options: ["", ...new Set(jobs.map((job) => job.title))],
-          },
-          {
-            title: "Location",
-            options: ["", ...new Set(jobs.map((job) => job.city_municipality))],
-          },
-          {
-            title: "Status",
-            options: ["", ...new Set(jobs.map((job) => job.status))],
-          },
-        ]}
-        onComponentChange={(index, value) => {
-          if (index === 0) setTitle(value);
-          if (index === 1) setLocation(value);
-          if (index === 2) setStatus(value);
-        }}
-      />
+      <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+        <SearchData
+          placeholder="Search jobs..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full mb-4"
+          componentData={[
+            {
+              title: "Title",
+              options: ["", ...new Set(jobs.map((job) => job.title))],
+            },
+            {
+              title: "Location",
+              options: [
+                "",
+                ...new Set(jobs.map((job) => job.city_municipality)),
+              ],
+            },
+            {
+              title: "Status",
+              options: ["", ...new Set(jobs.map((job) => job.status))],
+            },
+          ]}
+          onComponentChange={(index, value) => {
+            if (index === 0) setTitle(value);
+            if (index === 1) setLocation(value);
+            if (index === 2) setStatus(value);
+          }}
+        />
+      </div>
+
       <ToastContainer
         autoClose={3000}
         hideProgressBar={false}
@@ -128,9 +154,20 @@ export default function JobBoard() {
         pauseOnHover
         theme="light"
       />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredJobs.length > 0 ? (
-          filteredJobs.map((job) => (
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+          Job Postings
+        </h2>
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          Showing {filteredJobs.length > 0 ? indexOfFirstJob + 1 : 0}-
+          {Math.min(indexOfLastJob, filteredJobs.length)} of {filteredJobs.length}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {currentJobs.length > 0 ? (
+          currentJobs.map((job) => (
             <div
               key={job.id}
               className="relative bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300"
@@ -161,7 +198,8 @@ export default function JobBoard() {
 
               <div className="flex items-center text-gray-500 dark:text-gray-400 mt-2">
                 <span>
-                  Php {job.estimated_salary_from.toLocaleString() || "-"} - Php {job.estimated_salary_to.toLocaleString() || "-"} / year
+                  Php {job.estimated_salary_from.toLocaleString() || "-"} - Php{" "}
+                  {job.estimated_salary_to.toLocaleString() || "-"} / year
                 </span>
               </div>
 
@@ -240,6 +278,41 @@ export default function JobBoard() {
             No jobs found.
           </p>
         )}
+      </div>
+
+      <div className="flex justify-center mt-6">
+        <div className="flex items-center bg-white rounded-lg shadow overflow-hidden">
+          <button
+            onClick={prevPage}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 flex items-center ${
+              currentPage === 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          >
+            <NavigateBeforeIcon fontSize="small" className="mr-1" />
+            Previous
+          </button>
+
+          <div className="px-4 py-2 border-l border-r border-gray-200">
+            Page {currentPage} of{" "}
+            {Math.max(1, Math.ceil(filteredJobs.length / itemsPerPage))}
+          </div>
+
+          <button
+            onClick={nextPage}
+            disabled={currentPage >= Math.ceil(filteredJobs.length / itemsPerPage)}
+            className={`px-4 py-2 flex items-center ${
+              currentPage >= Math.ceil(filteredJobs.length / itemsPerPage)
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          >
+            Next
+            <NavigateNextIcon fontSize="small" className="ml-1" />
+          </button>
+        </div>
       </div>
     </div>
   );

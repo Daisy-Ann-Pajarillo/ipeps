@@ -4,6 +4,8 @@ import * as actions from "../../../../../store/actions/index";
 import axios from "../../../../../axios";
 import { toast, ToastContainer } from "react-toastify";
 import SearchData from "../../../components/layout/Search";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 const TrainingPostings = () => {
   const dispatch = useDispatch();
@@ -17,6 +19,8 @@ const TrainingPostings = () => {
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState("");
   const [trainings, setTrainings] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6; // Show exactly 6 trainings per page
 
   const fetchTrainings = () => {
     axios
@@ -69,6 +73,25 @@ const TrainingPostings = () => {
     return matchesQuery && matchesCompany && matchesStatus;
   });
 
+  // Get current trainings based on pagination
+  const indexOfLastTraining = currentPage * itemsPerPage;
+  const indexOfFirstTraining = indexOfLastTraining - itemsPerPage;
+  const currentTrainings = filteredTrainings.slice(
+    indexOfFirstTraining,
+    indexOfLastTraining
+  );
+
+  // Change page
+  const prevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const nextPage = () => {
+    setCurrentPage((prev) =>
+      Math.min(prev + 1, Math.ceil(filteredTrainings.length / itemsPerPage))
+    );
+  };
+
   return (
     <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen">
       <SearchData
@@ -104,9 +127,23 @@ const TrainingPostings = () => {
         pauseOnHover
         theme="light"
       />
+
+      {/* Count display */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+          Training Postings
+        </h2>
+        <div className="text-sm text-gray-600 dark:text-gray-300">
+          Showing {filteredTrainings.length > 0 ? indexOfFirstTraining + 1 : 0}-
+          {Math.min(indexOfLastTraining, filteredTrainings.length)} of{" "}
+          {filteredTrainings.length}
+        </div>
+      </div>
+
+      {/* Display exactly 6 trainings per page */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        {filteredTrainings.length > 0 ? (
-          filteredTrainings.map((training) => (
+        {currentTrainings.length > 0 ? (
+          currentTrainings.map((training) => (
             <div
               key={training.id}
               className="relative p-4 bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700"
@@ -176,6 +213,43 @@ const TrainingPostings = () => {
         )}
       </div>
 
+      {/* Pagination controls */}
+      <div className="flex justify-center mt-6">
+        <div className="flex items-center bg-white rounded-lg shadow overflow-hidden">
+          <button
+            onClick={prevPage}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 flex items-center ${
+              currentPage === 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          >
+            <NavigateBeforeIcon fontSize="small" className="mr-1" />
+            Previous
+          </button>
+
+          <div className="px-4 py-2 border-l border-r border-gray-200">
+            Page {currentPage} of{" "}
+            {Math.max(1, Math.ceil(filteredTrainings.length / itemsPerPage))}
+          </div>
+
+          <button
+            onClick={nextPage}
+            disabled={
+              currentPage >= Math.ceil(filteredTrainings.length / itemsPerPage)
+            }
+            className={`px-4 py-2 flex items-center ${
+              currentPage >= Math.ceil(filteredTrainings.length / itemsPerPage)
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          >
+            Next
+            <NavigateNextIcon fontSize="small" className="ml-1" />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
