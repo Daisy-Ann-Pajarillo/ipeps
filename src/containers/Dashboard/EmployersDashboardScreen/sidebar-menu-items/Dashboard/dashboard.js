@@ -12,8 +12,7 @@ import {
     AnnouncementOutlined,
     BusinessCenter, CalendarToday,
     LocationOn, AccessTime, Payment,
-    Verified, Share, Comment, ThumbUp,
-    WorkOutlineOutlined, SchoolOutlined,
+    Verified, WorkOutlineOutlined, SchoolOutlined,
     CardGiftcardOutlined
 } from '@mui/icons-material';
 
@@ -25,7 +24,7 @@ const Dashboard = ({ isCollapsed }) => {
     const navigate = useNavigate();
     const colors = tokens(theme.palette.mode);
     const [searchQuery, setSearchQuery] = useState('');
-    const headerHeight = '72px';
+    const headerHeight = '0px';
     const [showAnnouncement, setShowAnnouncement] = useState(false);
     const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(true);
     const [showAnnouncementButton, setShowAnnouncementButton] = useState(false);
@@ -429,16 +428,6 @@ const Dashboard = ({ isCollapsed }) => {
         }
     ];
 
-    // Add interaction states
-    const [likedPosts, setLikedPosts] = useState({});
-
-    const handleLike = (postId) => {
-        setLikedPosts(prev => ({
-            ...prev,
-            [postId]: !prev[postId]
-        }));
-    };
-
     return (
         <Box className="'max-w-[400px]'">
 
@@ -451,8 +440,10 @@ const Dashboard = ({ isCollapsed }) => {
                         sx={{
                             position: 'fixed',
                             right: 20,
-                            top: `calc(${headerHeight} + 20px)`,
-                            zIndex: 1200,
+                          //  top: `calc(${headerHeight} + 20px)`,
+                          top: `calc(${headerHeight})`,
+ 
+                          zIndex: 1200,
                             backgroundColor: 'white',
                             '&:hover': {
                                 backgroundColor: '#f5f5f5',
@@ -469,7 +460,9 @@ const Dashboard = ({ isCollapsed }) => {
             <Box
                 sx={{
                     position: 'fixed',
-                    top: showWelcome ? `calc(${headerHeight} + 116px)` : headerHeight, // Header height + Announcement height
+                 //   top: showWelcome ? `calc(${headerHeight} + 116px)` : headerHeight, // Header height + Announcement height
+                    top: showWelcome ? `calc(${headerHeight})` : headerHeight, // Header height + Announcement height
+
                     left: isCollapsed ? '80px' : '250px',
                     right: 0,
                     bottom: 0,
@@ -550,7 +543,14 @@ const Dashboard = ({ isCollapsed }) => {
                                             {/* Post Details */}
                                             <Paper
                                                 variant="outlined"
-                                                sx={{ p: 2, mb: 2, bgcolor: 'background.default' }}
+                                                sx={{ 
+                                                    p: 1.5, 
+                                                    mt: 'auto',
+                                                    mb: 0, // Removed bottom margin since we're removing the action section
+                                                    bgcolor: 'rgba(0, 0, 0, 0.02)',
+                                                    borderRadius: '8px',
+                                                    borderColor: 'rgba(0, 0, 0, 0.06)'
+                                                }}
                                             >
                                                 {item.type === 'job' && (
                                                     <Box>
@@ -580,23 +580,6 @@ const Dashboard = ({ isCollapsed }) => {
                                                     </Box>
                                                 )}
                                             </Paper>
-
-                                            {/* Post Actions */}
-                                            <Box sx={{ display: 'flex', gap: 2, pt: 1 }}>
-                                                <Button
-                                                    startIcon={<ThumbUp color={likedPosts[item.id] ? "primary" : "action"} />}
-                                                    onClick={() => handleLike(item.id)}
-                                                    sx={{ flex: 1 }}
-                                                >
-                                                    {item.likes}
-                                                </Button>
-                                                <Button startIcon={<Comment />} sx={{ flex: 1 }}>
-                                                    {item.comments}
-                                                </Button>
-                                                <Button startIcon={<Share />} sx={{ flex: 1 }}>
-                                                    {item.shares}
-                                                </Button>
-                                            </Box>
                                         </Paper>
                                     ))}
                                 </Box>
