@@ -23,6 +23,7 @@ export default function JobBoard() {
   const [jobs, setJobs] = useState([]);
   const [status, setStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [adminRemarks, setAdminRemarks] = useState({});
   const itemsPerPage = 6;
 
   function refresh() {
@@ -82,12 +83,20 @@ export default function JobBoard() {
     );
   };
 
+  const handleRemarksChange = (jobId, value) => {
+    setAdminRemarks(prev => ({
+      ...prev,
+      [jobId]: value
+    }));
+  };
+
   const acceptJobPosting = async (jobId, statusUpdate) => {
     console.log(jobId, statusUpdate);
     const jobPostingData = {
       posting_type: "job",
       posting_id: jobId,
       status: statusUpdate,
+      remarks: adminRemarks[jobId] || "" // Include remarks in the request
     };
     console.log(jobPostingData);
     await axios
@@ -101,6 +110,12 @@ export default function JobBoard() {
           toast.info(
             `Job post ${statusUpdate === "active" ? "accepted" : statusUpdate}`
           );
+          // Clear remarks after successful update
+          setAdminRemarks(prev => {
+            const newRemarks = { ...prev };
+            delete newRemarks[jobId];
+            return newRemarks;
+          });
           refresh();
         }
       })
@@ -256,20 +271,39 @@ export default function JobBoard() {
               </div>
 
               {job.status === "pending" && (
-                <div className="flex space-x-3 mt-5">
-                  <button
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300"
-                    onClick={() => acceptJobPosting(job.id, "active")}
-                  >
-                    Accept
-                  </button>
-                  <button
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-300"
-                    onClick={() => acceptJobPosting(job.id, "rejected")}
-                  >
-                    Reject
-                  </button>
-                </div>
+                <>
+                  {/* Admin Remarks text field */}
+                  <div className="mt-5">
+                    <label
+                      htmlFor={`admin-remarks-${job.id}`}
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      Admin Remarks
+                    </label>
+                    <textarea
+                      id={`admin-remarks-${job.id}`}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      rows="2"
+                      placeholder="Add your remarks here..."
+                      value={adminRemarks[job.id] || ""}
+                      onChange={(e) => handleRemarksChange(job.id, e.target.value)}
+                    />
+                  </div>
+                  <div className="flex space-x-3 mt-3">
+                    <button
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300"
+                      onClick={() => acceptJobPosting(job.id, "active")}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-300"
+                      onClick={() => acceptJobPosting(job.id, "rejected")}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           ))
@@ -285,11 +319,10 @@ export default function JobBoard() {
           <button
             onClick={prevPage}
             disabled={currentPage === 1}
-            className={`px-4 py-2 flex items-center ${
-              currentPage === 1
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            className={`px-4 py-2 flex items-center ${currentPage === 1
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
           >
             <NavigateBeforeIcon fontSize="small" className="mr-1" />
             Previous
@@ -303,11 +336,10 @@ export default function JobBoard() {
           <button
             onClick={nextPage}
             disabled={currentPage >= Math.ceil(filteredJobs.length / itemsPerPage)}
-            className={`px-4 py-2 flex items-center ${
-              currentPage >= Math.ceil(filteredJobs.length / itemsPerPage)
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            className={`px-4 py-2 flex items-center ${currentPage >= Math.ceil(filteredJobs.length / itemsPerPage)
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
           >
             Next
             <NavigateNextIcon fontSize="small" className="ml-1" />

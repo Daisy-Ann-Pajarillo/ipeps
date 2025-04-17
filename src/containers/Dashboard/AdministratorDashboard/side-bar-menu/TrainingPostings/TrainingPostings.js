@@ -20,6 +20,7 @@ const TrainingPostings = () => {
   const [status, setStatus] = useState("");
   const [trainings, setTrainings] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [adminRemarks, setAdminRemarks] = useState({});
   const itemsPerPage = 6; // Show exactly 6 trainings per page
 
   const fetchTrainings = () => {
@@ -47,6 +48,7 @@ const TrainingPostings = () => {
           posting_type: "training",
           posting_id: trainingId,
           status: newStatus,
+          remarks: adminRemarks[trainingId] || "" // Include remarks in the request
         },
         { auth: { username: auth.token } }
       )
@@ -56,9 +58,22 @@ const TrainingPostings = () => {
             `Job post ${newStatus === "active" ? "accepted" : newStatus}`
           );
           fetchTrainings();
+          // Clear remarks after successful update
+          setAdminRemarks(prev => {
+            const newRemarks = { ...prev };
+            delete newRemarks[trainingId];
+            return newRemarks;
+          });
         }
       })
       .catch(() => toast.info("Failed to update training posting."));
+  };
+
+  const handleRemarksChange = (trainingId, value) => {
+    setAdminRemarks(prev => ({
+      ...prev,
+      [trainingId]: value
+    }));
   };
 
   const filteredTrainings = trainings.filter((training) => {
@@ -149,15 +164,14 @@ const TrainingPostings = () => {
               className="relative p-4 bg-white dark:bg-gray-800 shadow rounded-lg border border-gray-200 dark:border-gray-700"
             >
               <span
-                className={`absolute top-3 right-3 px-2 py-1 text-xs text-white rounded-md uppercase ${
-                  training.status === "pending"
-                    ? "bg-orange-500"
-                    : training.status === "active"
+                className={`absolute top-3 right-3 px-2 py-1 text-xs text-white rounded-md uppercase ${training.status === "pending"
+                  ? "bg-orange-500"
+                  : training.status === "active"
                     ? "bg-green-500"
                     : training.status === "expired"
-                    ? "bg-gray-500"
-                    : "bg-red-500"
-                }`}
+                      ? "bg-gray-500"
+                      : "bg-red-500"
+                  }`}
               >
                 {training.status}
               </span>
@@ -189,22 +203,41 @@ const TrainingPostings = () => {
                 </p>
               </div>
               {training.status === "pending" && (
-                <div className="flex space-x-2 mt-4">
-                  <button
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                    onClick={() => updateTrainingStatus(training.id, "active")}
-                  >
-                    Accept
-                  </button>
-                  <button
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                    onClick={() =>
-                      updateTrainingStatus(training.id, "rejected")
-                    }
-                  >
-                    Reject
-                  </button>
-                </div>
+                <>
+                  {/* Admin Remarks text field */}
+                  <div className="mt-4">
+                    <label
+                      htmlFor={`admin-remarks-${training.id}`}
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      Admin Remarks
+                    </label>
+                    <textarea
+                      id={`admin-remarks-${training.id}`}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      rows="2"
+                      placeholder="Add your remarks here..."
+                      value={adminRemarks[training.id] || ""}
+                      onChange={(e) => handleRemarksChange(training.id, e.target.value)}
+                    />
+                  </div>
+                  <div className="flex space-x-2 mt-4">
+                    <button
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                      onClick={() => updateTrainingStatus(training.id, "active")}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                      onClick={() =>
+                        updateTrainingStatus(training.id, "rejected")
+                      }
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           ))
@@ -219,11 +252,10 @@ const TrainingPostings = () => {
           <button
             onClick={prevPage}
             disabled={currentPage === 1}
-            className={`px-4 py-2 flex items-center ${
-              currentPage === 1
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            className={`px-4 py-2 flex items-center ${currentPage === 1
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
           >
             <NavigateBeforeIcon fontSize="small" className="mr-1" />
             Previous
@@ -239,11 +271,10 @@ const TrainingPostings = () => {
             disabled={
               currentPage >= Math.ceil(filteredTrainings.length / itemsPerPage)
             }
-            className={`px-4 py-2 flex items-center ${
-              currentPage >= Math.ceil(filteredTrainings.length / itemsPerPage)
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            className={`px-4 py-2 flex items-center ${currentPage >= Math.ceil(filteredTrainings.length / itemsPerPage)
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
           >
             Next
             <NavigateNextIcon fontSize="small" className="ml-1" />
@@ -255,6 +286,3 @@ const TrainingPostings = () => {
 };
 
 export default TrainingPostings;
-
-
-

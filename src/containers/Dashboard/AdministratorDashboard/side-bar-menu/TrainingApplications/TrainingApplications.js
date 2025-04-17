@@ -53,24 +53,58 @@ const TrainingApplications = () => {
         toast.error("Failed to load training applications");
       });
   };
-
   const handleAcceptApplication = (applicationId) => {
     setIsLoading(true);
+
+    // Find the application with the matching ID
+    const applicationToUpdate = applications.find(
+      (app) => app.application_id === applicationId
+    );
+
+    if (!applicationToUpdate) {
+      console.error("Application not found for ID:", applicationId);
+      toast.error("Application not found. Please try again.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Extract the user_id from the application's user_details
+    const { user_id } = applicationToUpdate.user_details;
+
+    // Log the payload for debugging
+    console.log("Approving training application with data:", {
+      application_id: applicationId,
+      status: "approved",
+      user_id: user_id,
+    });
+
     axios
-      .post("/api/training-applications/update-status", {
-        application_id: applicationId,
-        status: "approved"
-      }, {
-        auth: { username: auth.token },
-      })
+      .put(
+        "/api/update-training-status", // Adjust the endpoint if needed
+        {
+          application_id: applicationId,
+          status: "approved",
+          user_id: user_id,
+        },
+        {
+          auth: { username: auth.token }, // Authentication headers
+        }
+      )
       .then((res) => {
         toast.success("Application approved successfully");
+
         // Update local state
-        const updatedApplications = applications.map(app =>
-          app.application_id === applicationId ? { ...app, application_status: "approved" } : app
+        const updatedApplications = applications.map((app) =>
+          app.application_id === applicationId
+            ? { ...app, application_status: "approved" }
+            : app
         );
         setApplications(updatedApplications);
-        setSelectedApp({ ...selectedApp, application_status: "approved" });
+
+        // Update selected application if it's open
+        if (selectedApp && selectedApp.application_id === applicationId) {
+          setSelectedApp({ ...selectedApp, application_status: "approved" });
+        }
       })
       .catch((err) => {
         console.error("Error approving application:", err);
@@ -83,21 +117,56 @@ const TrainingApplications = () => {
 
   const handleRejectApplication = (applicationId) => {
     setIsLoading(true);
+
+    // Find the application with the matching ID
+    const applicationToUpdate = applications.find(
+      (app) => app.application_id === applicationId
+    );
+
+    if (!applicationToUpdate) {
+      console.error("Application not found for ID:", applicationId);
+      toast.error("Application not found. Please try again.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Extract the user_id from the application's user_details
+    const { user_id } = applicationToUpdate.user_details;
+
+    // Log the payload for debugging
+    console.log("Rejecting training application with data:", {
+      application_id: applicationId,
+      status: "rejected",
+      user_id: user_id,
+    });
+
     axios
-      .post("/api/training-applications/update-status", {
-        application_id: applicationId,
-        status: "rejected"
-      }, {
-        auth: { username: auth.token },
-      })
+      .put(
+        "/api/update-training-status", // Adjust the endpoint if needed
+        {
+          application_id: applicationId,
+          status: "rejected",
+          user_id: user_id,
+        },
+        {
+          auth: { username: auth.token }, // Authentication headers
+        }
+      )
       .then((res) => {
         toast.success("Application rejected successfully");
+
         // Update local state
-        const updatedApplications = applications.map(app =>
-          app.application_id === applicationId ? { ...app, application_status: "rejected" } : app
+        const updatedApplications = applications.map((app) =>
+          app.application_id === applicationId
+            ? { ...app, application_status: "rejected" }
+            : app
         );
         setApplications(updatedApplications);
-        setSelectedApp({ ...selectedApp, application_status: "rejected" });
+
+        // Update selected application if it's open
+        if (selectedApp && selectedApp.application_id === applicationId) {
+          setSelectedApp({ ...selectedApp, application_status: "rejected" });
+        }
       })
       .catch((err) => {
         console.error("Error rejecting application:", err);
@@ -337,18 +406,24 @@ const TrainingApplications = () => {
                       <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Email</h3>
                       <p className="mt-1 text-gray-700 dark:text-gray-300">{selectedApp.user_details.email}</p>
                     </div>
+
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Country</h3>
+                      <p className="mt-1 text-gray-900 dark:text-white font-medium">{selectedApp.user_details.job_preferences.country}</p>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Username</h3>
-                      <p className="mt-1 text-gray-700 dark:text-gray-300">{selectedApp.user_details.username}</p>
+                      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Permanent Address</h3>
+                      <p className="mt-1 text-gray-700 dark:text-gray-300">{selectedApp.user_details.personal_information.permanent_address.barangay || 'N/A'}, {selectedApp.user_details.personal_information.permanent_address.country}, {selectedApp.user_details.personal_information.permanent_address.municipality}, {selectedApp.user_details.personal_information.permanent_address.province}</p>
                     </div>
 
                     <div>
                       <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">User Type</h3>
                       <p className="mt-1 text-gray-700 dark:text-gray-300">{selectedApp.user_details.user_type}</p>
                     </div>
+
                   </div>
                 </div>
                 {/* Accept/Reject Action Buttons */}

@@ -20,7 +20,7 @@ const Scholarships_Postings = () => {
   const [status, setStatus] = useState("");
   const [scholarships, setScholarships] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
-  const [adminRemark, setAdminRemark] = useState("");
+  const [adminRemarks, setAdminRemarks] = useState({});
   const [selectedScholarship, setSelectedScholarship] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6; // Show exactly 6 scholarships per page
@@ -36,7 +36,7 @@ const Scholarships_Postings = () => {
       !company ||
       (scholarship.employer?.company_name &&
         scholarship.employer.company_name.toLowerCase() ===
-          company.toLowerCase());
+        company.toLowerCase());
 
     return matchesQuery && matchesStatus && matchesCompany;
   });
@@ -60,6 +60,13 @@ const Scholarships_Postings = () => {
     }
   }, [auth.token]);
 
+  const handleRemarksChange = (scholarshipId, value) => {
+    setAdminRemarks(prev => ({
+      ...prev,
+      [scholarshipId]: value
+    }));
+  };
+
   const updateScholarshipStatus = async (scholarshipId, newStatus) => {
     await axios
       .put(
@@ -68,6 +75,7 @@ const Scholarships_Postings = () => {
           posting_type: "scholarship",
           posting_id: scholarshipId,
           status: newStatus,
+          remarks: adminRemarks[scholarshipId] || "" // Include remarks in the request
         },
         { auth: { username: auth.token } }
       )
@@ -76,10 +84,16 @@ const Scholarships_Postings = () => {
           toast.info(
             `Job post ${newStatus === "active" ? "accepted" : newStatus}`
           );
+          // Clear remarks after successful update
+          setAdminRemarks(prev => {
+            const newRemarks = { ...prev };
+            delete newRemarks[scholarshipId];
+            return newRemarks;
+          });
           fetchScholarship();
         }
       })
-      .catch(() => toast.info("Failed to update training posting."));
+      .catch(() => toast.info("Failed to update scholarship posting."));
   };
 
   // Get current scholarships based on pagination
@@ -159,15 +173,14 @@ const Scholarships_Postings = () => {
               className="relative p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md cursor-pointer hover:shadow-lg"
             >
               <span
-                className={`absolute top-3 right-3 px-2 py-1 text-xs text-white rounded-md uppercase ${
-                  scholarship.status === "pending"
-                    ? "bg-orange-500"
-                    : scholarship.status === "active"
+                className={`absolute top-3 right-3 px-2 py-1 text-xs text-white rounded-md uppercase ${scholarship.status === "pending"
+                  ? "bg-orange-500"
+                  : scholarship.status === "active"
                     ? "bg-green-500"
                     : scholarship.status === "expired"
-                    ? "bg-gray-500"
-                    : "bg-red-500"
-                }`}
+                      ? "bg-gray-500"
+                      : "bg-red-500"
+                  }`}
               >
                 {scholarship.status}
               </span>
@@ -193,24 +206,43 @@ const Scholarships_Postings = () => {
                 Updated at: {scholarship.updated_at}
               </p>
               {scholarship.status === "pending" && (
-                <div className="flex space-x-2 mt-4">
-                  <button
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                    onClick={() =>
-                      updateScholarshipStatus(scholarship.id, "active")
-                    }
-                  >
-                    Accept
-                  </button>
-                  <button
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                    onClick={() =>
-                      updateScholarshipStatus(scholarship.id, "rejected")
-                    }
-                  >
-                    Reject
-                  </button>
-                </div>
+                <>
+                  {/* Admin Remarks text field */}
+                  <div className="mt-4">
+                    <label
+                      htmlFor={`admin-remarks-${scholarship.id}`}
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      Admin Remarks
+                    </label>
+                    <textarea
+                      id={`admin-remarks-${scholarship.id}`}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      rows="2"
+                      placeholder="Add your remarks here..."
+                      value={adminRemarks[scholarship.id] || ""}
+                      onChange={(e) => handleRemarksChange(scholarship.id, e.target.value)}
+                    />
+                  </div>
+                  <div className="flex space-x-2 mt-4">
+                    <button
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                      onClick={() =>
+                        updateScholarshipStatus(scholarship.id, "active")
+                      }
+                    >
+                      Accept
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                      onClick={() =>
+                        updateScholarshipStatus(scholarship.id, "rejected")
+                      }
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           ))
@@ -227,11 +259,10 @@ const Scholarships_Postings = () => {
           <button
             onClick={prevPage}
             disabled={currentPage === 1}
-            className={`px-4 py-2 flex items-center ${
-              currentPage === 1
-                ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            className={`px-4 py-2 flex items-center ${currentPage === 1
+              ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
           >
             <NavigateBeforeIcon fontSize="small" className="mr-1" />
             Previous
@@ -244,11 +275,10 @@ const Scholarships_Postings = () => {
           <button
             onClick={nextPage}
             disabled={currentPage >= Math.ceil(filteredScholarships.length / itemsPerPage)}
-            className={`px-4 py-2 flex items-center ${
-              currentPage >= Math.ceil(filteredScholarships.length / itemsPerPage)
-                ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
+            className={`px-4 py-2 flex items-center ${currentPage >= Math.ceil(filteredScholarships.length / itemsPerPage)
+              ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+              }`}
           >
             Next
             <NavigateNextIcon fontSize="small" className="ml-1" />

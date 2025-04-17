@@ -5,11 +5,6 @@ import { Download, TrendingUp, Assignment, BusinessCenter, Person } from "@mui/i
 import { useDispatch, useSelector } from "react-redux";
 import * as actions from "../../../../../store/actions/index";
 
-// Import for nested pages
-import JobSeeker from "./components/JobSeeker";
-import Trend from "./components/Trend";
-import Placement from "./components/Placement";
-import JobPreference from "./components/Job_Preference";
 
 const mockDashboardData = {
   jobSeekers: 8435,
