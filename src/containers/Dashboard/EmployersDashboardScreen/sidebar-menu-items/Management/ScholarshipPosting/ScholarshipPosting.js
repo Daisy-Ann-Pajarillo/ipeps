@@ -25,6 +25,7 @@ const scholarshipSchema = yup.object().shape({
     scholarship_title: yup.string().required("Scholarship Title is required"),
     scholarship_description: yup.string().required("Scholarship Description is required"),
     expiration_date: yup.date().required("Expiration Date is required"),
+    slots: yup.number().required("Number of slots is required").positive().integer()
 });
 
 const maxImages = 5;
@@ -32,13 +33,22 @@ const maxImages = 5;
 const ScholarshipPosting = () => {
     const [createScholarshipOpen, setCreateScholarshipOpen] = useState(false);
     
+    console.log("ScholarshipPosting - Form setup with resolver only");
+    
     const {
         register,
         handleSubmit,
+        watch,
         formState: { errors },
     } = useForm({
         resolver: yupResolver(scholarshipSchema),
     });
+
+    const watchedSlots = watch("slots");
+    
+    useEffect(() => {
+        console.log("ScholarshipPosting - Current slots value:", watchedSlots);
+    }, [watchedSlots]);
 
     const [images, setImages] = useState([]);
 
@@ -67,13 +77,17 @@ const ScholarshipPosting = () => {
 
 
     const onSubmit = async (data) => {
+        console.log("ScholarshipPosting - Form data on submit:", data);
+        console.log("ScholarshipPosting - Slots value on submit:", data.slots);
+        
         const ScholarshipData = {
             scholarship_title: data.scholarship_title,
             scholarship_description: data.scholarship_description,
             expiration_date: data.expiration_date instanceof Date ? data.expiration_date.toISOString().split('T')[0] : data.expiration_date,
+            slots: data.slots
         };
 
-        console.log("Scholarship Data:", ScholarshipData);
+        console.log("ScholarshipPosting - Formatted data being sent:", ScholarshipData);
 
         try {
             const response = await axios.post('/api/scholarship-posting', ScholarshipData, {
@@ -168,9 +182,9 @@ const ScholarshipPosting = () => {
                                                 type="number"
                                                 {...register("slots")}
                                                 fullWidth
-                                                placeholder='number of slots'
-                                                error={!!errors.slot}
-                                                helperText={errors.slot?.message}
+                                                placeholder='Number of slots'
+                                                error={!!errors.slots}
+                                                helperText={errors.slots?.message}
                                                 InputLabelProps={{ shrink: true }}
                                             />
                                         </Grid>

@@ -25,6 +25,7 @@ const schema = yup.object().shape({
   training_title: yup.string().required('Training title is required'),
   training_description: yup.string().required('Training description is required'),
   expiration_date: yup.date().required('Expiration date is required'),
+  slots: yup.number().required('Number of slots is required').positive().integer(),
 });
 
 const TrainingPosting = () => {
@@ -55,6 +56,7 @@ const TrainingPosting = () => {
       expiration_date: data.expiration_date instanceof Date
         ? data.expiration_date.toISOString().split('T')[0]
         : data.expiration_date,
+      slots: data.slots
     };
 
     try {
@@ -144,9 +146,9 @@ const TrainingPosting = () => {
                         type="number"
                         {...register("slots")}
                         fullWidth
-                        placeholder='number of slots'
-                        error={!!errors.slot}
-                        helperText={errors.slot?.message}
+                        placeholder='Number of slots'
+                        error={!!errors.slots}
+                        helperText={errors.slots?.message}
                         InputLabelProps={{ shrink: true }}
                       />
                     </Grid>

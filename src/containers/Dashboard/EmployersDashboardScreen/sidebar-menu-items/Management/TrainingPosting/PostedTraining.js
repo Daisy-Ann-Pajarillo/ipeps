@@ -15,6 +15,8 @@ import {
   Avatar
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import PersonIcon from '@mui/icons-material/Person';
+import DownloadIcon from '@mui/icons-material/Download';
 import axios from '../../../../../../axios';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -55,6 +57,10 @@ const PostedTraining = () => {
   const [createTrainingOpen, setCreateTrainingOpen] = useState(false);
   const [images, setImages] = useState([]);
   const maxImages = 3;
+  const [applicantsOpen, setApplicantsOpen] = useState(false);
+  const [trainingApplicants, setTrainingApplicants] = useState([]);
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [showApplicantDetails, setShowApplicantDetails] = useState(false);
 
   // setup auth, retrieving the token from local storage
   const dispatch = useDispatch();
@@ -68,8 +74,17 @@ const PostedTraining = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
+
+  // Add this to watch the slots value
+  const watchedSlots = watch("slots");
+  
+  // Log when the slots value changes
+  useEffect(() => {
+    console.log("Current slots value:", watchedSlots);
+  }, [watchedSlots]);
 
   //Get Training Data
   useEffect(() => {
@@ -79,11 +94,27 @@ const PostedTraining = () => {
           auth: { username: auth.token }
         });
 
-        const data = Array.isArray(response.data.training_postings) 
-          ? response.data.training_postings 
+        const responseData = response.data;
+        const data = Array.isArray(responseData.training_postings) 
+          ? responseData.training_postings 
           : [];
 
-        console.log('Retrieved Training Data:', data);
+        console.log('Complete Raw Training Data:', responseData); // Log the entire response
+        console.log('Training Data Array:', data); // Log the training data array
+
+        // Log all potential slot field names for the first item if available
+        if (data.length > 0) {
+          console.log('First training item field names:', Object.keys(data[0]));
+          console.log('Potential slot values in first item:', {
+            slots: data[0].slots,
+            no_of_slots: data[0].no_of_slots,
+            vacancies: data[0].vacancies,
+            no_of_vacancies: data[0].no_of_vacancies,
+            slot: data[0].slot,
+            rawObject: JSON.stringify(data[0])
+          });
+        }
+
         setTrainingData(data);
       } catch (error) {
         console.error('Error fetching training data:', error);
@@ -93,17 +124,32 @@ const PostedTraining = () => {
     fetchTrainingData();
   }, [auth.token]);
 
+  // More thorough debug log to check training record structure
+  useEffect(() => {
+    if (trainingData.length > 0) {
+      console.log("First training record:", trainingData[0]);
+      console.log("All field names in training record:", Object.keys(trainingData[0]));
+    }
+  }, [trainingData]);
+
   const handleBookmark = (id) => {
     setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleTrainingClick = (training) => {
+    console.log("Viewing training details with slots:", training.slots);
     setSelectedTraining(training);
     setDetailsOpen(true);
+    // Reset applicant views when showing a new training
+    setApplicantsOpen(false);
+    setShowApplicantDetails(false);
+    setSelectedApplicant(null);
   };
 
   const handleCloseDetails = () => {
     setDetailsOpen(false);
+    setApplicantsOpen(false);
+    setShowApplicantDetails(false);
   };
 
   const handleCreateTraining = () => {
@@ -115,13 +161,19 @@ const PostedTraining = () => {
   };
 
   const onSubmit = async (data) => {
+    console.log("Form data on submit:", data);
+    console.log("Slots value on submit:", data.slots);
+    
     const formattedData = {
       training_title: data.training_title,
       training_description: data.training_description,
       expiration_date: data.expiration_date instanceof Date
         ? data.expiration_date.toISOString().split('T')[0]
         : data.expiration_date,
+      slots: data.slots // Ensure slots is included in the submission
     };
+
+    console.log("Formatted data being sent:", formattedData);
 
     try {
       const response = await axios.post('/api/training-posting', formattedData, {
@@ -152,6 +204,155 @@ const PostedTraining = () => {
 
   const handleRemoveImage = (indexToRemove) => {
     setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleViewApplicants = async (trainingId) => {
+    try {
+      // In a real app, you'd fetch from an API
+      // For demo purposes, we'll create dummy data
+      const dummyApplicants = [
+        {
+          id: 1,
+          first_name: "David",
+          last_name: "Reyes",
+          email: "david.reyes@example.com",
+          phone_number: "+639876543210",
+          location: "Makati, Philippines",
+          education: "BSIT, University of Manila",
+          statement: "I'm interested in this training program to enhance my web development skills...",
+          application_date: "2023-07-20",
+          profile_pic: "",
+          status: "pending"
+        },
+        {
+          id: 2,
+          first_name: "Maria",
+          last_name: "Cruz",
+          email: "maria.cruz@example.com",
+          phone_number: "+639123456789",
+          location: "Pasig, Philippines",
+          education: "BS Computer Science, State University",
+          statement: "Looking to expand my knowledge in this field to apply it to my current work...",
+          application_date: "2023-07-19",
+          profile_pic: "",
+          status: "pending"
+        },
+        {
+          id: 3,
+          first_name: "Juan",
+          last_name: "Dela Cruz",
+          email: "juan.delacruz@example.com",
+          phone_number: "+639111222333",
+          location: "Quezon City, Philippines",
+          education: "BSIT, Philippine College",
+          statement: "I'm eager to learn new skills that will help me advance in my career...",
+          application_date: "2023-07-18",
+          profile_pic: "",
+          status: "accepted"
+        }
+      ];
+      
+      setTrainingApplicants(dummyApplicants);
+      setApplicantsOpen(true);
+      
+      /* In production, you'd use actual API:
+      const response = await axios.get(`/api/training-applicants/${trainingId}`, {
+        auth: { username: auth.token }
+      });
+      
+      if (response.status === 200) {
+        setTrainingApplicants(response.data.applicants || []);
+        setApplicantsOpen(true);
+      } else {
+        console.error('Failed to fetch training applicants');
+        toast.error('Failed to fetch applicants');
+      }
+      */
+    } catch (error) {
+      console.error('Error fetching training applicants:', error);
+      toast.error('Error loading applicants');
+    }
+  };
+  
+  const handleViewApplicantDetails = (applicant) => {
+    setSelectedApplicant(applicant);
+    setShowApplicantDetails(true);
+  };
+  
+  const handleAcceptApplicant = async (applicantId) => {
+    try {
+      // For demo, just update the state locally
+      setTrainingApplicants(prevApplicants => 
+        prevApplicants.map(app => 
+          app.id === applicantId ? {...app, status: 'accepted'} : app
+        )
+      );
+      
+      setSelectedApplicant(prev => ({...prev, status: 'accepted'}));
+      toast.success('Applicant accepted successfully!');
+      
+      /* In production:
+      const response = await axios.post(`/api/accept-training-applicant`, 
+        { applicant_id: applicantId, training_id: selectedTraining.id },
+        { auth: { username: auth.token } }
+      );
+      
+      if (response.status === 200) {
+        toast.success('Applicant accepted successfully!');
+        // Refresh the applicants list
+        handleViewApplicants(selectedTraining.id);
+      } else {
+        toast.error('Failed to accept applicant');
+      }
+      */
+    } catch (error) {
+      console.error('Error accepting applicant:', error);
+      toast.error('Error processing request');
+    }
+  };
+  
+  const handleRejectApplicant = async (applicantId) => {
+    try {
+      // For demo, just update the state locally
+      setTrainingApplicants(prevApplicants => 
+        prevApplicants.map(app => 
+          app.id === applicantId ? {...app, status: 'rejected'} : app
+        )
+      );
+      
+      setSelectedApplicant(prev => ({...prev, status: 'rejected'}));
+      toast.success('Applicant rejected');
+      
+      /* In production:
+      const response = await axios.post(`/api/reject-training-applicant`, 
+        { applicant_id: applicantId, training_id: selectedTraining.id },
+        { auth: { username: auth.token } }
+      );
+      
+      if (response.status === 200) {
+        toast.success('Applicant rejected');
+        // Refresh the applicants list
+        handleViewApplicants(selectedTraining.id);
+      } else {
+        toast.error('Failed to reject applicant');
+      }
+      */
+    } catch (error) {
+      console.error('Error rejecting applicant:', error);
+      toast.error('Error processing request');
+    }
+  };
+
+  // Simplified helper function to get slot value directly
+  const getSlotValue = (training) => {
+    console.log(`Raw training object:`, training);
+    
+    // Log each potential field value separately for clarity
+    console.log(`slots value: ${training.slots}`);
+    console.log(`no_of_slots value: ${training.no_of_slots}`);
+    
+    // Directly return user-entered value or undefined
+    return training.slots;
   };
 
   return (
@@ -283,7 +484,7 @@ const PostedTraining = () => {
                   
                   <Box sx={{ mt: 'auto' }}>
                     <Typography variant="body2" color="text.secondary">
-                      Slots: {training.slots || "Not specified"}
+                      Slots: {getSlotValue(training)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Expiration: {training.expiration_date || "Not specified"}
@@ -333,7 +534,11 @@ const PostedTraining = () => {
               {selectedTraining && (
                 <>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>Training Details</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                      {applicantsOpen ? 
+                        (showApplicantDetails ? "Applicant Details" : "Training Applicants") : 
+                        "Training Details"}
+                    </Typography>
                     <IconButton onClick={handleCloseDetails}>
                       <CloseIcon />
                     </IconButton>
@@ -341,69 +546,229 @@ const PostedTraining = () => {
                   
                   <Divider sx={{ mb: 2 }} />
                   
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Typography variant="h6" color="primary">{selectedTraining.training_title}</Typography>
+                  {/* Show training details when applicants section is closed */}
+                  {!applicantsOpen && !showApplicantDetails && (
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <Typography variant="h6" color="primary">{selectedTraining.training_title}</Typography>
+                      </Grid>
+                      
+                      <Grid item xs={12}>
+                        <Typography variant="subtitle1" fontWeight="bold">Description</Typography>
+                        <Typography variant="body1">{selectedTraining.training_description}</Typography>
+                      </Grid>
+                      
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle1" fontWeight="bold">Status</Typography>
+                        <Button
+                          variant="contained"
+                          color={getStatusColor(selectedTraining.status)}
+                          sx={{
+                            borderRadius: '4px',
+                            padding: '4px 10px',
+                            fontSize: '0.875rem',
+                            textTransform: 'capitalize',
+                            mt: 1
+                          }}
+                        >
+                          {selectedTraining.status}
+                        </Button>
+                      </Grid>
+                      
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle1" fontWeight="bold">Expiration Date</Typography>
+                        <Typography variant="body1">
+                          {selectedTraining.expiration_date || 'Not specified'}
+                        </Typography>
+                      </Grid>
+                      
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle1" fontWeight="bold">Slots</Typography>
+                        <Typography variant="body1">
+                          {getSlotValue(selectedTraining)}
+                        </Typography>
+                      </Grid>
+                      
+                      <Grid item xs={12} sx={{ mt: 2 }}>
+                        <Button 
+                          variant="contained" 
+                          color="primary" 
+                          fullWidth
+                          startIcon={<PersonIcon />}
+                          onClick={() => handleViewApplicants(selectedTraining.id)}
+                        >
+                          View Applicants
+                        </Button>
+                      </Grid>
                     </Grid>
-                    
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle1" fontWeight="bold">Description</Typography>
-                      <Typography variant="body1">{selectedTraining.training_description}</Typography>
-                    </Grid>
-                    
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle1" fontWeight="bold">Status</Typography>
-                      <Button
-                        variant="contained"
-                        color={getStatusColor(selectedTraining.status)}
-                        sx={{
-                          borderRadius: '4px',
-                          padding: '4px 10px',
-                          fontSize: '0.875rem',
-                          textTransform: 'capitalize',
-                          mt: 1
-                        }}
-                      >
-                        {selectedTraining.status}
-                      </Button>
-                    </Grid>
-                    
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle1" fontWeight="bold">Expiration Date</Typography>
-                      <Typography variant="body1">
-                        {selectedTraining.expiration_date || 'Not specified'}
-                      </Typography>
-                    </Grid>
-                    
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle1" fontWeight="bold">Slots</Typography>
-                      <Typography variant="body1">
-                        {selectedTraining.slots || 'Not specified'}
-                      </Typography>
-                    </Grid>
-
-                    <Grid item xs={12} sx={{ mt: 2 }}>
-                      <Typography variant="subtitle1" fontWeight="bold">Uploaded Images</Typography>
-                      {selectedTraining.images && selectedTraining.images.length > 0 ? (
-                        <Grid container spacing={1} sx={{ mt: 1 }}>
-                          {selectedTraining.images.map((image, index) => (
-                            <Grid item xs={6} key={index}>
-                              <Card>
-                                <CardMedia
-                                  component="img"
-                                  height="140"
-                                  image={image.url || '/static/placeholder.png'}
-                                  alt={`Training image ${index + 1}`}
-                                />
-                              </Card>
-                            </Grid>
-                          ))}
-                        </Grid>
+                  )}
+                  
+                  {/* Show applicants section when opened */}
+                  {applicantsOpen && !showApplicantDetails && (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6">
+                          Applicants ({trainingApplicants.length})
+                        </Typography>
+                        <Button 
+                          variant="outlined" 
+                          size="small"
+                          onClick={() => setApplicantsOpen(false)}
+                        >
+                          Back to Details
+                        </Button>
+                      </Box>
+                      
+                      <Divider sx={{ mb: 2 }} />
+                      
+                      {trainingApplicants.length === 0 ? (
+                        <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
+                          No applicants yet
+                        </Typography>
                       ) : (
-                        <Typography variant="body2" color="text.secondary">No images uploaded</Typography>
+                        <Box sx={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
+                          {trainingApplicants.map((applicant) => (
+                            <Paper 
+                              key={applicant.id} 
+                              sx={{ 
+                                p: 2, 
+                                mb: 2, 
+                                cursor: 'pointer',
+                                '&:hover': { boxShadow: 3 } 
+                              }}
+                              onClick={() => handleViewApplicantDetails(applicant)}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar 
+                                  src={applicant.profile_pic} 
+                                  sx={{ width: 50, height: 50, mr: 2 }}
+                                >
+                                  {applicant.first_name?.[0] || 'A'}
+                                </Avatar>
+                                <Box>
+                                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                    {applicant.first_name} {applicant.last_name}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    Applied: {new Date(applicant.application_date).toLocaleDateString()}
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    Status: 
+                                    <Button 
+                                      size="small" 
+                                      color={
+                                        applicant.status === 'accepted' ? 'success' : 
+                                        applicant.status === 'rejected' ? 'error' : 'primary'
+                                      }
+                                      sx={{ ml: 1, textTransform: 'capitalize', pointerEvents: 'none' }}
+                                    >
+                                      {applicant.status || 'Pending'}
+                                    </Button>
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Paper>
+                          ))}
+                        </Box>
                       )}
-                    </Grid>
-                  </Grid>
+                    </>
+                  )}
+                  
+                  {/* Individual applicant details */}
+                  {showApplicantDetails && selectedApplicant && (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h6">
+                          Application Review
+                        </Typography>
+                        <Button 
+                          variant="outlined" 
+                          size="small"
+                          onClick={() => setShowApplicantDetails(false)}
+                        >
+                          Back to Applicants
+                        </Button>
+                      </Box>
+                      
+                      <Divider sx={{ mb: 3 }} />
+                      
+                      <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Avatar 
+                          src={selectedApplicant.profile_pic}
+                          sx={{ width: 100, height: 100, mb: 2 }}
+                        >
+                          {selectedApplicant.first_name?.[0] || 'A'}
+                        </Avatar>
+                        <Typography variant="h6">
+                          {selectedApplicant.first_name} {selectedApplicant.last_name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {selectedApplicant.email}
+                        </Typography>
+                      </Box>
+                      
+                      <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                          <Typography variant="subtitle2" color="text.secondary">Phone</Typography>
+                          <Typography variant="body1">{selectedApplicant.phone_number || 'Not provided'}</Typography>
+                        </Grid>
+                        
+                        <Grid item xs={6}>
+                          <Typography variant="subtitle2" color="text.secondary">Location</Typography>
+                          <Typography variant="body1">{selectedApplicant.location || 'Not provided'}</Typography>
+                        </Grid>
+                        
+                        <Grid item xs={12}>
+                          <Typography variant="subtitle2" color="text.secondary">Education</Typography>
+                          <Typography variant="body1">{selectedApplicant.education || 'Not provided'}</Typography>
+                        </Grid>
+                        
+                        <Grid item xs={12}>
+                          <Typography variant="subtitle2" color="text.secondary">Statement</Typography>
+                          <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+                            {selectedApplicant.statement || 'No statement provided'}
+                          </Typography>
+                        </Grid>
+                        
+                        <Grid item xs={12} sx={{ mt: 2 }}>
+                          <Divider sx={{ mb: 2 }} />
+                          <Typography variant="subtitle1" sx={{ mb: 2 }}>Application Status</Typography>
+                          
+                          {selectedApplicant.status !== 'accepted' && selectedApplicant.status !== 'rejected' ? (
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                              <Button 
+                                variant="contained" 
+                                color="success" 
+                                fullWidth
+                                onClick={() => handleAcceptApplicant(selectedApplicant.id)}
+                              >
+                                Accept Trainee
+                              </Button>
+                              <Button 
+                                variant="outlined" 
+                                color="error" 
+                                fullWidth
+                                onClick={() => handleRejectApplicant(selectedApplicant.id)}
+                              >
+                                Reject
+                              </Button>
+                            </Box>
+                          ) : (
+                            <Typography 
+                              variant="body1" 
+                              sx={{ 
+                                textAlign: 'center', 
+                                color: selectedApplicant.status === 'accepted' ? 'success.main' : 'error.main',
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              This applicant has been {selectedApplicant.status}
+                            </Typography>
+                          )}
+                        </Grid>
+                      </Grid>
+                    </>
+                  )}
                 </>
               )}
             </Box>
