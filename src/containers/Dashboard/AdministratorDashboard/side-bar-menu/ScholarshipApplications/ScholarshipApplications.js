@@ -462,10 +462,10 @@ const ScholarshipApplications = () => {
                             e.stopPropagation();
                             updateScholarshipStatus(
                               application.application_id,
-                              "rejected"
+                              "declined"
                             );
                           }}
-                          disabled={application.application_status === "rejected"}
+                          disabled={application.application_status === "declined"}
                         >
                           <XCircle className="h-4 w-4 mr-2" />
                           Reject

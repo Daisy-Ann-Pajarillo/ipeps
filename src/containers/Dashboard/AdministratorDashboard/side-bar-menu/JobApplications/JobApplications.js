@@ -135,7 +135,7 @@ function JobApplications() {
     axios.put("/api/update-job-status", // Adjust the endpoint if needed
       {
         application_id: applicationId,
-        status: "rejected",
+        status: "declined",
         user_id: user_id, // Include the user_id in the payload
       },
       {

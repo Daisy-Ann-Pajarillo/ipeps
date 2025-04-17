@@ -136,7 +136,7 @@ const TrainingApplications = () => {
     // Log the payload for debugging
     console.log("Rejecting training application with data:", {
       application_id: applicationId,
-      status: "rejected",
+      status: "declined",
       user_id: user_id,
     });
 
@@ -145,7 +145,7 @@ const TrainingApplications = () => {
         "/api/update-training-status", // Adjust the endpoint if needed
         {
           application_id: applicationId,
-          status: "rejected",
+          status: "declined",
           user_id: user_id,
         },
         {
