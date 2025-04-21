@@ -10,7 +10,7 @@ import ManageEmployer from "./sidebar-menu-items/Management/ManageEmployer/Manag
 import JobPosting from "./sidebar-menu-items/Management/JobPosting/JobPosting";
 import TrainingPosting from "./sidebar-menu-items/Management/TrainingPosting/TrainingPosting";
 import ScholarshipPosting from "./sidebar-menu-items/Management/ScholarshipPosting/ScholarshipPosting";
-
+import Applicants from "./sidebar-menu-items/ListOfApplicants/Applicants";
 const EmployersDashboard = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -28,6 +28,7 @@ const EmployersDashboard = () => {
                     <Route path="/job-posting" element={<JobPosting isCollapsed={isCollapsed} />} />
                     <Route path="/training-posting" element={<TrainingPosting isCollapsed={isCollapsed} />} />
                     <Route path="/scholarship-posting" element={<ScholarshipPosting isCollapsed={isCollapsed} />} />
+                    <Route path="/applicants" element={<Applicants isCollapsed={isCollapsed} />} />
                 </Routes>
             </div>
         </div>

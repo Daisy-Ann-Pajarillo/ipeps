@@ -136,10 +136,10 @@ function JobApplications() {
       {
         application_id: applicationId,
         status: "declined",
-        user_id: user_id, // Include the user_id in the payload
+        user_id: user_id,
       },
       {
-        auth: { username: auth.token }, // Authentication headers
+        auth: { username: auth.token },
       }
     )
       .then(() => {

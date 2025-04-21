@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import {
@@ -11,12 +11,8 @@ import {
   Select,
   MenuItem,
   Button,
-  Divider,
   Autocomplete,
-  IconButton,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
 
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../../store/actions/index";
@@ -25,11 +21,11 @@ import PostedJob from "./PostedJob";
 import countriesList from "../../../../../../reusable/constants/countriesList";
 import axios from '../../../../../../axios';
 
-
 //Pop-upModals
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+// Updated schema without required courses
 const jobSchema = yup.object().shape({
   job_title: yup.string().required("Job Title is required"),
   job_type: yup.string().required("Job Type is required"),
@@ -43,14 +39,6 @@ const jobSchema = yup.object().shape({
   expiration_date: yup.date().required("Expiration Date is required"),
   other_skills: yup.string().required("Other Skills are required"),
   tech_voc_training: yup.string(),
-  courses: yup.array().of(
-    yup.object().shape({
-      course_name: yup.string().required("Course name is required"),
-      training_institution: yup.string().required("Training institution is required"),
-      certificate_received: yup.string().required("Certificate information is required"),
-      slots: yup.number().required("Number of slots is required")
-    })
-  )
 });
 
 const JobPosting = ({ isCollapsed }) => {
@@ -62,21 +50,6 @@ const JobPosting = ({ isCollapsed }) => {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(jobSchema),
-    defaultValues: {
-      courses: [
-        {
-          course_name: "",
-          training_institution: "",
-          certificate_received: "",
-          slots: 0
-        },
-      ],
-    },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "courses",
   });
 
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -137,14 +110,7 @@ const JobPosting = ({ isCollapsed }) => {
           city_municipality: "",
           expiration_date: "",
           other_skills: "",
-          courses: [
-            {
-              course_name: "",
-              training_institution: "",
-              certificate_received: "",
-              slots: 0
-            },
-          ],
+          tech_voc_training: "",
         });
 
         // Clear the selected country in the Autocomplete
@@ -168,7 +134,7 @@ const JobPosting = ({ isCollapsed }) => {
       console.error("❌ Error submitting job posting:", error.message);
 
       // Show error toast notification
-      toast.error("Error submitting job posting!", {
+      toast.error(`Error submitting job posting: ${error.message}`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -233,12 +199,23 @@ const JobPosting = ({ isCollapsed }) => {
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={6}>
                         <InputLabel>Job Type</InputLabel>
-                        <Select {...register("job_type")} fullWidth defaultValue="">
-                          <MenuItem value="">Select</MenuItem>
-                          <MenuItem value="Full-Time">Full-Time</MenuItem>
-                          <MenuItem value="Part-Time">Part-Time</MenuItem>
-                          <MenuItem value="Internship">Internship</MenuItem>
-                        </Select>
+                        <Controller
+                          name="job_type"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              {...field}
+                              fullWidth
+                              defaultValue=""
+                              error={!!errors.job_type}
+                            >
+                              <MenuItem value="">Select</MenuItem>
+                              <MenuItem value="Full-Time">Full-Time</MenuItem>
+                              <MenuItem value="Part-Time">Part-Time</MenuItem>
+                              <MenuItem value="Internship">Internship</MenuItem>
+                            </Select>
+                          )}
+                        />
                         {errors.job_type && (
                           <p className="text-red-500 text-sm">
                             {errors.job_type.message}
@@ -248,16 +225,23 @@ const JobPosting = ({ isCollapsed }) => {
 
                       <Grid item xs={12} md={6}>
                         <InputLabel>Experience Level</InputLabel>
-                        <Select
-                          {...register("experience_level")}
-                          fullWidth
-                          defaultValue=""
-                        >
-                          <MenuItem value="">Select</MenuItem>
-                          <MenuItem value="Junior">Junior</MenuItem>
-                          <MenuItem value="Mid">Mid</MenuItem>
-                          <MenuItem value="Senior">Senior</MenuItem>
-                        </Select>
+                        <Controller
+                          name="experience_level"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              {...field}
+                              fullWidth
+                              defaultValue=""
+                              error={!!errors.experience_level}
+                            >
+                              <MenuItem value="">Select</MenuItem>
+                              <MenuItem value="Junior">Junior</MenuItem>
+                              <MenuItem value="Mid">Mid</MenuItem>
+                              <MenuItem value="Senior">Senior</MenuItem>
+                            </Select>
+                          )}
+                        />
                         {errors.experience_level && (
                           <p className="text-red-500 text-sm">
                             {errors.experience_level.message}
@@ -320,13 +304,13 @@ const JobPosting = ({ isCollapsed }) => {
                         <Controller
                           name="country"
                           control={control}
-                          render={({ field: { onChange, value } }) => (
+                          render={({ field }) => (
                             <Autocomplete
                               options={countriesList}
-                              value={selectedCountry}
+                              value={field.value || null}
                               onChange={(_, newValue) => {
                                 setSelectedCountry(newValue);
-                                onChange(newValue);
+                                field.onChange(newValue);
                               }}
                               renderInput={(params) => (
                                 <TextField
@@ -368,7 +352,7 @@ const JobPosting = ({ isCollapsed }) => {
                           fullWidth
                           multiline
                           minRows={2}
-                          maxRows={10} // optional limit to how tall it grows
+                          maxRows={10}
                           error={!!errors.other_skills}
                           helperText={errors.other_skills?.message}
                         />
@@ -390,7 +374,6 @@ const JobPosting = ({ isCollapsed }) => {
                       />
                     </Grid>
                   </div>
-
 
                   <Button
                     type="submit"
