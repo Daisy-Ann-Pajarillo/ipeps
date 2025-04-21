@@ -64,9 +64,9 @@ const JobPosting = ({ isCollapsed }) => {
     resolver: yupResolver(jobSchema),
     defaultValues: {
       courses: [
-        { 
-          course_name: "", 
-          training_institution: "", 
+        {
+          course_name: "",
+          training_institution: "",
           certificate_received: "",
           slots: 0
         },
@@ -180,7 +180,7 @@ const JobPosting = ({ isCollapsed }) => {
       });
     }
   };
-  
+
   const [createJobOpen, setCreateJobOpen] = useState(false);
 
   return (
@@ -208,7 +208,7 @@ const JobPosting = ({ isCollapsed }) => {
             </Typography>
           </Button>
         </Grid>
-        
+
         <Grid container className="flex-grow h-[calc(100%-64px)]">
           {createJobOpen ? (
             <Grid item xs={12} className="h-full overflow-y-auto">
@@ -390,81 +390,7 @@ const JobPosting = ({ isCollapsed }) => {
                       />
                     </Grid>
                   </div>
-                  
-                  <div className="border-t pt-4">
-                    <Typography variant="h6" className="font-semibold mb-2 flex justify-between items-center">
-                      Training Courses
-                      <Button 
-                        variant="contained" 
-                        size="small" 
-                        startIcon={<AddIcon />}
-                        onClick={() => append({ 
-                          course_name: "", 
-                          training_institution: "", 
-                          certificate_received: "",
-                          slots: 0
-                        })}
-                      >
-                        Add Course
-                      </Button>
-                    </Typography>
-                    
-                    {fields.map((field, index) => (
-                      <div key={field.id} className="border p-4 mb-4 rounded">
-                        <div className="flex justify-between items-center mb-2">
-                          <Typography variant="subtitle1" className="font-medium">Course #{index + 1}</Typography>
-                          {fields.length > 1 && (
-                            <IconButton onClick={() => remove(index)} color="error" size="small">
-                              <DeleteIcon />
-                            </IconButton>
-                          )}
-                        </div>
-                        
-                        <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            <TextField
-                              label="Course Name"
-                              {...register(`courses.${index}.course_name`)}
-                              fullWidth
-                              error={!!errors.courses?.[index]?.course_name}
-                              helperText={errors.courses?.[index]?.course_name?.message}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                              label="Training Institution"
-                              {...register(`courses.${index}.training_institution`)}
-                              fullWidth
-                              error={!!errors.courses?.[index]?.training_institution}
-                              helperText={errors.courses?.[index]?.training_institution?.message}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                              label="Certificate Received"
-                              {...register(`courses.${index}.certificate_received`)}
-                              fullWidth
-                              error={!!errors.courses?.[index]?.certificate_received}
-                              helperText={errors.courses?.[index]?.certificate_received?.message}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                              label="Number of Slots"
-                              type="number"
-                              {...register(`courses.${index}.slots`)}
-                              fullWidth
-                              error={!!errors.courses?.[index]?.slots}
-                              helperText={errors.courses?.[index]?.slots?.message}
-                            />
-                          </Grid>
-                        </Grid>
-                      </div>
-                    ))}
-                  </div>
+
 
                   <Button
                     type="submit"

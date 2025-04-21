@@ -32,6 +32,7 @@ const maxImages = 5;
 
 const ScholarshipPosting = () => {
     const [createScholarshipOpen, setCreateScholarshipOpen] = useState(false);
+    const [scholarships, setScholarships] = useState([]);
     
     console.log("ScholarshipPosting - Form setup with resolver only");
     
@@ -65,6 +66,20 @@ const ScholarshipPosting = () => {
         setImages((prevImages) => prevImages.filter((_, i) => i !== index));
     };
 
+    const handleAccept = (id) => {
+        console.log(`Accepting scholarship with ID: ${id}`);
+        // Add logic to accept the scholarship
+    };
+
+    const handleReject = (id) => {
+        console.log(`Rejecting scholarship with ID: ${id}`);
+        // Add logic to reject the scholarship
+    };
+
+    const handleView = (scholarship) => {
+        console.log(`Viewing scholarship:`, scholarship);
+        // Add logic to view the scholarship details
+    };
 
     // setup auth, retrieving the token from local storage
     const dispatch = useDispatch();
@@ -74,7 +89,6 @@ const ScholarshipPosting = () => {
     useEffect(() => {
         dispatch(actions.getAuthStorage());
     }, [dispatch]);
-
 
     const onSubmit = async (data) => {
         console.log("ScholarshipPosting - Form data on submit:", data);
@@ -111,6 +125,11 @@ const ScholarshipPosting = () => {
         }
     };
 
+    const sortedScholarships = [...scholarships].sort((a, b) => {
+        const statusOrder = { pending: 1, active: 2, rejected: 3, expired: 4 };
+        return (statusOrder[a.status?.toLowerCase()] || 5) - (statusOrder[b.status?.toLowerCase()] || 5);
+    });
+
     return (
         <Box className="flex flex-col w-full h-full">
             <Grid container className="h-full">
@@ -136,7 +155,7 @@ const ScholarshipPosting = () => {
                         </Typography>
                     </Button>
                 </Grid>
-                
+
                 <Grid container className="flex-grow h-[calc(100%-64px)]">
                     {createScholarshipOpen ? (
                         <Grid item xs={12} className="h-full overflow-y-auto">
@@ -217,7 +236,57 @@ const ScholarshipPosting = () => {
                         </Grid>
                     ) : (
                         <Grid item xs={12} className="h-full">
-                            <PostedScholarship createScholarshipOpen={createScholarshipOpen} />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {sortedScholarships.map((scholarship) => (
+                                    <div
+                                        key={scholarship.id}
+                                        className="relative bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300 h-full flex flex-col justify-between"
+                                    >
+                                        <div>
+                                            <h4
+                                                className={`absolute top-3 right-3 rounded-md uppercase text-[10px] px-2 py-1 text-white
+                                                    ${scholarship.status === "pending" ? "bg-orange-500" : ""}
+                                                    ${scholarship.status === "active" ? "bg-green-500" : ""}
+                                                    ${scholarship.status === "expired" ? "bg-neutral-500" : ""}
+                                                    ${scholarship.status === "rejected" ? "bg-red-500" : ""}`}
+                                            >
+                                                {scholarship.status}
+                                            </h4>
+                                            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                                                {scholarship.scholarship_title || "Unknown Title"}
+                                            </h2>
+                                            <p className="text-gray-600 dark:text-gray-400 font-medium">
+                                                {scholarship.scholarship_description?.substring(0, 100) || "No description available."}...
+                                            </p>
+                                        </div>
+
+                                        <div className="flex space-x-3 mt-5">
+                                            {scholarship.status === "pending" && (
+                                                <>
+                                                    <button
+                                                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300"
+                                                        onClick={() => handleAccept(scholarship.id)}
+                                                    >
+                                                        Accept
+                                                    </button>
+                                                    <button
+                                                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-300"
+                                                        onClick={() => handleReject(scholarship.id)}
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </>
+                                            )}
+                                            <button
+                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                                                onClick={() => handleView(scholarship)}
+                                            >
+                                                View
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </Grid>
                     )}
                 </Grid>
