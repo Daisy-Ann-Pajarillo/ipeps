@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from "react";
 import axios from "../../../../../../axios";
-
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../../store/actions/index";
-
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Avatar, 
-  Button, 
-  Slide, 
-  IconButton, 
-  Grid, 
-  Divider, 
-  Card, 
-  CardMedia 
+import {
+  Box,
+  Typography,
+  Paper,
+  Avatar,
+  Button,
+  Slide,
+  IconButton,
+  Grid,
+  Divider,
+  Card,
+  CardMedia,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Chip
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from '@mui/icons-material/Person';
@@ -45,6 +47,7 @@ const PostedJob = ({ createJobOpen }) => {
   const [jobApplicants, setJobApplicants] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showApplicantDetails, setShowApplicantDetails] = useState(false);
+  const [openDetailDialog, setOpenDetailDialog] = useState(false);
 
   // setup auth, retrieving the token from local storage
   const dispatch = useDispatch();
@@ -62,16 +65,13 @@ const PostedJob = ({ createJobOpen }) => {
         const response = await axios.get('/api/get-job-postings', {
           auth: { username: auth.token }
         });
-
         if (response.status === 200) {
           const responseData = response.data;
           // Handle the response as an array
           const data = Array.isArray(responseData.job_postings)
             ? responseData.job_postings
             : [];
-
           console.log('Job Data:', data); // Log the job data
-
           setJobs(data);
         } else {
           console.error('Failed to fetch job postings:', response.statusText);
@@ -80,7 +80,6 @@ const PostedJob = ({ createJobOpen }) => {
         console.error('Error fetching job postings:', error);
       }
     };
-
     fetchJobs();
   }, [auth.token]);
 
@@ -108,160 +107,130 @@ const PostedJob = ({ createJobOpen }) => {
 
   const handleViewApplicants = async (jobId) => {
     try {
-      // In a real app, you'd fetch from an API
-      // For demo purposes, we'll create dummy data
-      const dummyApplicants = [
-        {
-          id: 1,
-          first_name: "John",
-          last_name: "Doe",
-          email: "john.doe@example.com",
-          phone_number: "+1234567890",
-          location: "Manila, Philippines",
-          education: "BS Computer Science, ABC University",
-          experience: "5 years as Software Developer",
-          skills: "JavaScript, React, Node.js",
-          cover_letter: "I am excited to apply for this position...",
-          application_date: "2023-05-15",
-          resume: "#",
-          profile_pic: "",
-          status: "pending"
-        },
-        {
-          id: 2,
-          first_name: "Jane",
-          last_name: "Smith",
-          email: "jane.smith@example.com",
-          phone_number: "+9876543210",
-          location: "Cebu, Philippines",
-          education: "BA Marketing, XYZ College",
-          experience: "3 years as Marketing Specialist",
-          skills: "Social Media, SEO, Content Creation",
-          cover_letter: "With my extensive marketing experience...",
-          application_date: "2023-05-14",
-          resume: "#",
-          profile_pic: "",
-          status: "pending"
-        },
-        {
-          id: 3,
-          first_name: "Alex",
-          last_name: "Johnson",
-          email: "alex.johnson@example.com",
-          phone_number: "+1122334455",
-          location: "Davao, Philippines",
-          education: "MS Information Technology, DEF Institute",
-          experience: "7 years as System Administrator",
-          skills: "Linux, AWS, Network Security",
-          cover_letter: "I believe my skills in system administration...",
-          application_date: "2023-05-13",
-          resume: "#",
-          profile_pic: "",
-          status: "hired"
-        }
-      ];
-      
-      setJobApplicants(dummyApplicants);
-      setApplicantsOpen(true);
-      
-      /* In production, you'd use actual API:
-      const response = await axios.get(`/api/job-applicants/${jobId}`, {
+      const response = await axios.get(`/api/approved-applicants`, {
         auth: { username: auth.token }
       });
-      
       if (response.status === 200) {
-        setJobApplicants(response.data.applicants || []);
+        console.log("API Response:", response.data);
+        const responseData = response.data;
+
+        // Convert object to array if needed
+        const applicantsData = responseData.approved_applicants ?
+          (Array.isArray(responseData.approved_applicants) ?
+            responseData.approved_applicants :
+            Object.values(responseData.approved_applicants)
+          ) : [];
+
+        // Check if we have valid data
+        if (!Array.isArray(applicantsData)) {
+          console.error('Applicants data is not in expected format:', applicantsData);
+          toast.error('Error loading applicants data');
+          return;
+        }
+
+        const formattedApplicants = applicantsData.map((applicant) => {
+          try {
+            return {
+              id: applicant.application_id,
+              first_name: applicant.user_details?.personal_information?.first_name || 'N/A',
+              last_name: applicant.user_details?.personal_information?.last_name || 'N/A',
+              email: applicant.user_details?.email || 'N/A',
+              phone_number: applicant.user_details?.personal_information?.cellphone_number || 'N/A',
+              location: applicant.user_details?.personal_information ?
+                `${applicant.user_details.personal_information.permanent_municipality || 'N/A'}, ${applicant.user_details.personal_information.permanent_country || 'N/A'}` :
+                'N/A',
+              education: Array.isArray(applicant.user_details?.educational_background) ?
+                applicant.user_details.educational_background
+                  .map(edu => `${edu.degree_or_qualification || ''} in ${edu.field_of_study || ''} from ${edu.school_name || ''}`)
+                  .join(", ") :
+                'No education details',
+              experience: Array.isArray(applicant.user_details?.work_experiences) ?
+                applicant.user_details.work_experiences
+                  .map(exp => `${exp.position || ''} at ${exp.company_name || ''} (${new Date(exp.date_start).getFullYear()} - ${exp.date_end ? new Date(exp.date_end).getFullYear() : "Present"})`)
+                  .join(", ") :
+                'No work experience',
+              skills: Array.isArray(applicant.user_details?.other_skills) ?
+                applicant.user_details.other_skills
+                  .map(skill => skill.skills)
+                  .join(", ") :
+                'No skills listed',
+              cover_letter: applicant.cover_letter || "No cover letter provided",
+              application_date: applicant.applied_at,
+              resume: applicant.resume_url || "#",
+              profile_pic: applicant.profile_pic_url || "",
+              status: (applicant.application_status || "pending").toLowerCase()
+            };
+          } catch (error) {
+            console.error('Error formatting applicant data:', error);
+            return null;
+          }
+        }).filter(Boolean); // Remove any null entries
+
+        console.log("Formatted Applicants:", formattedApplicants);
+        setJobApplicants(formattedApplicants);
         setApplicantsOpen(true);
-      } else {
-        console.error('Failed to fetch job applicants');
-        toast.error('Failed to fetch applicants');
       }
-      */
     } catch (error) {
-      console.error('Error fetching job applicants:', error);
-      toast.error('Error loading applicants');
+      console.error("Error fetching job applicants:", error);
+      toast.error("Error loading applicants");
     }
   };
-  
+
   const handleViewApplicantDetails = (applicant) => {
     setSelectedApplicant(applicant);
     setShowApplicantDetails(true);
   };
-  
+
   const handleHireApplicant = async (applicantId) => {
     try {
       // For demo, just update the state locally
-      setJobApplicants(prevApplicants => 
-        prevApplicants.map(app => 
-          app.id === applicantId ? {...app, status: 'hired'} : app
+      setJobApplicants(prevApplicants =>
+        prevApplicants.map(app =>
+          app.id === applicantId ? { ...app, status: 'hired' } : app
         )
       );
-      
-      setSelectedApplicant(prev => ({...prev, status: 'hired'}));
+      setSelectedApplicant(prev => ({ ...prev, status: 'hired' }));
       toast.success('Applicant hired successfully!');
-      
-      /* In production:
-      const response = await axios.post(`/api/hire-applicant`, 
-        { applicant_id: applicantId, job_id: selectedJob.id },
-        { auth: { username: auth.token } }
-      );
-      
-      if (response.status === 200) {
-        toast.success('Applicant hired successfully!');
-        // Refresh the applicants list
-        handleViewApplicants(selectedJob.id);
-      } else {
-        toast.error('Failed to hire applicant');
-      }
-      */
     } catch (error) {
       console.error('Error hiring applicant:', error);
       toast.error('Error processing request');
     }
   };
-  
+
   const handleRejectApplicant = async (applicantId) => {
     try {
       // For demo, just update the state locally
-      setJobApplicants(prevApplicants => 
-        prevApplicants.map(app => 
-          app.id === applicantId ? {...app, status: 'rejected'} : app
+      setJobApplicants(prevApplicants =>
+        prevApplicants.map(app =>
+          app.id === applicantId ? { ...app, status: 'rejected' } : app
         )
       );
-      
-      setSelectedApplicant(prev => ({...prev, status: 'rejected'}));
+      setSelectedApplicant(prev => ({ ...prev, status: 'rejected' }));
       toast.success('Applicant rejected');
-      
-      /* In production:
-      const response = await axios.post(`/api/reject-applicant`, 
-        { applicant_id: applicantId, job_id: selectedJob.id },
-        { auth: { username: auth.token } }
-      );
-      
-      if (response.status === 200) {
-        toast.success('Applicant rejected');
-        // Refresh the applicants list
-        handleViewApplicants(selectedJob.id);
-      } else {
-        toast.error('Failed to reject applicant');
-      }
-      */
     } catch (error) {
       console.error('Error rejecting applicant:', error);
       toast.error('Error processing request');
     }
   };
 
+  const handleViewFullDetails = () => {
+    setOpenDetailDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDetailDialog(false);
+  };
+
   return (
     <Box sx={{ height: "100%", position: "relative", display: "flex", flexDirection: "column" }}>
       <Box sx={{ height: "100%", position: "relative", display: "flex" }}>
-        <Box 
-          sx={{ 
-            height: "100%", 
-            overflowY: "auto", 
-            p: 3, 
-            width: detailsPanelOpen ? "calc(100% - 400px)" : "100%", 
-            transition: "width 0.3s ease-in-out" 
+        <Box
+          sx={{
+            height: "100%",
+            overflowY: "auto",
+            p: 3,
+            width: detailsPanelOpen ? "calc(100% - 400px)" : "100%",
+            transition: "width 0.3s ease-in-out"
           }}
         >
           <Box sx={{ mb: 2 }}>
@@ -269,18 +238,17 @@ const PostedJob = ({ createJobOpen }) => {
               Jobs Posted
             </Typography>
           </Box>
-
           <Box
             className={`p-6 grid gap-3 grid-cols-3`}
           >
             {jobs.map((job) => (
               <Paper
                 key={job.id}
-                sx={{ 
-                  p: 2, 
-                  display: "flex", 
+                sx={{
+                  p: 2,
+                  display: "flex",
                   flexDirection: "column",
-                  mb: 2, 
+                  mb: 2,
                   cursor: "pointer",
                   '&:hover': {
                     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
@@ -302,8 +270,7 @@ const PostedJob = ({ createJobOpen }) => {
                     <Typography variant="body2" color="text.secondary">{job.company || "Company"}</Typography>
                   </Box>
                 </Box>
-                
-                <Typography variant="body2" color="text.secondary" sx={{ 
+                <Typography variant="body2" color="text.secondary" sx={{
                   mb: 2,
                   display: '-webkit-box',
                   WebkitLineClamp: 3,
@@ -313,7 +280,6 @@ const PostedJob = ({ createJobOpen }) => {
                 }}>
                   {job.job_description || "No description provided"}
                 </Typography>
-                
                 <Box sx={{ mt: "auto" }}>
                   <Typography variant="body2" color="text.secondary">
                     Vacancies: {job.no_of_vacancies || "Not specified"}
@@ -349,7 +315,6 @@ const PostedJob = ({ createJobOpen }) => {
             ))}
           </Box>
         </Box>
-
         {/* Details Panel with slide animation */}
         <Slide direction="left" in={detailsPanelOpen} mountOnEnter unmountOnExit>
           <Box
@@ -370,23 +335,21 @@ const PostedJob = ({ createJobOpen }) => {
               <>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                   <Typography variant="h5" component="h2" sx={{ fontWeight: "bold" }}>
-                    {applicantsOpen ? 
-                      (showApplicantDetails ? "Applicant Details" : "Job Applicants") : 
+                    {applicantsOpen ?
+                      (showApplicantDetails ? "Applicant Details" : "Job Applicants") :
                       selectedJob.job_title}
                   </Typography>
                   <IconButton onClick={handleCloseDetails} size="small">
                     <CloseIcon />
                   </IconButton>
                 </Box>
-                
                 <Divider sx={{ mb: 2 }} />
-                
                 {/* Show job details when applicants section is closed */}
                 {!applicantsOpen && !showApplicantDetails && (
                   <Grid container spacing={2}>
                     <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Avatar 
-                        src={selectedJob.logo} 
+                      <Avatar
+                        src={selectedJob.logo}
                         alt={selectedJob.company}
                         sx={{ width: 80, height: 80, mr: 2 }}
                       />
@@ -397,7 +360,6 @@ const PostedJob = ({ createJobOpen }) => {
                         </Typography>
                       </Box>
                     </Grid>
-
                     <Grid item xs={6}>
                       <Typography variant="subtitle2" color="text.secondary">Status</Typography>
                       <Button
@@ -415,45 +377,38 @@ const PostedJob = ({ createJobOpen }) => {
                         {selectedJob.status}
                       </Button>
                     </Grid>
-
                     <Grid item xs={6}>
                       <Typography variant="subtitle2" color="text.secondary">Vacancies Available</Typography>
                       <Typography variant="body1">{selectedJob.no_of_vacancies}</Typography>
                     </Grid>
-
                     <Grid item xs={6}>
                       <Typography variant="subtitle2" color="text.secondary">Salary Range</Typography>
                       <Typography variant="body1">
                         {selectedJob.estimated_salary_from} - {selectedJob.estimated_salary_to}
                       </Typography>
                     </Grid>
-
                     <Grid item xs={6}>
                       <Typography variant="subtitle2" color="text.secondary">Location</Typography>
                       <Typography variant="body1">
                         {selectedJob.city_municipality}, {selectedJob.country}
                       </Typography>
                     </Grid>
-
                     <Grid item xs={12}>
                       <Typography variant="subtitle2" color="text.secondary">Expiration</Typography>
                       <Typography variant="body1">{selectedJob.expiration_date}</Typography>
                     </Grid>
-
                     <Grid item xs={12}>
                       <Typography variant="subtitle2" color="text.secondary">Description</Typography>
                       <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                         {selectedJob.job_description}
                       </Typography>
                     </Grid>
-
                     <Grid item xs={12}>
                       <Typography variant="subtitle2" color="text.secondary">Required Skills</Typography>
                       <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                         {selectedJob.other_skills || "Not specified"}
                       </Typography>
                     </Grid>
-
                     {selectedJob.tech_voc_training && (
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Technical/Vocational Training</Typography>
@@ -462,7 +417,6 @@ const PostedJob = ({ createJobOpen }) => {
                         </Typography>
                       </Grid>
                     )}
-
                     {selectedJob.courses && selectedJob.courses.length > 0 && (
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>
@@ -486,11 +440,10 @@ const PostedJob = ({ createJobOpen }) => {
                         ))}
                       </Grid>
                     )}
-
                     <Grid item xs={12} sx={{ mt: 2 }}>
-                      <Button 
-                        variant="contained" 
-                        color="primary" 
+                      <Button
+                        variant="contained"
+                        color="primary"
                         fullWidth
                         startIcon={<PersonIcon />}
                         onClick={() => handleViewApplicants(selectedJob.id)}
@@ -500,7 +453,6 @@ const PostedJob = ({ createJobOpen }) => {
                     </Grid>
                   </Grid>
                 )}
-                
                 {/* Show applicants section when opened */}
                 {applicantsOpen && !showApplicantDetails && (
                   <>
@@ -508,17 +460,15 @@ const PostedJob = ({ createJobOpen }) => {
                       <Typography variant="h6">
                         Applicants ({jobApplicants.length})
                       </Typography>
-                      <Button 
-                        variant="outlined" 
+                      <Button
+                        variant="outlined"
                         size="small"
                         onClick={() => setApplicantsOpen(false)}
                       >
                         Back to Details
                       </Button>
                     </Box>
-                    
                     <Divider sx={{ mb: 2 }} />
-                    
                     {jobApplicants.length === 0 ? (
                       <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
                         No applicants yet
@@ -526,19 +476,19 @@ const PostedJob = ({ createJobOpen }) => {
                     ) : (
                       <Box sx={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
                         {jobApplicants.map((applicant) => (
-                          <Paper 
-                            key={applicant.id} 
-                            sx={{ 
-                              p: 2, 
-                              mb: 2, 
+                          <Paper
+                            key={applicant.id}
+                            sx={{
+                              p: 2,
+                              mb: 2,
                               cursor: 'pointer',
-                              '&:hover': { boxShadow: 3 } 
+                              '&:hover': { boxShadow: 3 }
                             }}
                             onClick={() => handleViewApplicantDetails(applicant)}
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Avatar 
-                                src={applicant.profile_pic} 
+                              <Avatar
+                                src={applicant.profile_pic}
                                 sx={{ width: 50, height: 50, mr: 2 }}
                               >
                                 {applicant.first_name?.[0] || 'A'}
@@ -551,12 +501,12 @@ const PostedJob = ({ createJobOpen }) => {
                                   Applied: {new Date(applicant.application_date).toLocaleDateString()}
                                 </Typography>
                                 <Typography variant="body2">
-                                  Status: 
-                                  <Button 
-                                    size="small" 
+                                  Status:
+                                  <Button
+                                    size="small"
                                     color={
-                                      applicant.status === 'hired' ? 'success' : 
-                                      applicant.status === 'rejected' ? 'error' : 'primary'
+                                      applicant.status === 'hired' ? 'success' :
+                                        applicant.status === 'rejected' ? 'error' : 'primary'
                                     }
                                     sx={{ ml: 1, textTransform: 'capitalize', pointerEvents: 'none' }}
                                   >
@@ -571,7 +521,6 @@ const PostedJob = ({ createJobOpen }) => {
                     )}
                   </>
                 )}
-                
                 {/* Individual applicant details */}
                 {showApplicantDetails && selectedApplicant && (
                   <>
@@ -579,19 +528,17 @@ const PostedJob = ({ createJobOpen }) => {
                       <Typography variant="h6">
                         Application Review
                       </Typography>
-                      <Button 
-                        variant="outlined" 
+                      <Button
+                        variant="outlined"
                         size="small"
                         onClick={() => setShowApplicantDetails(false)}
                       >
                         Back to Applicants
                       </Button>
                     </Box>
-                    
                     <Divider sx={{ mb: 3 }} />
-                    
                     <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <Avatar 
+                      <Avatar
                         src={selectedApplicant.profile_pic}
                         sx={{ width: 100, height: 100, mb: 2 }}
                       >
@@ -604,73 +551,61 @@ const PostedJob = ({ createJobOpen }) => {
                         {selectedApplicant.email}
                       </Typography>
                     </Box>
-                    
                     <Grid container spacing={2}>
                       <Grid item xs={6}>
                         <Typography variant="subtitle2" color="text.secondary">Phone</Typography>
                         <Typography variant="body1">{selectedApplicant.phone_number || 'Not provided'}</Typography>
                       </Grid>
-                      
                       <Grid item xs={6}>
                         <Typography variant="subtitle2" color="text.secondary">Location</Typography>
                         <Typography variant="body1">{selectedApplicant.location || 'Not provided'}</Typography>
                       </Grid>
-                      
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Education</Typography>
                         <Typography variant="body1">{selectedApplicant.education || 'Not provided'}</Typography>
                       </Grid>
-                      
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Experience</Typography>
                         <Typography variant="body1">{selectedApplicant.experience || 'Not provided'}</Typography>
                       </Grid>
-                      
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Skills</Typography>
                         <Typography variant="body1">{selectedApplicant.skills || 'Not provided'}</Typography>
                       </Grid>
-                      
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Cover Letter</Typography>
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                           {selectedApplicant.cover_letter || 'No cover letter provided'}
                         </Typography>
                       </Grid>
-                      
-                      {selectedApplicant.resume && (
-                        <Grid item xs={12}>
-                          <Typography variant="subtitle2" color="text.secondary">Resume</Typography>
-                          <Button
-                            variant="outlined"
-                            startIcon={<DownloadIcon />}
-                            href={selectedApplicant.resume}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            sx={{ mt: 1 }}
-                          >
-                            Download Resume
-                          </Button>
-                        </Grid>
-                      )}
-                      
+                      <Grid item xs={12}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          startIcon={<PersonIcon />}
+                          onClick={handleViewFullDetails}
+                          fullWidth
+                          sx={{ mt: 1 }}
+                        >
+                          View Full Detail of Applicant
+                        </Button>
+                      </Grid>
                       <Grid item xs={12} sx={{ mt: 2 }}>
                         <Divider sx={{ mb: 2 }} />
                         <Typography variant="subtitle1" sx={{ mb: 2 }}>Application Status</Typography>
-                        
                         {selectedApplicant.status !== 'hired' && selectedApplicant.status !== 'rejected' ? (
                           <Box sx={{ display: 'flex', gap: 2 }}>
-                            <Button 
-                              variant="contained" 
-                              color="success" 
+                            <Button
+                              variant="contained"
+                              color="success"
                               fullWidth
                               onClick={() => handleHireApplicant(selectedApplicant.id)}
                             >
                               Hire Applicant
                             </Button>
-                            <Button 
-                              variant="outlined" 
-                              color="error" 
+                            <Button
+                              variant="outlined"
+                              color="error"
                               fullWidth
                               onClick={() => handleRejectApplicant(selectedApplicant.id)}
                             >
@@ -678,10 +613,10 @@ const PostedJob = ({ createJobOpen }) => {
                             </Button>
                           </Box>
                         ) : (
-                          <Typography 
-                            variant="body1" 
-                            sx={{ 
-                              textAlign: 'center', 
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              textAlign: 'center',
                               color: selectedApplicant.status === 'hired' ? 'success.main' : 'error.main',
                               fontWeight: 'bold'
                             }}
@@ -698,6 +633,84 @@ const PostedJob = ({ createJobOpen }) => {
           </Box>
         </Slide>
       </Box>
+      <Dialog
+        open={openDetailDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Applicant Full Details
+            <IconButton onClick={handleCloseDialog}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>ABOUT</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={2}>
+                <Typography>Prefix</Typography>
+                <Typography>{selectedApplicant?.user_details?.personal_information?.prefix || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography>First Name</Typography>
+                <Typography>{selectedApplicant?.user_details?.personal_information?.first_name || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography>Middle Name</Typography>
+                <Typography>{selectedApplicant?.user_details?.personal_information?.middle_name || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography>Last Name</Typography>
+                <Typography>{selectedApplicant?.user_details?.personal_information?.last_name || 'N/A'}</Typography>
+              </Grid>
+            </Grid>
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PREFERRED WORK LOCATION</Typography>
+            <Grid container spacing={2}>
+              {/* Add preferred work location fields */}
+            </Grid>
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>EDUCATIONAL BACKGROUND</Typography>
+            {selectedApplicant?.user_details?.educational_background?.map((edu, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                {/* Add educational background fields */}
+              </Box>
+            ))}
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>TRAININGS</Typography>
+            {selectedApplicant?.user_details?.trainings?.map((training, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                {/* Add training fields */}
+              </Box>
+            ))}
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PROFESSIONAL LICENSE</Typography>
+            {selectedApplicant?.user_details?.professional_licenses?.map((license, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                {/* Add license fields */}
+              </Box>
+            ))}
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>WORK EXPERIENCE</Typography>
+            {selectedApplicant?.user_details?.work_experiences?.map((exp, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                {/* Add work experience fields */}
+              </Box>
+            ))}
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>OTHER SKILLS</Typography>
+            <Box sx={{ mb: 2 }}>
+              {selectedApplicant?.user_details?.other_skills?.map((skill, index) => (
+                <Chip key={index} label={skill.skills} sx={{ m: 0.5 }} />
+              ))}
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
       <ToastContainer />
     </Box>
   );
