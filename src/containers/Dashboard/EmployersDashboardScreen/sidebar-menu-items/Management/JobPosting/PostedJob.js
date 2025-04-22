@@ -716,4 +716,4 @@ const PostedJob = ({ createJobOpen }) => {
   );
 };
 
-export default PostedJob;
+export default PostedJob; 
