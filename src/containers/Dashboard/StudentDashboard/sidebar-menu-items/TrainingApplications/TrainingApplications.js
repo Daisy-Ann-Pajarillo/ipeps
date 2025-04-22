@@ -3,6 +3,7 @@ import { Box, Typography, Grid, Paper, Chip, Avatar, Button } from '@mui/materia
 import { AccessTime, School, Payment } from '@mui/icons-material';
 import TrainingApplicationView from './TrainingApplicationView';
 import SearchData from '../../../components/layout/Search';
+
 const TrainingApplications = ({ isCollapsed }) => {
   const [enrolledTrainings, setEnrolledTrainings] = useState([]);
   const [selectedTraining, setSelectedTraining] = useState(null);
@@ -32,6 +33,10 @@ const TrainingApplications = ({ isCollapsed }) => {
         .filter(Boolean);
 
       setEnrolledTrainings(enrolledTrainingsData);
+      // Always set the first training as selected if available
+      if (enrolledTrainingsData.length > 0) {
+        setSelectedTraining(enrolledTrainingsData[0]);
+      }
       setEnrollmentTimes(applicationTimesList);
     };
 
@@ -171,6 +176,13 @@ const TrainingApplications = ({ isCollapsed }) => {
   useEffect(() => {
     setSortedTrainings(filterAndSortScholarships(query, trainings));
   }, [query, trainings]); // Runs when `query` or `companies` change
+
+  useEffect(() => {
+    // Set first training as default from the trainings array
+    if (sortedTrainings.length > 0) {
+      setSelectedTraining(sortedTrainings[0]);
+    }
+  }, [sortedTrainings]);
 
   return (
     <Box>

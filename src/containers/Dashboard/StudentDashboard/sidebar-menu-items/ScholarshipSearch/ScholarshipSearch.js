@@ -101,6 +101,10 @@ const ScholarshipSearch = ({ isCollapsed }) => {
           );
 
           setScholarships(scholarshipList);
+          // Auto-select first scholarship
+          if (scholarshipList.length > 0 && !selectedScholarship) {
+            setSelectedScholarship(scholarshipList[0]);
+          }
 
           // Check which scholarships are saved/applied
           await checkScholarshipStatuses(scholarshipList);
@@ -389,9 +393,8 @@ const ScholarshipSearch = ({ isCollapsed }) => {
       <div className="flex mt-4">
         {/* Scholarship List */}
         <div
-          className={`${
-            selectedScholarship ? "w-3/5" : "w-full"
-          } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700`}
+          className={`${selectedScholarship ? "w-3/5" : "w-full"
+            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700`}
         >
           <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
             Total: {filteredScholarships.length} scholarships found
@@ -413,12 +416,11 @@ const ScholarshipSearch = ({ isCollapsed }) => {
             filteredScholarships.map((scholarship) => (
               <div
                 key={scholarship.employer_scholarshippost_id}
-                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${
-                  selectedScholarship?.employer_scholarshippost_id ===
-                  scholarship.employer_scholarshippost_id
+                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedScholarship?.employer_scholarshippost_id ===
+                    scholarship.employer_scholarshippost_id
                     ? "bg-gray-200 dark:bg-gray-800"
                     : "bg-white dark:bg-gray-900"
-                } hover:bg-primary-400 dark:hover:bg-primary-600`}
+                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
                 onClick={() =>
                   handleScholarshipClick(
                     scholarship.employer_scholarshippost_id
@@ -452,12 +454,12 @@ const ScholarshipSearch = ({ isCollapsed }) => {
                   {appliedScholarshipIds[
                     scholarship.employer_scholarshippost_id
                   ] && (
-                    <div className="flex items-start">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Applied
-                      </span>
-                    </div>
-                  )}
+                      <div className="flex items-start">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Applied
+                        </span>
+                      </div>
+                    )}
                 </div>
               </div>
             ))
@@ -471,12 +473,12 @@ const ScholarshipSearch = ({ isCollapsed }) => {
               scholarship={selectedScholarship}
               isSaved={
                 savedScholarshipIds[
-                  selectedScholarship.employer_scholarshippost_id
+                selectedScholarship.employer_scholarshippost_id
                 ]
               }
               isApplied={
                 appliedScholarshipIds[
-                  selectedScholarship.employer_scholarshippost_id
+                selectedScholarship.employer_scholarshippost_id
                 ]
               }
               onSave={() =>

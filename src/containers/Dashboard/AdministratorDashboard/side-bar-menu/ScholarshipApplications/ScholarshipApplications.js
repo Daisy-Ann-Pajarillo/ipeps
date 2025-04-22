@@ -438,8 +438,21 @@ const ScholarshipApplications = () => {
                             </div>
                           </div>
                         </div>
-                      </div>
 
+                        {/* Admin Remarks */}
+                        <div className="space-y-4 mt-6">
+                          <div className="flex items-center gap-2 mb-4">
+                            <InfoOutlined className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <h4 className="text-lg font-medium text-gray-900 dark:text-white">
+                              Admin Remarks
+                            </h4>
+                          </div>
+                          <textarea
+                            placeholder="Enter your remarks here..."
+                            className="block w-full p-3 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white text-sm"
+                          ></textarea>
+                        </div>
+                      </div>
                       {/* Action Buttons */}
                       <div className="flex justify-end mt-6 gap-3">
                         <button

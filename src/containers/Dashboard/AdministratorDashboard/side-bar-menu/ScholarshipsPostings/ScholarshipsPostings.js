@@ -41,13 +41,23 @@ const Scholarships_Postings = () => {
     return matchesQuery && matchesStatus && matchesCompany;
   });
 
+  const sortedScholarships = [...filteredScholarships].sort((a, b) => {
+    const statusOrder = { pending: 1, active: 2, rejected: 3, expired: 4 };
+    return (statusOrder[a.status?.toLowerCase()] || 5) - (statusOrder[b.status?.toLowerCase()] || 5);
+  });
+
   const fetchScholarship = () => {
     axios
       .get("/api/public/all-postings", {
         auth: { username: auth.token },
       })
       .then((response) => {
-        setScholarships(response.data.scholarship_postings.data || []);
+        const scholarshipData = response.data.scholarship_postings.data || [];
+        setScholarships(scholarshipData);
+        // Auto-select first scholarship
+        if (scholarshipData.length > 0 && !selectedScholarship) {
+          setSelectedScholarship(scholarshipData[0]);
+        }
       })
       .catch((error) => {
         console.error("Error fetching postings:", error);
@@ -96,10 +106,18 @@ const Scholarships_Postings = () => {
       .catch(() => toast.info("Failed to update scholarship posting."));
   };
 
+  const viewScholarship = (scholarship) => {
+    setSelectedScholarship(scholarship);
+  };
+
+  const backToList = () => {
+    setSelectedScholarship(null);
+  };
+
   // Get current scholarships based on pagination
   const indexOfLastScholarship = currentPage * itemsPerPage;
   const indexOfFirstScholarship = indexOfLastScholarship - itemsPerPage;
-  const currentScholarships = filteredScholarships.slice(
+  const currentScholarships = sortedScholarships.slice(
     indexOfFirstScholarship,
     indexOfLastScholarship
   );
@@ -111,148 +129,191 @@ const Scholarships_Postings = () => {
 
   const nextPage = () => {
     setCurrentPage((prev) =>
-      Math.min(prev + 1, Math.ceil(filteredScholarships.length / itemsPerPage))
+      Math.min(prev + 1, Math.ceil(sortedScholarships.length / itemsPerPage))
     );
   };
 
   return (
     <div className="p-4 dark:bg-gray-900 min-h-screen">
-      <SearchData
-        placeholder="Search scholarships..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full dark:text-white"
-        componentData={[
-          {
-            title: "Company",
-            options: [
-              "",
-              ...new Set(
-                scholarships.map((t) => t.employer?.company_name || "")
-              ),
-            ],
-          },
-          {
-            title: "Status",
-            options: ["", ...new Set(scholarships.map((s) => s.status))],
-          },
-        ]}
-        onComponentChange={(index, value) => {
-          if (index === 0) setCompany(value);
-          if (index === 1) setStatus(value);
-        }}
-      />
-      <ToastContainer
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+      {selectedScholarship ? (
+        <div className="space-y-6">
+          <button
+            onClick={backToList}
+            className="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            <NavigateBeforeIcon className="h-4 w-4 mr-2" />
+            Back to Scholarship Postings
+          </button>
 
-      {/* Count display */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-          Scholarship Postings
-        </h2>
-        <div className="text-sm text-gray-600 dark:text-gray-300">
-          Showing {filteredScholarships.length > 0 ? indexOfFirstScholarship + 1 : 0}-
-          {Math.min(indexOfLastScholarship, filteredScholarships.length)} of {filteredScholarships.length}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-        {currentScholarships.length > 0 ? (
-          currentScholarships.map((scholarship) => (
-            <div
-              key={scholarship.id}
-              className="relative p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md cursor-pointer hover:shadow-lg"
-            >
-              <span
-                className={`absolute top-3 right-3 px-2 py-1 text-xs text-white rounded-md uppercase ${scholarship.status === "pending"
-                  ? "bg-orange-500"
-                  : scholarship.status === "active"
-                    ? "bg-green-500"
-                    : scholarship.status === "expired"
-                      ? "bg-gray-500"
-                      : "bg-red-500"
-                  }`}
-              >
-                {scholarship.status}
-              </span>
-              <h2 className="text-lg font-semibold dark:text-white">
-                {scholarship.title}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                Scholarship Information
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {scholarship.employer.company_name}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {scholarship.description}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Contact: {scholarship.employer.email}
-              </p>
-              <p className="text-sm text-blue-600 dark:text-blue-400">
-                Status: {scholarship.status}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Expires on: {scholarship.expiration_date}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Updated at: {scholarship.updated_at}
-              </p>
-              {scholarship.status === "pending" && (
-                <>
-                  {/* Admin Remarks text field */}
-                  <div className="mt-4">
-                    <label
-                      htmlFor={`admin-remarks-${scholarship.id}`}
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      Admin Remarks
-                    </label>
-                    <textarea
-                      id={`admin-remarks-${scholarship.id}`}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                      rows="2"
-                      placeholder="Add your remarks here..."
-                      value={adminRemarks[scholarship.id] || ""}
-                      onChange={(e) => handleRemarksChange(scholarship.id, e.target.value)}
-                    />
-                  </div>
-                  <div className="flex space-x-2 mt-4">
-                    <button
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                      onClick={() =>
-                        updateScholarshipStatus(scholarship.id, "active")
-                      }
-                    >
-                      Accept
-                    </button>
-                    <button
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                      onClick={() =>
-                        updateScholarshipStatus(scholarship.id, "rejected")
-                      }
-                    >
-                      Reject
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
-          ))
-        ) : (
-          <p className="text-center text-gray-600 dark:text-gray-300 col-span-full">
-            No scholarships found.
-          </p>
-        )}
-      </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Scholarship Title
+                  </h3>
+                  <p className="mt-1 text-gray-900 dark:text-white font-medium">
+                    {selectedScholarship.title}
+                  </p>
+                </div>
+                {/* Other details... */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Admin Remarks
+                  </h3>
+                  <p className="mt-1 text-gray-900 dark:text-white">
+                    {selectedScholarship.remarks || "No remarks provided."}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Description
+              </h3>
+              <p className="mt-2 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                {selectedScholarship.description}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <SearchData
+            placeholder="Search scholarships..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full dark:text-white"
+            componentData={[
+              {
+                title: "Company",
+                options: [
+                  "",
+                  ...new Set(
+                    scholarships.map((t) => t.employer?.company_name || "")
+                  ),
+                ],
+              },
+              {
+                title: "Status",
+                options: ["", ...new Set(scholarships.map((s) => s.status))],
+              },
+            ]}
+            onComponentChange={(index, value) => {
+              if (index === 0) setCompany(value);
+              if (index === 1) setStatus(value);
+            }}
+          />
+          <ToastContainer
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
+
+          {/* Count display */}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+              Scholarship Postings
+            </h2>
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              Showing {sortedScholarships.length > 0 ? indexOfFirstScholarship + 1 : 0}-
+              {Math.min(indexOfLastScholarship, sortedScholarships.length)} of {sortedScholarships.length}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            {currentScholarships.length > 0 ? (
+              currentScholarships.map((scholarship) => (
+                <div
+                  key={scholarship.id}
+                  className="relative bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300 h-full flex flex-col justify-between"
+                >
+                  <div>
+                    <h4 className={`absolute top-3 right-3 rounded-md uppercase text-[10px] px-2 py-1 text-white
+                      ${scholarship.status === "pending" ? "bg-orange-500" : ""}
+                      ${scholarship.status === "active" ? "bg-green-500" : ""}
+                      ${scholarship.status === "expired" ? "bg-neutral-500" : ""}
+                      ${scholarship.status === "rejected" ? "bg-red-500" : ""}`}
+                    >
+                      {scholarship.status}
+                    </h4>
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
+                      {scholarship.title}
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">
+                      {scholarship.employer?.company_name}
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 mt-3 text-sm line-clamp-3">
+                      {scholarship.description}
+                    </p>
+                  </div>
+
+                  {scholarship.status === "pending" && (
+                    <div className="mt-5">
+                      <label
+                        htmlFor={`admin-remarks-${scholarship.id}`}
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      >
+                        Admin Remarks
+                      </label>
+                      <textarea
+                        id={`admin-remarks-${scholarship.id}`}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                        rows="2"
+                        placeholder="Add your remarks here..."
+                        value={adminRemarks[scholarship.id] || ""}
+                        onChange={(e) => handleRemarksChange(scholarship.id, e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex space-x-3 mt-5">
+                    {scholarship.status === "pending" && (
+                      <>
+                        <button
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300"
+                          onClick={() => updateScholarshipStatus(scholarship.id, "active")}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-300"
+                          onClick={() => updateScholarshipStatus(scholarship.id, "rejected")}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    <button
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
+                      onClick={() => viewScholarship(scholarship)}
+                    >
+                      View
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-600 dark:text-gray-300 col-span-full">
+                No scholarships found.
+              </p>
+            )}
+          </div>
+        </>
+      )}
       {/* Pagination controls */}
       <div className="flex justify-center mt-6">
         <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
@@ -269,13 +330,13 @@ const Scholarships_Postings = () => {
           </button>
 
           <div className="px-4 py-2 border-l border-r border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
-            Page {currentPage} of {Math.max(1, Math.ceil(filteredScholarships.length / itemsPerPage))}
+            Page {currentPage} of {Math.max(1, Math.ceil(sortedScholarships.length / itemsPerPage))}
           </div>
 
           <button
             onClick={nextPage}
-            disabled={currentPage >= Math.ceil(filteredScholarships.length / itemsPerPage)}
-            className={`px-4 py-2 flex items-center ${currentPage >= Math.ceil(filteredScholarships.length / itemsPerPage)
+            disabled={currentPage >= Math.ceil(sortedScholarships.length / itemsPerPage)}
+            className={`px-4 py-2 flex items-center ${currentPage >= Math.ceil(sortedScholarships.length / itemsPerPage)
               ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
               : "bg-blue-600 text-white hover:bg-blue-700"
               }`}

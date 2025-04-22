@@ -25,8 +25,6 @@ const JobSearch = ({ isCollapsed }) => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-
-
   // Load applied jobs to know which jobs user has applied to
   const loadAppliedJobs = async () => {
     if (!auth.token) return;
@@ -59,13 +57,17 @@ const JobSearch = ({ isCollapsed }) => {
           });
 
           if (response.data && Array.isArray(response.data.job_postings)) {
-            setJobs(response.data.job_postings);
+            const jobsData = response.data.job_postings;
+            setJobs(jobsData);
+            // Auto-select the first job if available and no job is currently selected
+            if (jobsData.length > 0 && !selectedJob) {
+              setSelectedJob(jobsData[0]);
+            }
           } else {
             setJobs([]);
             toast.error("No jobs found or invalid response format");
           }
 
-          // Also load applied jobs
           await loadAppliedJobs();
         }
       } catch (error) {
@@ -79,7 +81,6 @@ const JobSearch = ({ isCollapsed }) => {
 
     fetchJobs();
   }, [auth.token]);
-
 
   // Filter and sort jobs
   useEffect(() => {

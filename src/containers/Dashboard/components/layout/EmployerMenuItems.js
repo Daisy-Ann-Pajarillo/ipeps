@@ -52,6 +52,11 @@ const EmployerMenuItems = [
                 to: "/dashboard/manage-employers",
                 icon: <BusinessOutlined />,
             },
+            {
+                title: "Manage Applicants",
+                to: "/dashboard/applicants",
+                icon: <BusinessOutlined />,
+            },
         ],
     },
     {

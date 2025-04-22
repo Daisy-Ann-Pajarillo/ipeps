@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../store/actions/index";
 import SearchData from '../../../components/layout/Search';
 import axios from "../../../../../axios";
+import JobApplicationView from './JobApplicationView';  // Import from same directory
 
 const JobApplications = ({ isCollapsed }) => {
   const [appliedJobs, setAppliedJobs] = useState([]);
@@ -56,9 +57,11 @@ const JobApplications = ({ isCollapsed }) => {
           });
 
           if (response.data.success && Array.isArray(response.data.applications)) {
-            console.log("API Applied Jobs:", response.data.applications);
-            setAppliedJobs(response.data.applications)
-            // Optionally handle data here (e.g., highlight jobs from server)
+            setAppliedJobs(response.data.applications);
+            // Auto-select first job application
+            if (response.data.applications.length > 0) {
+              setSelectedApplication(response.data.applications[0]);
+            }
           }
         }
       } catch (error) {
@@ -100,51 +103,61 @@ const JobApplications = ({ isCollapsed }) => {
   };
 
   return (
-    <Box>
-      <SearchData
-        placeholder="Find a training..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full"
-      />
-
-      {appliedJobs
-        .filter(job =>
-          job.job_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          job.company_name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        .map(job => (
-          <div
-            key={job.job_posting_id}
-            onClick={() => setSelectedApplication(job)}
-            className={`border rounded-xl p-4 mb-4 shadow-sm cursor-pointer transition-all duration-300 ${selectedApplication?.job_posting_id === job.job_posting_id
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-300 bg-white hover:shadow-md'
-              }`}
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex items-center justify-center bg-gray-200 rounded-lg w-16 h-16 text-xl font-bold text-gray-700 uppercase">
-                {job.company_name[0]}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-800">{job.job_title}</h3>
-                <p className="text-gray-600 mb-2">{job.company_name}</p>
-                <div className="flex flex-wrap gap-2 text-sm mb-2">
-                  <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
-                    {job.city_municipality}
-                  </span>
-                  <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
-                    ₱{job.estimated_salary_from.toLocaleString()} - ₱{job.estimated_salary_to.toLocaleString()}
-                  </span>
-                  <span className={`flex items-center gap-1 px-2 py-1 rounded ${canWithdraw(job.job_posting_id) ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                    {getTimeRemaining(job.job_posting_id)}
-                  </span>
+    <Box className="flex h-screen">
+      {/* Left Panel - Applications List */}
+      <Box className="w-3/5 p-4 overflow-y-auto">
+        <SearchData
+          placeholder="Find an application..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full mb-4"
+        />
+        {appliedJobs
+          .filter(job =>
+            job.job_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            job.company_name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          .map(job => (
+            <div
+              key={job.job_posting_id}
+              onClick={() => setSelectedApplication(job)}
+              className={`border rounded-xl p-4 mb-4 shadow-sm cursor-pointer transition-all duration-300 ${selectedApplication?.job_posting_id === job.job_posting_id
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-300 bg-white hover:shadow-md'
+                }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center bg-gray-200 rounded-lg w-16 h-16 text-xl font-bold text-gray-700 uppercase">
+                  {job.company_name[0]}
                 </div>
-                <p className="text-sm text-gray-500 line-clamp-2">{job.job_description}</p>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800">{job.job_title}</h3>
+                  <p className="text-gray-600 mb-2">{job.company_name}</p>
+                  <div className="flex flex-wrap gap-2 text-sm mb-2">
+                    <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                      {job.city_municipality}
+                    </span>
+                    <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                      ₱{job.estimated_salary_from.toLocaleString()} - ₱{job.estimated_salary_to.toLocaleString()}
+                    </span>
+                    <span className={`flex items-center gap-1 px-2 py-1 rounded ${canWithdraw(job.job_posting_id) ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                      {getTimeRemaining(job.job_posting_id)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 line-clamp-2">{job.job_description}</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+      </Box>
+
+      {/* Right Panel - Application View */}
+      <Box className="w-2/5 border-l border-gray-200">
+        <JobApplicationView
+          application={selectedApplication}
+          onWithdraw={handleWithdrawal}
+        />
+      </Box>
     </Box>
   );
 };

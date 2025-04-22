@@ -10,9 +10,9 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 const SavedJobsView = ({
   job = {},
   isApplied = false,
-  onApply = () => {},
-  onRemoveSaved = () => {},
-  onJobStatusChanged = () => {},
+  onApply = () => { },
+  onRemoveSaved = () => { },
+  onJobStatusChanged = () => { },
 }) => {
   const [isSaved, setIsSaved] = useState(true); // Default to true since it's a saved job
   const [isJobApplied, setIsJobApplied] = useState(isApplied);
@@ -134,6 +134,12 @@ const SavedJobsView = ({
           src={job.companyImage || "http://bij.ly/4ib59B1"}
           alt={`Logo of ${job.company || "Company"}`}
           className="w-full h-full object-contain p-4"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            padding: "16px",
+          }}
         />
       </div>
 
@@ -170,17 +176,16 @@ const SavedJobsView = ({
           <button
             onClick={handleApply}
             disabled={isLoading || isJobApplied}
-            className={`flex-1 py-2 px-4 rounded-md font-semibold text-white transition ${
-              isJobApplied
-                ? "bg-green-500 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600"
-            } disabled:bg-gray-400 disabled:cursor-not-allowed`}
+            className={`flex-1 py-2 px-4 rounded-md font-semibold text-white transition ${isJobApplied
+              ? "bg-green-500 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-600"
+              } disabled:bg-gray-400 disabled:cursor-not-allowed`}
           >
             {isLoading
               ? "Loading..."
               : isJobApplied
-              ? "Already Applied"
-              : "Apply"}
+                ? "Already Applied"
+                : "Apply"}
           </button>
 
           <button

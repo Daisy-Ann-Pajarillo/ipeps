@@ -96,12 +96,9 @@ const SavedTrainings = ({ isCollapsed }) => {
 
         setSavedTrainings(transformedTrainings);
 
-        // If there was a selected training, try to find it in the new list
-        if (selectedTraining) {
-          const updatedSelected = transformedTrainings.find(
-            (t) => t.id === selectedTraining.id
-          );
-          setSelectedTraining(updatedSelected || null);
+        // Auto-select first training if available and no training is currently selected
+        if (transformedTrainings.length > 0 && !selectedTraining) {
+          setSelectedTraining(transformedTrainings[0]);
         }
 
         // Check enrollment status for all trainings

@@ -247,9 +247,15 @@ const SavedJobs = () => {
                   {/* Company Logo */}
                   <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
                     <img
-                      src={job.companyImage || "http://bij.ly/4ib59B1"}
+                      src={job.companyImage || "http://bit.ly/4ib59B1"}
                       alt={job.job_title}
                       className="w-full h-full object-contain p-2"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        padding: "16px",
+                      }}
                     />
                   </div>
 
