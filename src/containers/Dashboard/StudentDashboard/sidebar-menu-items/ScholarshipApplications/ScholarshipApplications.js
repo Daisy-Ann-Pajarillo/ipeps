@@ -32,6 +32,11 @@ const ScholarshipApplications = ({ isCollapsed }) => {
         })
         .filter(Boolean);
 
+      // Auto-select first scholarship
+      if (appliedScholarshipsData.length > 0) {
+        setSelectedScholarship(appliedScholarshipsData[0]);
+      }
+
       setAppliedScholarships(appliedScholarshipsData);
       setApplicationTimes(applicationTimesList);
     };
@@ -197,10 +202,10 @@ const ScholarshipApplications = ({ isCollapsed }) => {
   ]);
   const [sortedScholarships, setSortedScholarships] = useState(scholarships);
   const [query, setQuery] = useState("");
-  
+
   const filterAndSortScholarships = (query, scholarships) => {
     if (!query.trim()) return scholarships; // Return all if query is empty
-  
+
     return scholarships
       .filter(({ title, provider, description }) =>
         [title, provider, description].some((field) =>
@@ -209,15 +214,22 @@ const ScholarshipApplications = ({ isCollapsed }) => {
       )
       .sort((a, b) => b.rating - a.rating || b.openPositions - a.openPositions);
   };
-  
+
   useEffect(() => {
     setSortedScholarships(filterAndSortScholarships(query, scholarships));
   }, [query, scholarships]); // Runs when `query` or `companies` change
   
+  useEffect(() => {
+    // Auto-select first scholarship when data loads
+    if (sortedScholarships.length > 0) {
+      setSelectedScholarship(sortedScholarships[0]);
+    }
+  }, [sortedScholarships]);
+
   return (
     <>
       <SearchData
-          placeholder="Find a Scholarship..."
+        placeholder="Find a Scholarship..."
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);

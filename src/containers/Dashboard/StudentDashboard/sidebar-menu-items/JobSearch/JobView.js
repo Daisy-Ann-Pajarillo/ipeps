@@ -22,10 +22,59 @@ const JobView = ({ job }) => {
 
   // Reset states when job changes
   useEffect(() => {
-    setIsSaved(false);
-    setIsApplied(false);
-    setIsLoading(true);
-  }, [job.job_id]);
+    if (job) {
+      setIsSaved(false);
+      setIsApplied(false);
+      setIsLoading(true);
+    }
+  }, [job?.job_id]);
+
+  // Check job status
+  useEffect(() => {
+    const checkJobStatus = async () => {
+      if (!job?.job_id || !auth?.token) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+
+        // Check if job is saved
+        const savedResponse = await axios.post(
+          "/api/check-already-saved",
+          { employer_jobpost_id: job.job_id },
+          { auth: { username: auth.token } }
+        );
+        setIsSaved(savedResponse.data.is_saved);
+
+        // Check if job is applied
+        const appliedResponse = await axios.post(
+          "/api/check-already-applied",
+          { job_id: job.job_id },
+          { auth: { username: auth.token } }
+        );
+        setIsApplied(appliedResponse.data.already_applied);
+      } catch (error) {
+        console.error("Error checking job status:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkJobStatus();
+  }, [job?.job_id, auth?.token]);
+
+  // Render loading or no job selected state
+  if (!job) {
+    return (
+      <Box sx={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Typography variant="body1" color="text.secondary">
+          No job selected
+        </Typography>
+      </Box>
+    );
+  }
 
   const handleApply = async () => {
     // Don't proceed if already applied
@@ -86,41 +135,6 @@ const JobView = ({ job }) => {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    const checkJobStatus = async () => {
-      if (!job?.job_id || !auth?.token) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-
-        // Check if job is saved
-        const savedResponse = await axios.post(
-          "/api/check-already-saved",
-          { employer_jobpost_id: job.job_id },
-          { auth: { username: auth.token } }
-        );
-        setIsSaved(savedResponse.data.is_saved);
-
-        // Check if job is applied
-        const appliedResponse = await axios.post(
-          "/api/check-already-applied",
-          { job_id: job.job_id },
-          { auth: { username: auth.token } }
-        );
-        setIsApplied(appliedResponse.data.already_applied);
-      } catch (error) {
-        console.error("Error checking job status:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkJobStatus();
-  }, [job.job_id, auth.token]);
 
   return (
     <Box sx={{ height: "100%", position: "relative" }}>

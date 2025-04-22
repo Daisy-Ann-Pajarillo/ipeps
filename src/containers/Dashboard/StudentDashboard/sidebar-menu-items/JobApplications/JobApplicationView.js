@@ -68,79 +68,67 @@ const JobApplicationView = ({ application, onWithdraw }) => {
             justifyContent: 'center',
             alignItems: 'center',
             mb: 4,
-            height: '300px', // Fixed height
+            height: '200px',
             width: '100%',
-            overflow: 'hidden',
-            backgroundColor: '#f5f5f5', // Light background for image container
+            backgroundColor: '#f5f5f5',
             borderRadius: '8px',
+            overflow: 'hidden'
           }}
         >
           <img
             src={application.companyImage || 'default-company-image.png'}
-            alt={application.company}
+            alt={application.company_name}
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'contain', // Maintains aspect ratio
-              padding: '16px', // Add some padding inside the container
+              objectFit: 'contain',
+              padding: '16px'
             }}
           />
         </Box>
 
         {/* Job Details */}
-        <Typography variant="h4" gutterBottom>{application.title}</Typography>
-        <Typography variant="h5" color="primary" gutterBottom>{application.company}</Typography>
+        <Typography variant="h4" gutterBottom>{application.job_title}</Typography>
+        <Typography variant="h5" color="primary" gutterBottom>{application.company_name}</Typography>
 
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">📍 {application.location}</Typography>
-          <Typography variant="body1">💼 {application.type}</Typography>
-          <Typography variant="body1">👥 Vacancies: {application.vacancies}</Typography>
-          <Typography variant="body1">💰 {application.salary}</Typography>
+        <Stack spacing={2} sx={{ mb: 3 }}>
+          <Typography variant="body1">📍 Location: {application.city_municipality}, {application.country}</Typography>
+          <Typography variant="body1">💼 Type: {application.job_type}</Typography>
+          <Typography variant="body1">👥 Experience Level: {application.experience_level}</Typography>
+          <Typography variant="body1">💰 Salary Range: ₱{application.estimated_salary_from?.toLocaleString()} - ₱{application.estimated_salary_to?.toLocaleString()}</Typography>
+          <Typography variant="body1">📅 Application Status: {getTimeRemaining()}</Typography>
         </Stack>
 
         {/* Action Button */}
-        <Box sx={{ flex: 1, mb: 3 }}>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={handleWithdraw}
-            disabled={!canWithdraw()}
-            sx={{
-              height: '36.5px',
-              backgroundColor: canWithdraw() ? '#dc3545' : '#28a745',
-              color: '#ffffff',
-              '&:hover': {
-                backgroundColor: canWithdraw() ? '#c82333' : '#218838',
-              },
-              '&.Mui-disabled': {
-                backgroundColor: '#28a745',
-                color: '#ffffff'
-              }
-            }}
-          >
-            {canWithdraw() ? 'Withdraw Application' : 'Application Confirmed'}
-          </Button>
-          {canWithdraw() && (
-            <Typography
-              variant="caption"
+        {canWithdraw() && (
+          <Box sx={{ flex: 1, mb: 3 }}>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleWithdraw}
               sx={{
-                display: 'block',
-                textAlign: 'center',
-                mt: 1,
-                color: '#dc3545'
+                height: '36.5px',
+                backgroundColor: '#dc3545',
+                color: '#ffffff',
+                '&:hover': {
+                  backgroundColor: '#c82333',
+                }
               }}
             >
+              Withdraw Application
+            </Button>
+            <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: '#dc3545' }}>
               {getTimeRemaining()}
             </Typography>
-          )}
-        </Box>
+          </Box>
+        )}
 
         <Divider sx={{ my: 3 }} />
 
         {/* Job Description */}
-        <Typography variant="h6" gutterBottom>Work Description</Typography>
-        <Typography variant="body1">
-          {application.description}
+        <Typography variant="h6" gutterBottom>Job Description</Typography>
+        <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+          {application.job_description}
         </Typography>
       </Box>
     </Box>

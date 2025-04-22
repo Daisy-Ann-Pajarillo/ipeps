@@ -50,7 +50,12 @@ export default function JobBoard() {
         },
       })
       .then((response) => {
-        setJobs(response.data.job_postings.data);
+        const jobData = response.data.job_postings.data;
+        setJobs(jobData);
+        // Auto-select first job
+        if (jobData && jobData.length > 0 && !selectedJob) {
+          setSelectedJob(jobData[0]);
+        }
       })
       .catch((error) => {
         console.error("Error fetching postings:", error);
@@ -126,7 +131,7 @@ export default function JobBoard() {
         }
       })
       .catch((error) => {
-        console.error("error:", error);
+        console.error("Error:", error);
         toast.info("Failed to update job posting.");
       });
   };

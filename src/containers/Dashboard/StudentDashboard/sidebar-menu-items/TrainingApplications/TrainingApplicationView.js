@@ -27,7 +27,7 @@ const TrainingApplicationView = ({ training, onWithdraw }) => {
     const now = new Date().getTime();
     const timeLeft = (training.enrollmentTime + 24 * 60 * 60 * 1000) - now;
     if (timeLeft <= 0) return null;
-    
+
     const hours = Math.floor(timeLeft / (60 * 60 * 1000));
     const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
     return `${hours}h ${minutes}m remaining to withdraw`;
@@ -35,7 +35,7 @@ const TrainingApplicationView = ({ training, onWithdraw }) => {
 
   const handleWithdraw = () => {
     if (!canWithdraw()) return;
-    
+
     const appliedItems = JSON.parse(localStorage.getItem('appliedItems') || '{}');
     const applicationTimes = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
 
@@ -44,7 +44,7 @@ const TrainingApplicationView = ({ training, onWithdraw }) => {
 
     localStorage.setItem('appliedItems', JSON.stringify(appliedItems));
     localStorage.setItem('applicationTimes', JSON.stringify(applicationTimes));
-    
+
     onWithdraw(training.id);
     window.dispatchEvent(new Event('storage'));
   };
@@ -52,24 +52,42 @@ const TrainingApplicationView = ({ training, onWithdraw }) => {
   return (
     <Box sx={{ height: '100%', position: 'relative' }}>
       <Box sx={{ height: '100%', overflowY: 'auto', p: 3 }}>
-        {/* Training Image */}
-        <Box sx={{ /* ...existing image box styles... */ }}>
-          <img 
-            src={training.companyImage || 'default-company-image.png'} 
+        {/* Image Box */}
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          mb: 4,
+          height: '200px',
+          width: '100%',
+          backgroundColor: '#f5f5f5',
+          borderRadius: '8px',
+          overflow: 'hidden'
+        }}>
+          <img
+            src={training.companyImage || 'default-company-image.png'}
             alt={training.provider}
-            style={{ /* ...existing image styles... */ }}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              padding: '16px'
+            }}
           />
         </Box>
 
         {/* Training Details */}
         <Typography variant="h4" gutterBottom>{training.title}</Typography>
         <Typography variant="h5" color="primary" gutterBottom>{training.provider}</Typography>
-        
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">📍 {training.location}</Typography>
-          <Typography variant="body1">⏱️ {training.duration}</Typography>
-          <Typography variant="body1">💰 {training.cost}</Typography>
-          <Typography variant="body1">📅 Starts: {training.startDate}</Typography>
+
+        <Stack spacing={2} sx={{ mb: 3 }}>
+          <Typography variant="body1">📍 Location: {training.location}</Typography>
+          <Typography variant="body1">💼 Type: {training.type}</Typography>
+          <Typography variant="body1">👥 Experience Level: {training.experienceLevel}</Typography>
+          <Typography variant="body1">⏱️ Duration: {training.duration}</Typography>
+          <Typography variant="body1">💰 Cost: {training.cost}</Typography>
+          <Typography variant="body1">📅 Start Date: {training.startDate}</Typography>
+          <Typography variant="body1">🎯 Status: {getTimeRemaining(training.id)}</Typography>
         </Stack>
 
         {/* Action Button */}
@@ -91,15 +109,7 @@ const TrainingApplicationView = ({ training, onWithdraw }) => {
               >
                 Withdraw Enrollment
               </Button>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  display: 'block', 
-                  textAlign: 'center', 
-                  mt: 1,
-                  color: '#dc3545'
-                }}
-              >
+              <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: '#dc3545' }}>
                 {getTimeRemaining()}
               </Typography>
             </>
@@ -110,7 +120,7 @@ const TrainingApplicationView = ({ training, onWithdraw }) => {
 
         {/* Training Description */}
         <Typography variant="h6" gutterBottom>Training Description</Typography>
-        <Typography variant="body1">
+        <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
           {training.description}
         </Typography>
       </Box>

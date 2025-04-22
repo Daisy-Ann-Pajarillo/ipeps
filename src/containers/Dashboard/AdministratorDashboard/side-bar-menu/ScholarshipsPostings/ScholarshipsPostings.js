@@ -52,7 +52,12 @@ const Scholarships_Postings = () => {
         auth: { username: auth.token },
       })
       .then((response) => {
-        setScholarships(response.data.scholarship_postings.data || []);
+        const scholarshipData = response.data.scholarship_postings.data || [];
+        setScholarships(scholarshipData);
+        // Auto-select first scholarship
+        if (scholarshipData.length > 0 && !selectedScholarship) {
+          setSelectedScholarship(scholarshipData[0]);
+        }
       })
       .catch((error) => {
         console.error("Error fetching postings:", error);

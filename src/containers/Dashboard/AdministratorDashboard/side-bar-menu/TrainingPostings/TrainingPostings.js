@@ -24,21 +24,28 @@ const TrainingPostings = () => {
   const [selectedTraining, setSelectedTraining] = useState(null);
   const itemsPerPage = 6; // Show exactly 6 trainings per page
 
-  const fetchTrainings = () => {
-    axios
-      .get("/api/public/all-postings", {
-        auth: { username: auth.token },
-      })
-      .then((response) => {
-        setTrainings(response.data.training_postings.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching postings:", error);
+  const fetchTrainings = async () => {
+    try {
+      const response = await axios.get("/api/public/all-postings", {
+        auth: {
+          username: auth.token,
+        },
       });
+      const trainingData = response.data.training_postings.data;
+      setTrainings(trainingData);
+      // Auto-select first training
+      if (trainingData.length > 0 && !selectedTraining) {
+        setSelectedTraining(trainingData[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching postings:", error);
+    }
   };
 
   useEffect(() => {
-    fetchTrainings();
+    if (auth.token) {
+      fetchTrainings();
+    }
   }, [auth.token]);
 
   const updateTrainingStatus = async (trainingId, newStatus) => {
@@ -58,13 +65,13 @@ const TrainingPostings = () => {
           toast.info(
             `Job post ${newStatus === "active" ? "accepted" : newStatus}`
           );
-          fetchTrainings();
           // Clear remarks after successful update
           setAdminRemarks(prev => {
             const newRemarks = { ...prev };
             delete newRemarks[trainingId];
             return newRemarks;
           });
+          fetchTrainings();
         }
       })
       .catch(() => toast.info("Failed to update training posting."));
