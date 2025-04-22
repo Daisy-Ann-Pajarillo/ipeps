@@ -178,13 +178,13 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
 
   const handleApproveApplicant = async (applicantId) => {
     try {
-      setScholarshipApplicants(prevApplicants => 
-        prevApplicants.map(app => 
-          app.id === applicantId ? {...app, status: 'approved'} : app
+      setScholarshipApplicants(prevApplicants =>
+        prevApplicants.map(app =>
+          app.id === applicantId ? { ...app, status: 'approved' } : app
         )
       );
 
-      setSelectedApplicant(prev => ({...prev, status: 'approved'}));
+      setSelectedApplicant(prev => ({ ...prev, status: 'approved' }));
       toast.success('Applicant approved successfully!');
     } catch (error) {
       console.error('Error approving applicant:', error);
@@ -194,13 +194,13 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
 
   const handleRejectApplicant = async (applicantId) => {
     try {
-      setScholarshipApplicants(prevApplicants => 
-        prevApplicants.map(app => 
-          app.id === applicantId ? {...app, status: 'rejected'} : app
+      setScholarshipApplicants(prevApplicants =>
+        prevApplicants.map(app =>
+          app.id === applicantId ? { ...app, status: 'rejected' } : app
         )
       );
 
-      setSelectedApplicant(prev => ({...prev, status: 'rejected'}));
+      setSelectedApplicant(prev => ({ ...prev, status: 'rejected' }));
       toast.success('Applicant rejected');
     } catch (error) {
       console.error('Error rejecting applicant:', error);
@@ -215,13 +215,13 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
   return (
     <Box sx={{ height: "100%", position: "relative", display: "flex", flexDirection: "column" }}>
       <Box sx={{ height: "100%", position: "relative", display: "flex" }}>
-        <Box 
-          sx={{ 
-            height: "100%", 
-            overflowY: "auto", 
-            p: 3, 
-            width: detailsPanelOpen ? "calc(100% - 400px)" : "100%", 
-            transition: "width 0.3s ease-in-out" 
+        <Box
+          sx={{
+            height: "100%",
+            overflowY: "auto",
+            p: 3,
+            width: detailsPanelOpen ? "calc(100% - 400px)" : "100%",
+            transition: "width 0.3s ease-in-out"
           }}
         >
           <Box sx={{ mb: 2 }}>
@@ -236,11 +236,11 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
             {scholarships.map((scholarship) => (
               <Paper
                 key={scholarship.id}
-                sx={{ 
-                  p: 2, 
-                  display: "flex", 
+                sx={{
+                  p: 2,
+                  display: "flex",
                   flexDirection: "column",
-                  mb: 2, 
+                  mb: 2,
                   cursor: "pointer",
                   '&:hover': {
                     boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
@@ -262,8 +262,8 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                     <Typography variant="body2" color="text.secondary">{scholarship.company || "Company"}</Typography>
                   </Box>
                 </Box>
-                
-                <Typography variant="body2" color="text.secondary" sx={{ 
+
+                <Typography variant="body2" color="text.secondary" sx={{
                   mb: 2,
                   display: '-webkit-box',
                   WebkitLineClamp: 3,
@@ -273,7 +273,7 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                 }}>
                   {scholarship.scholarship_description || scholarship.description || "No description provided"}
                 </Typography>
-                
+
                 <Box sx={{ mt: "auto" }}>
                   <Typography variant="body2" color="text.secondary">
                     Slots: {getSlotValue(scholarship)}
@@ -330,22 +330,22 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
               <>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                   <Typography variant="h5" component="h2" sx={{ fontWeight: "bold" }}>
-                    {applicantsOpen ? 
-                      (showApplicantDetails ? "Applicant Details" : "Scholarship Applicants") : 
+                    {applicantsOpen ?
+                      (showApplicantDetails ? "Applicant Details" : "Scholarship Applicants") :
                       selectedScholarship.scholarship_title || selectedScholarship.scholarship_name}
                   </Typography>
                   <IconButton onClick={handleCloseDetails} size="small">
                     <CloseIcon />
                   </IconButton>
                 </Box>
-                
+
                 <Divider sx={{ mb: 2 }} />
-                
+
                 {!applicantsOpen && !showApplicantDetails && (
                   <Grid container spacing={2}>
                     <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Avatar 
-                        src={selectedScholarship.logo} 
+                      <Avatar
+                        src={selectedScholarship.logo}
                         alt={selectedScholarship.company}
                         sx={{ width: 80, height: 80, mr: 2 }}
                       />
@@ -392,9 +392,9 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                     </Grid>
 
                     <Grid item xs={12} sx={{ mt: 2 }}>
-                      <Button 
-                        variant="contained" 
-                        color="primary" 
+                      <Button
+                        variant="contained"
+                        color="primary"
                         fullWidth
                         startIcon={<PersonIcon />}
                         onClick={() => handleViewApplicants(selectedScholarship.id)}
@@ -404,24 +404,24 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                     </Grid>
                   </Grid>
                 )}
-                
+
                 {applicantsOpen && !showApplicantDetails && (
                   <>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                       <Typography variant="h6">
                         Applicants ({scholarshipApplicants.length})
                       </Typography>
-                      <Button 
-                        variant="outlined" 
+                      <Button
+                        variant="outlined"
                         size="small"
                         onClick={() => setApplicantsOpen(false)}
                       >
                         Back to Details
                       </Button>
                     </Box>
-                    
+
                     <Divider sx={{ mb: 2 }} />
-                    
+
                     {scholarshipApplicants.length === 0 ? (
                       <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
                         No applicants yet
@@ -429,19 +429,19 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                     ) : (
                       <Box sx={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
                         {scholarshipApplicants.map((applicant) => (
-                          <Paper 
-                            key={applicant.id} 
-                            sx={{ 
-                              p: 2, 
-                              mb: 2, 
+                          <Paper
+                            key={applicant.id}
+                            sx={{
+                              p: 2,
+                              mb: 2,
                               cursor: 'pointer',
-                              '&:hover': { boxShadow: 3 } 
+                              '&:hover': { boxShadow: 3 }
                             }}
                             onClick={() => handleViewApplicantDetails(applicant)}
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Avatar 
-                                src={applicant.profile_pic} 
+                              <Avatar
+                                src={applicant.profile_pic}
                                 sx={{ width: 50, height: 50, mr: 2 }}
                               >
                                 {applicant.first_name?.[0] || 'A'}
@@ -454,12 +454,12 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                                   Applied: {new Date(applicant.application_date).toLocaleDateString()}
                                 </Typography>
                                 <Typography variant="body2">
-                                  Status: 
-                                  <Button 
-                                    size="small" 
+                                  Status:
+                                  <Button
+                                    size="small"
                                     color={
-                                      applicant.status === 'approved' ? 'success' : 
-                                      applicant.status === 'rejected' ? 'error' : 'primary'
+                                      applicant.status === 'approved' ? 'success' :
+                                        applicant.status === 'rejected' ? 'error' : 'primary'
                                     }
                                     sx={{ ml: 1, textTransform: 'capitalize', pointerEvents: 'none' }}
                                   >
@@ -474,26 +474,26 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                     )}
                   </>
                 )}
-                
+
                 {showApplicantDetails && selectedApplicant && (
                   <>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
                       <Typography variant="h6">
                         Application Review
                       </Typography>
-                      <Button 
-                        variant="outlined" 
+                      <Button
+                        variant="outlined"
                         size="small"
                         onClick={() => setShowApplicantDetails(false)}
                       >
                         Back to Applicants
                       </Button>
                     </Box>
-                    
+
                     <Divider sx={{ mb: 3 }} />
-                    
+
                     <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <Avatar 
+                      <Avatar
                         src={selectedApplicant.profile_pic}
                         sx={{ width: 100, height: 100, mb: 2 }}
                       >
@@ -506,35 +506,35 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                         {selectedApplicant.email}
                       </Typography>
                     </Box>
-                    
+
                     <Grid container spacing={2}>
                       <Grid item xs={6}>
                         <Typography variant="subtitle2" color="text.secondary">Phone</Typography>
                         <Typography variant="body1">{selectedApplicant.phone_number || 'Not provided'}</Typography>
                       </Grid>
-                      
+
                       <Grid item xs={6}>
                         <Typography variant="subtitle2" color="text.secondary">Location</Typography>
                         <Typography variant="body1">{selectedApplicant.city || 'Not provided'}</Typography>
                       </Grid>
-                      
+
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">School</Typography>
                         <Typography variant="body1">{selectedApplicant.school || 'Not provided'}</Typography>
                       </Grid>
-                      
+
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Achievement</Typography>
                         <Typography variant="body1">{selectedApplicant.achievement || 'Not provided'}</Typography>
                       </Grid>
-                      
+
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Personal Statement</Typography>
                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                           {selectedApplicant.personal_statement || 'No statement provided'}
                         </Typography>
                       </Grid>
-                      
+
                       {selectedApplicant.documents && selectedApplicant.documents.length > 0 && (
                         <Grid item xs={12}>
                           <Typography variant="subtitle2" color="text.secondary">Documents</Typography>
@@ -555,24 +555,24 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                           </Box>
                         </Grid>
                       )}
-                      
+
                       <Grid item xs={12} sx={{ mt: 2 }}>
                         <Divider sx={{ mb: 2 }} />
                         <Typography variant="subtitle1" sx={{ mb: 2 }}>Application Status</Typography>
-                        
+
                         {selectedApplicant.status !== 'approved' && selectedApplicant.status !== 'rejected' ? (
                           <Box sx={{ display: 'flex', gap: 2 }}>
-                            <Button 
-                              variant="contained" 
-                              color="success" 
+                            <Button
+                              variant="contained"
+                              color="success"
                               fullWidth
                               onClick={() => handleApproveApplicant(selectedApplicant.id)}
                             >
                               Approve Scholarship
                             </Button>
-                            <Button 
-                              variant="outlined" 
-                              color="error" 
+                            <Button
+                              variant="outlined"
+                              color="error"
                               fullWidth
                               onClick={() => handleRejectApplicant(selectedApplicant.id)}
                             >
@@ -580,10 +580,10 @@ const PostedScholarship = ({ createScholarshipOpen }) => {
                             </Button>
                           </Box>
                         ) : (
-                          <Typography 
-                            variant="body1" 
-                            sx={{ 
-                              textAlign: 'center', 
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              textAlign: 'center',
                               color: selectedApplicant.status === 'approved' ? 'success.main' : 'error.main',
                               fontWeight: 'bold'
                             }}
