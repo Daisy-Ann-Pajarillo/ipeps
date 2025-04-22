@@ -30,7 +30,6 @@ const schema = yup.object().shape({
 
 const TrainingPosting = () => {
   const [createTrainingOpen, setCreateTrainingOpen] = useState(false);
-  const [trainings, setTrainings] = useState([]);
 
   // setup auth, retrieving the token from local storage
   const dispatch = useDispatch();
@@ -90,23 +89,6 @@ const TrainingPosting = () => {
   const handleRemoveImage = (indexToRemove) => {
     setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
-
-  const handleAccept = (id) => {
-    // Logic to accept training
-  };
-
-  const handleReject = (id) => {
-    // Logic to reject training
-  };
-
-  const handleView = (training) => {
-    // Logic to view training details
-  };
-
-  const sortedTrainings = [...trainings].sort((a, b) => {
-    const statusOrder = { pending: 1, active: 2, rejected: 3, expired: 4 };
-    return (statusOrder[a.status?.toLowerCase()] || 5) - (statusOrder[b.status?.toLowerCase()] || 5);
-  });
 
   return (
     <Box className="flex flex-col w-full h-full">
@@ -199,57 +181,7 @@ const TrainingPosting = () => {
             </Grid>
           ) : (
             <Grid item xs={12} className="h-full">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {sortedTrainings.map((training) => (
-                  <div
-                    key={training.id}
-                    className="relative bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition duration-300 h-full flex flex-col justify-between"
-                  >
-                    <div>
-                      <h4
-                        className={`absolute top-3 right-3 rounded-md uppercase text-[10px] px-2 py-1 text-white
-                          ${training.status === "pending" ? "bg-orange-500" : ""}
-                          ${training.status === "active" ? "bg-green-500" : ""}
-                          ${training.status === "expired" ? "bg-neutral-500" : ""}
-                          ${training.status === "rejected" ? "bg-red-500" : ""}`}
-                      >
-                        {training.status}
-                      </h4>
-                      <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                        {training.training_title || "Unknown Title"}
-                      </h2>
-                      <p className="text-gray-600 dark:text-gray-400 font-medium">
-                        {training.training_description?.substring(0, 100) || "No description available."}...
-                      </p>
-                    </div>
-
-                    <div className="flex space-x-3 mt-5">
-                      {training.status === "pending" && (
-                        <>
-                          <button
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-300"
-                            onClick={() => handleAccept(training.id)}
-                          >
-                            Accept
-                          </button>
-                          <button
-                            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-300"
-                            onClick={() => handleReject(training.id)}
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                      <button
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
-                        onClick={() => handleView(training)}
-                      >
-                        View
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <PostedTraining createTrainingOpen={createTrainingOpen} />
             </Grid>
           )}
         </Grid>
