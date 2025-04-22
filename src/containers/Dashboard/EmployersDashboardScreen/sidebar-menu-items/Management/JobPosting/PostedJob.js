@@ -13,7 +13,11 @@ import {
   Grid,
   Divider,
   Card,
-  CardMedia
+  CardMedia,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Chip
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from '@mui/icons-material/Person';
@@ -43,6 +47,7 @@ const PostedJob = ({ createJobOpen }) => {
   const [jobApplicants, setJobApplicants] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showApplicantDetails, setShowApplicantDetails] = useState(false);
+  const [openDetailDialog, setOpenDetailDialog] = useState(false);
 
   // setup auth, retrieving the token from local storage
   const dispatch = useDispatch();
@@ -106,48 +111,64 @@ const PostedJob = ({ createJobOpen }) => {
         auth: { username: auth.token }
       });
       if (response.status === 200) {
-        console.log("API Response:", response.data); // Log the API response
+        console.log("API Response:", response.data);
         const responseData = response.data;
-        // Extract applicants data from the API response
-        const applicantsData = responseData.approved_applicants || [];
-        // Map the user details into the expected format for jobApplicants
-        const formattedApplicants = applicantsData.map((applicant) => ({
-          id: applicant.application_id,
-          first_name: applicant.user_details.personal_information.first_name,
-          last_name: applicant.user_details.personal_information.last_name,
-          email: applicant.user_details.email,
-          phone_number: applicant.user_details.personal_information.cellphone_number,
-          location: `${applicant.user_details.personal_information.permanent_municipality}, ${applicant.user_details.personal_information.permanent_country}`,
-          education: applicant.user_details.educational_background
-            .map(
-              (edu) =>
-                `${edu.degree_or_qualification} in ${edu.field_of_study} from ${edu.school_name}`
-            )
-            .join(", "),
-          experience: applicant.user_details.work_experiences
-            .map(
-              (exp) =>
-                `${exp.position} at ${exp.company_name} (${new Date(
-                  exp.date_start
-                ).getFullYear()} - ${exp.date_end ? new Date(exp.date_end).getFullYear() : "Present"
-                })`
-            )
-            .join(", "),
-          skills: applicant.user_details.other_skills
-            .map((skill) => skill.skills)
-            .join(", "),
-          cover_letter: applicant.cover_letter || "Cover letter not provided",
-          application_date: applicant.applied_at,
-          resume: applicant.resume_url || "#", // Placeholder for resume URL if available
-          profile_pic: applicant.profile_pic_url || "", // Placeholder for profile picture URL if available
-          status: applicant.application_status.toLowerCase()
-        }));
-        console.log("Formatted Applicants:", formattedApplicants); // Log the formatted data
+        
+        // Convert object to array if needed
+        const applicantsData = responseData.approved_applicants ? 
+          (Array.isArray(responseData.approved_applicants) ? 
+            responseData.approved_applicants : 
+            Object.values(responseData.approved_applicants)
+          ) : [];
+
+        // Check if we have valid data
+        if (!Array.isArray(applicantsData)) {
+          console.error('Applicants data is not in expected format:', applicantsData);
+          toast.error('Error loading applicants data');
+          return;
+        }
+
+        const formattedApplicants = applicantsData.map((applicant) => {
+          try {
+            return {
+              id: applicant.application_id,
+              first_name: applicant.user_details?.personal_information?.first_name || 'N/A',
+              last_name: applicant.user_details?.personal_information?.last_name || 'N/A',
+              email: applicant.user_details?.email || 'N/A',
+              phone_number: applicant.user_details?.personal_information?.cellphone_number || 'N/A',
+              location: applicant.user_details?.personal_information ? 
+                `${applicant.user_details.personal_information.permanent_municipality || 'N/A'}, ${applicant.user_details.personal_information.permanent_country || 'N/A'}` : 
+                'N/A',
+              education: Array.isArray(applicant.user_details?.educational_background) ?
+                applicant.user_details.educational_background
+                  .map(edu => `${edu.degree_or_qualification || ''} in ${edu.field_of_study || ''} from ${edu.school_name || ''}`)
+                  .join(", ") : 
+                'No education details',
+              experience: Array.isArray(applicant.user_details?.work_experiences) ?
+                applicant.user_details.work_experiences
+                  .map(exp => `${exp.position || ''} at ${exp.company_name || ''} (${new Date(exp.date_start).getFullYear()} - ${exp.date_end ? new Date(exp.date_end).getFullYear() : "Present"})`)
+                  .join(", ") : 
+                'No work experience',
+              skills: Array.isArray(applicant.user_details?.other_skills) ?
+                applicant.user_details.other_skills
+                  .map(skill => skill.skills)
+                  .join(", ") : 
+                'No skills listed',
+              cover_letter: applicant.cover_letter || "No cover letter provided",
+              application_date: applicant.applied_at,
+              resume: applicant.resume_url || "#",
+              profile_pic: applicant.profile_pic_url || "",
+              status: (applicant.application_status || "pending").toLowerCase()
+            };
+          } catch (error) {
+            console.error('Error formatting applicant data:', error);
+            return null;
+          }
+        }).filter(Boolean); // Remove any null entries
+
+        console.log("Formatted Applicants:", formattedApplicants);
         setJobApplicants(formattedApplicants);
         setApplicantsOpen(true);
-      } else {
-        console.error("Failed to fetch job applicants:", response.statusText);
-        toast.error("Failed to fetch applicants");
       }
     } catch (error) {
       console.error("Error fetching job applicants:", error);
@@ -190,6 +211,14 @@ const PostedJob = ({ createJobOpen }) => {
       console.error('Error rejecting applicant:', error);
       toast.error('Error processing request');
     }
+  };
+
+  const handleViewFullDetails = () => {
+    setOpenDetailDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDetailDialog(false);
   };
 
   return (
@@ -549,21 +578,18 @@ const PostedJob = ({ createJobOpen }) => {
                           {selectedApplicant.cover_letter || 'No cover letter provided'}
                         </Typography>
                       </Grid>
-                      {selectedApplicant.resume && (
-                        <Grid item xs={12}>
-                          <Typography variant="subtitle2" color="text.secondary">Resume</Typography>
-                          <Button
-                            variant="outlined"
-                            startIcon={<DownloadIcon />}
-                            href={selectedApplicant.resume}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            sx={{ mt: 1 }}
-                          >
-                            Download Resume
-                          </Button>
-                        </Grid>
-                      )}
+                      <Grid item xs={12}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          startIcon={<PersonIcon />}
+                          onClick={handleViewFullDetails}
+                          fullWidth
+                          sx={{ mt: 1 }}
+                        >
+                          View Full Detail of Applicant
+                        </Button>
+                      </Grid>
                       <Grid item xs={12} sx={{ mt: 2 }}>
                         <Divider sx={{ mb: 2 }} />
                         <Typography variant="subtitle1" sx={{ mb: 2 }}>Application Status</Typography>
@@ -607,6 +633,84 @@ const PostedJob = ({ createJobOpen }) => {
           </Box>
         </Slide>
       </Box>
+      <Dialog
+        open={openDetailDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Applicant Full Details
+            <IconButton onClick={handleCloseDialog}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>ABOUT</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={2}>
+                <Typography>Prefix</Typography>
+                <Typography>{selectedApplicant?.user_details?.personal_information?.prefix || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography>First Name</Typography>
+                <Typography>{selectedApplicant?.user_details?.personal_information?.first_name || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography>Middle Name</Typography>
+                <Typography>{selectedApplicant?.user_details?.personal_information?.middle_name || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography>Last Name</Typography>
+                <Typography>{selectedApplicant?.user_details?.personal_information?.last_name || 'N/A'}</Typography>
+              </Grid>
+            </Grid>
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PREFERRED WORK LOCATION</Typography>
+            <Grid container spacing={2}>
+              {/* Add preferred work location fields */}
+            </Grid>
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>EDUCATIONAL BACKGROUND</Typography>
+            {selectedApplicant?.user_details?.educational_background?.map((edu, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                {/* Add educational background fields */}
+              </Box>
+            ))}
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>TRAININGS</Typography>
+            {selectedApplicant?.user_details?.trainings?.map((training, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                {/* Add training fields */}
+              </Box>
+            ))}
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PROFESSIONAL LICENSE</Typography>
+            {selectedApplicant?.user_details?.professional_licenses?.map((license, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                {/* Add license fields */}
+              </Box>
+            ))}
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>WORK EXPERIENCE</Typography>
+            {selectedApplicant?.user_details?.work_experiences?.map((exp, index) => (
+              <Box key={index} sx={{ mb: 2 }}>
+                {/* Add work experience fields */}
+              </Box>
+            ))}
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>OTHER SKILLS</Typography>
+            <Box sx={{ mb: 2 }}>
+              {selectedApplicant?.user_details?.other_skills?.map((skill, index) => (
+                <Chip key={index} label={skill.skills} sx={{ m: 0.5 }} />
+              ))}
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
       <ToastContainer />
     </Box>
   );
