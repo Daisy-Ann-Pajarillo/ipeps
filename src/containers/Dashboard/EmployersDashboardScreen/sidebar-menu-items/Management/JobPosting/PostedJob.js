@@ -118,55 +118,103 @@ const PostedJob = ({ createJobOpen }) => {
         const applicantsData = responseData.approved_applicants ? 
           (Array.isArray(responseData.approved_applicants) ? 
             responseData.approved_applicants : 
-            Object.values(responseData.approved_applicants)
+            [responseData.approved_applicants]
           ) : [];
 
-        // Check if we have valid data
-        if (!Array.isArray(applicantsData)) {
-          console.error('Applicants data is not in expected format:', applicantsData);
-          toast.error('Error loading applicants data');
-          return;
-        }
-
+        // Map all user details from the database
         const formattedApplicants = applicantsData.map((applicant) => {
           try {
+            const personalInfo = applicant.user_details?.personal_information || {};
+            const preferredWork = applicant.user_details?.preferred_work_location || {};
+            
             return {
+              // Personal Information
               id: applicant.application_id,
-              first_name: applicant.user_details?.personal_information?.first_name || 'N/A',
-              last_name: applicant.user_details?.personal_information?.last_name || 'N/A',
+              prefix: personalInfo.prefix || 'N/A',
+              first_name: personalInfo.first_name || 'N/A',
+              middle_name: personalInfo.middle_name || 'N/A', 
+              last_name: personalInfo.last_name || 'N/A',
+              suffix: personalInfo.suffix || 'N/A',
+              sex: personalInfo.sex || 'N/A',
+              date_of_birth: personalInfo.date_of_birth || 'N/A',
+              place_of_birth: personalInfo.place_of_birth || 'N/A',
+              civil_status: personalInfo.civil_status || 'N/A',
+              height: personalInfo.height || 'N/A',
+              weight: personalInfo.weight || 'N/A',
+              region: personalInfo.region || 'N/A',
+              country: personalInfo.permanent_country || 'N/A',
+              province: personalInfo.permanent_province || 'N/A',
+              municipality: personalInfo.permanent_municipality || 'N/A',
+              zip_code: personalInfo.permanent_zip_code || 'N/A',
+              barangay: personalInfo.permanent_barangay || 'N/A',
+              street: personalInfo.permanent_house_street || 'N/A',
+              cellphone_number: personalInfo.cellphone_number || 'N/A',
+
+              // Preferred Work Location
+              preferred_country: preferredWork.country || 'N/A',
+              preferred_province: preferredWork.province || 'N/A',
+              preferred_municipality: preferredWork.municipality || 'N/A',
+              preferred_industry: preferredWork.industry || 'N/A',
+              preferred_occupation: preferredWork.occupation || 'N/A',
+              expected_salary: preferredWork.expected_salary || 'N/A',
+
+              // Educational Background
+              education: applicant.user_details?.educational_background?.map(edu => ({
+                school_name: edu.school_name,
+                date_from: edu.date_from,
+                date_to: edu.date_to,
+                degree: edu.degree_or_qualification,
+                field_of_study: edu.field_of_study,
+                program_duration: edu.program_duration
+              })) || [],
+
+              // Trainings
+              trainings: applicant.user_details?.trainings?.map(training => ({
+                course_name: training.course_name,
+                start_date: training.start_date,
+                end_date: training.end_date,
+                institution: training.training_institution,
+                certificate: training.certificate_received,
+                hours: training.hours,
+                skills: training.skills_acquired,
+                credential_id: training.credential_id,
+                credential_url: training.credential_url
+              })) || [],
+
+              // Professional License
+              licenses: applicant.user_details?.professional_licenses?.map(license => ({
+                type: license.license_type,
+                name: license.license_name,
+                date: license.date_received
+              })) || [],
+
+              // Work Experience
+              work_experience: applicant.user_details?.work_experiences?.map(exp => ({
+                company_name: exp.company_name,
+                company_address: exp.company_address,
+                position: exp.position,
+                employment_status: exp.employment_status,
+                date_start: exp.date_start,
+                date_end: exp.date_end
+              })) || [],
+
+              // Other Skills
+              other_skills: applicant.user_details?.other_skills?.map(skill => 
+                skill.skills
+              ) || [],
+
+              // Application Details
               email: applicant.user_details?.email || 'N/A',
-              phone_number: applicant.user_details?.personal_information?.cellphone_number || 'N/A',
-              location: applicant.user_details?.personal_information ? 
-                `${applicant.user_details.personal_information.permanent_municipality || 'N/A'}, ${applicant.user_details.personal_information.permanent_country || 'N/A'}` : 
-                'N/A',
-              education: Array.isArray(applicant.user_details?.educational_background) ?
-                applicant.user_details.educational_background
-                  .map(edu => `${edu.degree_or_qualification || ''} in ${edu.field_of_study || ''} from ${edu.school_name || ''}`)
-                  .join(", ") : 
-                'No education details',
-              experience: Array.isArray(applicant.user_details?.work_experiences) ?
-                applicant.user_details.work_experiences
-                  .map(exp => `${exp.position || ''} at ${exp.company_name || ''} (${new Date(exp.date_start).getFullYear()} - ${exp.date_end ? new Date(exp.date_end).getFullYear() : "Present"})`)
-                  .join(", ") : 
-                'No work experience',
-              skills: Array.isArray(applicant.user_details?.other_skills) ?
-                applicant.user_details.other_skills
-                  .map(skill => skill.skills)
-                  .join(", ") : 
-                'No skills listed',
-              cover_letter: applicant.cover_letter || "No cover letter provided",
+              cover_letter: applicant.cover_letter || 'No cover letter provided',
               application_date: applicant.applied_at,
-              resume: applicant.resume_url || "#",
-              profile_pic: applicant.profile_pic_url || "",
-              status: (applicant.application_status || "pending").toLowerCase()
+              status: (applicant.application_status || 'pending').toLowerCase()
             };
           } catch (error) {
             console.error('Error formatting applicant data:', error);
             return null;
           }
-        }).filter(Boolean); // Remove any null entries
+        }).filter(Boolean);
 
-        console.log("Formatted Applicants:", formattedApplicants);
         setJobApplicants(formattedApplicants);
         setApplicantsOpen(true);
       }
