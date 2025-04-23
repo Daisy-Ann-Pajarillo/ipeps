@@ -9,7 +9,7 @@ import {
     AccountBalanceOutlined,
     LogoutOutlined,
 } from "@mui/icons-material";
-
+import CelebrationOutlinedIcon from '@mui/icons-material/CelebrationOutlined';
 const AdministratorMenuItems = [
     {
         title: "DASHBOARD",
@@ -19,6 +19,11 @@ const AdministratorMenuItems = [
                 title: "Dashboard",
                 to: "/admin/",
                 icon: <HomeOutlined />,
+            },
+            {
+                title: "Announcement",
+                to: "/admin/announcement",
+                icon: <CelebrationOutlinedIcon />,
             },
         ],
     },

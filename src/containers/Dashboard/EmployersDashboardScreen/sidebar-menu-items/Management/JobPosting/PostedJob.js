@@ -24,6 +24,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import DownloadIcon from '@mui/icons-material/Download';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTheme } from "@mui/material";
 
 // Function to map status to MUI color
 const getStatusColor = (status) => {
@@ -40,6 +41,14 @@ const getStatusColor = (status) => {
 };
 
 const PostedJob = ({ createJobOpen }) => {
+  const theme = useTheme();
+  // Define chipStyles using MUI theme directly
+  const chipStyles = {
+    m: 0.5,
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.primary.contrastText
+  };
+
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [detailsPanelOpen, setDetailsPanelOpen] = useState(false);
@@ -107,72 +116,45 @@ const PostedJob = ({ createJobOpen }) => {
 
   const handleViewApplicants = async (jobId) => {
     try {
-      const response = await axios.get(`/api/approved-applicants`, {
+      if (!jobId) {
+        console.error('Job ID is undefined');
+        toast.error('Invalid job ID');
+        return;
+      }
+
+      const response = await axios.get(`/api/get-applied-jobs/${jobId}`, {
         auth: { username: auth.token }
       });
-      if (response.status === 200) {
-        console.log("API Response:", response.data);
-        const responseData = response.data;
 
-        // Convert object to array if needed
-        const applicantsData = responseData.approved_applicants ?
-          (Array.isArray(responseData.approved_applicants) ?
-            responseData.approved_applicants :
-            Object.values(responseData.approved_applicants)
-          ) : [];
+      if (response.data && Array.isArray(response.data.applications)) {
+        const formattedApplicants = response.data.applications.map(applicant => ({
+          id: applicant.application_id,
+          application_date: applicant.created_at,
+          status: applicant.status || 'pending',
+          user_details: applicant.user_details,
+          first_name: applicant.user_details?.personal_information?.first_name || 'N/A',
+          last_name: applicant.user_details?.personal_information?.last_name || 'N/A',
+          email: applicant.user_details?.email || 'N/A',
+          phone_number: applicant.user_details?.personal_information?.cellphone_number || 'N/A',
+          location: `${applicant.user_details?.personal_information?.permanent_municipality || 'N/A'}, ${applicant.user_details?.personal_information?.permanent_country || 'N/A'}`,
+          educational_background: applicant.user_details?.educational_background || [],
+          trainings: applicant.user_details?.trainings || [],
+          professional_licenses: applicant.user_details?.professional_licenses || [],
+          work_experiences: applicant.user_details?.work_experiences || [],
+          other_skills: applicant.user_details?.other_skills || [],
+          personal_information: applicant.user_details?.personal_information || {}
+        }));
 
-        // Check if we have valid data
-        if (!Array.isArray(applicantsData)) {
-          console.error('Applicants data is not in expected format:', applicantsData);
-          toast.error('Error loading applicants data');
-          return;
-        }
-
-        const formattedApplicants = applicantsData.map((applicant) => {
-          try {
-            return {
-              id: applicant.application_id,
-              first_name: applicant.user_details?.personal_information?.first_name || 'N/A',
-              last_name: applicant.user_details?.personal_information?.last_name || 'N/A',
-              email: applicant.user_details?.email || 'N/A',
-              phone_number: applicant.user_details?.personal_information?.cellphone_number || 'N/A',
-              location: applicant.user_details?.personal_information ?
-                `${applicant.user_details.personal_information.permanent_municipality || 'N/A'}, ${applicant.user_details.personal_information.permanent_country || 'N/A'}` :
-                'N/A',
-              education: Array.isArray(applicant.user_details?.educational_background) ?
-                applicant.user_details.educational_background
-                  .map(edu => `${edu.degree_or_qualification || ''} in ${edu.field_of_study || ''} from ${edu.school_name || ''}`)
-                  .join(", ") :
-                'No education details',
-              experience: Array.isArray(applicant.user_details?.work_experiences) ?
-                applicant.user_details.work_experiences
-                  .map(exp => `${exp.position || ''} at ${exp.company_name || ''} (${new Date(exp.date_start).getFullYear()} - ${exp.date_end ? new Date(exp.date_end).getFullYear() : "Present"})`)
-                  .join(", ") :
-                'No work experience',
-              skills: Array.isArray(applicant.user_details?.other_skills) ?
-                applicant.user_details.other_skills
-                  .map(skill => skill.skills)
-                  .join(", ") :
-                'No skills listed',
-              cover_letter: applicant.cover_letter || "No cover letter provided",
-              application_date: applicant.applied_at,
-              resume: applicant.resume_url || "#",
-              profile_pic: applicant.profile_pic_url || "",
-              status: (applicant.application_status || "pending").toLowerCase()
-            };
-          } catch (error) {
-            console.error('Error formatting applicant data:', error);
-            return null;
-          }
-        }).filter(Boolean); // Remove any null entries
-
-        console.log("Formatted Applicants:", formattedApplicants);
         setJobApplicants(formattedApplicants);
         setApplicantsOpen(true);
+
+        if (formattedApplicants.length === 0) {
+          toast.info("No applicants found for this job");
+        }
       }
     } catch (error) {
-      console.error("Error fetching job applicants:", error);
-      toast.error("Error loading applicants");
+      console.error('Error fetching job applicants:', error);
+      toast.error('Error loading applicants. Please try again later.');
     }
   };
 
@@ -446,7 +428,7 @@ const PostedJob = ({ createJobOpen }) => {
                         color="primary"
                         fullWidth
                         startIcon={<PersonIcon />}
-                        onClick={() => handleViewApplicants(selectedJob.id)}
+                        onClick={() => handleViewApplicants(selectedJob?.job_id)}
                       >
                         View Applicants
                       </Button>
@@ -652,60 +634,139 @@ const PostedJob = ({ createJobOpen }) => {
             <Typography variant="h6" gutterBottom>ABOUT</Typography>
             <Grid container spacing={2}>
               <Grid item xs={2}>
-                <Typography>Prefix</Typography>
-                <Typography>{selectedApplicant?.user_details?.personal_information?.prefix || 'N/A'}</Typography>
+                <Typography color="text.secondary">Prefix</Typography>
+                <Typography>{selectedApplicant?.personal_information?.prefix || 'N/A'}</Typography>
               </Grid>
               <Grid item xs={4}>
-                <Typography>First Name</Typography>
-                <Typography>{selectedApplicant?.user_details?.personal_information?.first_name || 'N/A'}</Typography>
+                <Typography color="text.secondary">First Name</Typography>
+                <Typography>{selectedApplicant?.personal_information?.first_name || 'N/A'}</Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography>Middle Name</Typography>
-                <Typography>{selectedApplicant?.user_details?.personal_information?.middle_name || 'N/A'}</Typography>
+                <Typography color="text.secondary">Middle Name</Typography>
+                <Typography>{selectedApplicant?.personal_information?.middle_name || 'N/A'}</Typography>
               </Grid>
               <Grid item xs={3}>
-                <Typography>Last Name</Typography>
-                <Typography>{selectedApplicant?.user_details?.personal_information?.last_name || 'N/A'}</Typography>
+                <Typography color="text.secondary">Last Name</Typography>
+                <Typography>{selectedApplicant?.personal_information?.last_name || 'N/A'}</Typography>
               </Grid>
             </Grid>
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PREFERRED WORK LOCATION</Typography>
             <Grid container spacing={2}>
-              {/* Add preferred work location fields */}
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Country</Typography>
+                <Typography>{selectedApplicant?.personal_information?.permanent_country || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Municipality/City</Typography>
+                <Typography>{selectedApplicant?.personal_information?.permanent_municipality || 'N/A'}</Typography>
+              </Grid>
             </Grid>
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>EDUCATIONAL BACKGROUND</Typography>
-            {selectedApplicant?.user_details?.educational_background?.map((edu, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                {/* Add educational background fields */}
-              </Box>
+            {selectedApplicant?.educational_background?.map((edu, index) => (
+              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">School Name</Typography>
+                    <Typography>{edu.school_name}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Course/Program</Typography>
+                    <Typography>{edu.course}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Year Level</Typography>
+                    <Typography>{edu.year_level}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">School Year</Typography>
+                    <Typography>{edu.school_year}</Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
             ))}
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>TRAININGS</Typography>
-            {selectedApplicant?.user_details?.trainings?.map((training, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                {/* Add training fields */}
-              </Box>
+            {selectedApplicant?.trainings?.map((training, index) => (
+              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Training Title</Typography>
+                    <Typography>{training.training_title}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Training Institution</Typography>
+                    <Typography>{training.training_institution}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Duration</Typography>
+                    <Typography>{training.duration}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Certificate Received</Typography>
+                    <Typography>{training.certificate_received}</Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
             ))}
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PROFESSIONAL LICENSE</Typography>
-            {selectedApplicant?.user_details?.professional_licenses?.map((license, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                {/* Add license fields */}
-              </Box>
+            {selectedApplicant?.professional_licenses?.map((license, index) => (
+              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">License Name</Typography>
+                    <Typography>{license.license_name}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">License Number</Typography>
+                    <Typography>{license.license_number}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Valid Until</Typography>
+                    <Typography>{new Date(license.valid_until).toLocaleDateString()}</Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
             ))}
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>WORK EXPERIENCE</Typography>
-            {selectedApplicant?.user_details?.work_experiences?.map((exp, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                {/* Add work experience fields */}
-              </Box>
+            {selectedApplicant?.work_experiences?.map((exp, index) => (
+              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Company Name</Typography>
+                    <Typography>{exp.company_name}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Position</Typography>
+                    <Typography>{exp.position}</Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography color="text.secondary">Job Description</Typography>
+                    <Typography>{exp.job_description}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Start Date</Typography>
+                    <Typography>{new Date(exp.start_date).toLocaleDateString()}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">End Date</Typography>
+                    <Typography>{exp.end_date ? new Date(exp.end_date).toLocaleDateString() : 'Present'}</Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
             ))}
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>OTHER SKILLS</Typography>
             <Box sx={{ mb: 2 }}>
-              {selectedApplicant?.user_details?.other_skills?.map((skill, index) => (
-                <Chip key={index} label={skill.skills} sx={{ m: 0.5 }} />
+              {selectedApplicant?.other_skills?.map((skill, index) => (
+                <Chip 
+                  key={index} 
+                  label={skill.skills} 
+                  sx={chipStyles} 
+                />
               ))}
             </Box>
           </Box>

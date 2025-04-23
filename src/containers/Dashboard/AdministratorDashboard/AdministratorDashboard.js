@@ -17,7 +17,7 @@ import TrainingApplications from "./side-bar-menu/TrainingApplications/TrainingA
 import PlacementReports from "./side-bar-menu/PlacementReports/PlacementReports";
 import Employers from "./side-bar-menu/Employer/Employer";
 import Settings from "./side-bar-menu/Settings/Settings";
-
+import Announcement from "./side-bar-menu/Announcement/Announcement";
 // Import for nested pages
 import JobSeeker from "./side-bar-menu/Dashboard/components/JobSeeker";
 import Trend from "./side-bar-menu/Dashboard/components/Trend";
@@ -48,6 +48,7 @@ const AdministratorDashboard = () => {
                     <Route path="/placement-reports" element={<PlacementReports />} />
                     <Route path="/employer" element={<Employers />} />
                     <Route path="/settings" element={<Settings />} />
+                    <Route path="/announcement" element={<Announcement />} />
 
                     {/* Nested Routes */}
                     <Route path="/jobseeker" element={<JobSeeker />} />

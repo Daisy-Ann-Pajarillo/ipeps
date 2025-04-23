@@ -13,31 +13,30 @@ import {
   Button,
   Box,
   useTheme,
-  IconButton,
-  Chip,
   Tooltip
 } from '@mui/material';
 import SearchData from "../../../components/layout/Search";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import BusinessIcon from '@mui/icons-material/Business';
+import WorkIcon from '@mui/icons-material/Work';
+import PersonIcon from '@mui/icons-material/Person';
 
-// Dummy Data for Placement Reports
+// Dummy Data for Placement Reports - Modified for Applicants
 const dummyReports = [
-  { id: 1, name: "Daisy Certified", company: "Tech Solutions", date: "2024-01-10", status: "Completed" },
-  { id: 2, name: "Bulak Certified", company: "Innovatech", date: "2024-04-15", status: "Pending" },
-  { id: 3, name: "Daisy Grammarian", company: "Creative Labs", date: "2023-12-31", status: "Completed" },
-  { id: 4, name: "Secret Bulak", company: "Remote Work Inc.", date: "2024-02-20", status: "Pending" },
-  { id: 5, name: "Corporate Placement Analysis", company: "Enterprise Corp", date: "2023-11-05", status: "Completed" },
-  { id: 6, name: "Tech Hiring Trends", company: "FutureTech", date: "2024-03-12", status: "Completed" }
+  { id: 1, applicantName: "John Smith", companyName: "Tech Solutions", jobPost: "Frontend Developer", dateHired: "2024-01-10" },
+  { id: 2, applicantName: "Emily Johnson", companyName: "Innovatech", jobPost: "Data Analyst", dateHired: "2024-04-15" },
+  { id: 3, applicantName: "Michael Chen", companyName: "Creative Labs", jobPost: "UX Designer", dateHired: "2023-12-31" },
+  { id: 4, applicantName: "Sarah Wilson", companyName: "Remote Work Inc.", jobPost: "Project Manager", dateHired: "2024-02-20" },
+  { id: 5, applicantName: "David Rodriguez", companyName: "Enterprise Corp", jobPost: "Software Engineer", dateHired: "2023-11-05" },
+  { id: 6, applicantName: "Jessica Lee", companyName: "FutureTech", jobPost: "DevOps Engineer", dateHired: "2024-03-12" }
 ];
 
 function Placement_Reports() {
   const [reports, setReports] = useState(dummyReports);
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("");
-  const [company, setCompany] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [jobPost, setJobPost] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -49,9 +48,9 @@ function Placement_Reports() {
 
   // Filter & Paginate Reports
   const filteredReports = reports
-    .filter((report) => report.name.toLowerCase().includes(query.toLowerCase()))
-    .filter((report) => (status ? report.status === status : true))
-    .filter((report) => (company ? report.company === company : true));
+    .filter((report) => report.applicantName.toLowerCase().includes(query.toLowerCase()))
+    .filter((report) => (companyName ? report.companyName === companyName : true))
+    .filter((report) => (jobPost ? report.jobPost === jobPost : true));
 
   // Paginated reports
   const paginatedReports = filteredReports.slice(
@@ -63,12 +62,12 @@ function Placement_Reports() {
 
   // Function to export filtered data as CSV
   const exportToCSV = () => {
-    const csvHeaders = ["Report Name", "Company", "Date", "Status"];
+    const csvHeaders = ["Applicant Name", "Company Name", "Job Post", "Date Hired"];
     const csvRows = filteredReports.map((report) => [
-      report.name,
-      report.company,
-      report.date,
-      report.status,
+      report.applicantName,
+      report.companyName,
+      report.jobPost,
+      report.dateHired,
     ]);
 
     // Combine headers and rows into a single array
@@ -140,17 +139,17 @@ function Placement_Reports() {
           }}
         >
           <SearchData
-            placeholder="Search reports by name..."
+            placeholder="Search by applicant name..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full"
             componentData={[
-              { title: "Company", options: ["", ...new Set(reports.map((report) => report.company))] },
-              { title: "Status", options: ["", "Completed", "Pending"] }
+              { title: "Company Name", options: ["", ...new Set(reports.map((report) => report.companyName))] },
+              { title: "Job Post", options: ["", ...new Set(reports.map((report) => report.jobPost))] }
             ]}
             onComponentChange={(index, value) => {
-              if (index === 0) setCompany(value);
-              if (index === 1) setStatus(value);
+              if (index === 0) setCompanyName(value);
+              if (index === 1) setJobPost(value);
             }}
           />
         </Paper>
@@ -172,11 +171,10 @@ function Placement_Reports() {
             <Table sx={{ minWidth: 650 }}>
               <TableHead>
                 <TableRow sx={{ backgroundColor: theme.palette.action.hover }}>
-                  <TableCell sx={{ fontWeight: '600', py: 2 }}>Report Name</TableCell>
-                  <TableCell sx={{ fontWeight: '600', py: 2 }}>Company</TableCell>
-                  <TableCell sx={{ fontWeight: '600', py: 2 }}>Date</TableCell>
-                  <TableCell sx={{ fontWeight: '600', py: 2 }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: '600', py: 2 }} align="center">Actions</TableCell>
+                  <TableCell sx={{ fontWeight: '600', py: 2 }}>Applicant Name</TableCell>
+                  <TableCell sx={{ fontWeight: '600', py: 2 }}>Company Name</TableCell>
+                  <TableCell sx={{ fontWeight: '600', py: 2 }}>Job Post</TableCell>
+                  <TableCell sx={{ fontWeight: '600', py: 2 }}>Date Hired</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -193,54 +191,34 @@ function Placement_Reports() {
                       }}
                     >
                       <TableCell sx={{ fontWeight: '500' }}>
-                        {report.name}
+                        <Box display="flex" alignItems="center">
+                          <PersonIcon fontSize="small" color="action" sx={{ mr: 1, opacity: 0.7 }} />
+                          {report.applicantName}
+                        </Box>
                       </TableCell>
                       <TableCell>
                         <Box display="flex" alignItems="center">
                           <BusinessIcon fontSize="small" color="action" sx={{ mr: 1, opacity: 0.7 }} />
-                          {report.company}
+                          {report.companyName}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
+                          <WorkIcon fontSize="small" color="action" sx={{ mr: 1, opacity: 0.7 }} />
+                          {report.jobPost}
                         </Box>
                       </TableCell>
                       <TableCell>
                         <Box display="flex" alignItems="center">
                           <CalendarTodayIcon fontSize="small" color="action" sx={{ mr: 1, opacity: 0.7 }} />
-                          {formatDate(report.date)}
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={report.status}
-                          size="small"
-                          color={report.status === 'Completed' ? 'success' : 'warning'}
-                          sx={{
-                            fontWeight: '500',
-                            borderRadius: '6px',
-                            py: 0.5
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Box>
-                          <Tooltip title="View Report">
-                            <IconButton
-                              size="small"
-                              color="primary"
-                              sx={{
-                                backgroundColor: theme.palette.primary.light,
-                                '&:hover': { backgroundColor: theme.palette.primary.main, color: '#fff' },
-                                transition: 'all 0.2s'
-                              }}
-                            >
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          {formatDate(report.dateHired)}
                         </Box>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
                       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
                         <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                           No matching reports found
