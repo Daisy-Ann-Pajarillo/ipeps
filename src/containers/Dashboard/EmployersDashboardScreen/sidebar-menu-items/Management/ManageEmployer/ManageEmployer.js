@@ -23,11 +23,12 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import BusinessIcon from '@mui/icons-material/Business';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import DescriptionIcon from '@mui/icons-material/Description';
+// Redux imports
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from '../../../../../../store/actions/index';
+import axios from "../../../../../../axios";
 
-
-//Backend needed
-import { useDispatch } from 'react-redux';
-
+// List of countries
 const countries = [
     "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina",
     "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados",
@@ -55,6 +56,7 @@ const countries = [
     "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
+// File Upload Component
 const FileUploadItem = ({ label, file, setFile }) => {
     return (
         <Box sx={{ mb: 2 }}>
@@ -92,6 +94,7 @@ const FileUploadItem = ({ label, file, setFile }) => {
     );
 };
 
+// Main Component
 const ManageEmployer = () => {
     // State variables
     const [company, setCompany] = useState({ name: '' });
@@ -100,7 +103,6 @@ const ManageEmployer = () => {
     const [industry, setIndustry] = useState('');
     const [companyType, setCompanyType] = useState('');
     const [totalWorkforce, setTotalWorkforce] = useState('');
-    const [letterOfIntent, setLetterOfIntent] = useState(null);
     const [logoImage, setLogoImage] = useState(null);
     const [businessPermit, setBusinessPermit] = useState(null);
     const [birForms, setBirForms] = useState(null);
@@ -108,12 +110,10 @@ const ManageEmployer = () => {
     const [philnetRegCert, setPhilnetRegCert] = useState(null);
     const [doleCert, setDoleCert] = useState(null);
     const [adminRem, setAdminRem] = useState('');
-
     const [regions, setRegions] = useState([]);
     const [provinces, setProvinces] = useState([]);
     const [municipalities, setMunicipalities] = useState([]);
     const [barangays, setBarangays] = useState([]);
-
     const [selectedCountry, setSelectedCountry] = useState('');
     const [selectedRegion, setSelectedRegion] = useState('');
     const [selectedProvince, setSelectedProvince] = useState('');
@@ -122,22 +122,76 @@ const ManageEmployer = () => {
     const [internationalAddress, setInternationalAddress] = useState('');
     const [zippostalcode, setZipPostalCode] = useState('');
     const [houseno, setHouseNo] = useState('');
-
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [badgeStatus, setBadgeStatus] = useState('');
 
+    // Redux setup
+    const dispatch = useDispatch();
+    const auth = useSelector((state) => state.auth);
+
+    // Load authentication state
+    useEffect(() => {
+        dispatch(actions.getAuthStorage());
+    }, [dispatch]);
+
+    // Fetch company information on component mount
+    useEffect(() => {
+        const fetchCompanyInformation = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const response = await axios.get('/api/get-company-information', {
+                    auth: {
+                        username: auth.token,
+                    },
+                });
+                if (response.status === 200) {
+                    const data = response.data.company_information;
+                    setCompany({ name: data.company_name });
+                    setEmail(data.company_email);
+                    setWebsite(data.company_website);
+                    setIndustry(data.company_industry);
+                    setCompanyType(data.company_type);
+                    setTotalWorkforce(data.company_total_workforce);
+                    setSelectedCountry(data.company_country);
+                    if (data.company_country === 'Philippines') {
+                        setSelectedRegion(data.company_address.split(',')[0].trim());
+                        setSelectedProvince(data.company_address.split(',')[1].trim());
+                        setSelectedMunicipality(data.company_address.split(',')[2].trim());
+                        setSelectedBarangay(data.company_address.split(',')[3].trim());
+                    } else {
+                        setInternationalAddress(data.company_address);
+                    }
+                    setHouseNo(data.company_house_no_street);
+                    setZipPostalCode(data.company_postal_code);
+                    setAdminRem(data.admin_remarks);
+                    setBadgeStatus(data.status);
+                } else {
+                    throw new Error('Failed to fetch company information');
+                }
+            } catch (error) {
+                console.error('Error fetching company information:', error);
+                setError('Failed to load company information. Please try again.');
+                toast.error('An error occurred while loading your company information.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (auth.token) fetchCompanyInformation();
+    }, [auth.token]);
+
+    // Load JSON data for Philippines location dropdowns
     useEffect(() => {
         const loadJsonData = async () => {
             if (selectedCountry === 'Philippines') {
                 setLoading(true);
                 setError(null);
                 try {
-                    const regionsData = await import('../../../../../../User   ApplicationForm/json/refregion.json');
-                    const provincesData = await import('../../../../../../User   ApplicationForm/json/refprovince.json');
-                    const municipalitiesData = await import('../../../../../../User   ApplicationForm/json/refcitymun.json');
-                    const barangaysData = await import('../../../../../../User   ApplicationForm/json/refbrgy.json');
-
+                    const regionsData = await import('../../../../../../UserApplicationForm/json/refregion.json');
+                    const provincesData = await import('../../../../../../UserApplicationForm/json/refprovince.json');
+                    const municipalitiesData = await import('../../../../../../UserApplicationForm/json/refcitymun.json');
+                    const barangaysData = await import('../../../../../../UserApplicationForm/json/refbrgy.json');
                     setRegions(regionsData.RECORDS || []);
                     setProvinces(provincesData.RECORDS || []);
                     setMunicipalities(municipalitiesData.RECORDS || []);
@@ -155,10 +209,10 @@ const ManageEmployer = () => {
                 setBarangays([]);
             }
         };
-
         loadJsonData();
     }, [selectedCountry]);
 
+    // Helper functions for filtering locations
     const getProvincesByRegion = (regionCode) => {
         return provinces.filter(province => province.regCode === regionCode);
     };
@@ -171,42 +225,55 @@ const ManageEmployer = () => {
         return barangays.filter(barangay => barangay.citymunCode === municipalityCode);
     };
 
-    const handleSubmit = () => {
-        const requestApprovalData = {
-            companyName: company.name,
-            email,
-            website,
-            industry,
-            companyType,
-            totalWorkforce,
-            address: {
-                country: selectedCountry,
-                region: selectedRegion,
-                province: selectedProvince,
-                municipality: selectedMunicipality,
-                barangay: selectedBarangay,
-                internationalAddress,
-                zipPostalCode: zippostalcode,
-                houseNo: houseno,
-            },
-            documents: {
-                logoImage,
-                businessPermit,
-                birForms,
-                poeaFiles,
-                philnetRegCert,
-                doleCert,
-            },
-            adminRemarks: adminRem,
+    // Handle form submission
+    const handleSubmit = async () => {
+        const requestData = {
+            company_name: company.name,
+            company_email: email,
+            company_industry: industry,
+            company_type: companyType,
+            company_total_workforce: totalWorkforce,
+            company_country: selectedCountry,
+            company_address: selectedCountry === 'Philippines'
+                ? `${selectedRegion}, ${selectedProvince}, ${selectedMunicipality}, ${selectedBarangay}`
+                : internationalAddress,
+            company_house_no_street: houseno,
+            company_postal_code: zippostalcode,
+            company_website: website,
+            logo_image_path: logoImage ? logoImage.name : null,
+            business_permit_path: businessPermit ? businessPermit.name : null,
+            bir_form_path: birForms ? birForms.name : null,
+            poea_file_path: poeaFiles ? poeaFiles.name : null,
+            philhealth_file_path: philnetRegCert ? philnetRegCert.name : null,
+            dole_certificate_path: doleCert ? doleCert.name : null,
+            admin_remarks: adminRem,
+            status: 'pending' // Default status
         };
 
-        console.log("Request for Approval submitted", requestApprovalData);
-        
-        toast.success("Request for Approval Submitted Successfully");
-        setBadgeStatus('Pending');
-        resetFormFields();
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await axios.post('/api/add-company-information', requestData, {
+                headers: { Authorization: `Bearer ${auth.token}` }
+            });
+            if (response.status === 200 || response.status === 201) {
+                console.log("Request for Approval submitted", requestData);
+                toast.success("Request for Approval Submitted Successfully");
+                setBadgeStatus('Pending');
+                resetFormFields();
+            } else {
+                throw new Error('Failed to submit request');
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            setError('Failed to submit request. Please try again.');
+            toast.error('An error occurred while submitting your request.');
+        } finally {
+            setLoading(false);
+        }
     };
 
+    // Reset form fields
     const resetFormFields = () => {
         setCompany({ name: '' });
         setEmail('');
@@ -233,14 +300,8 @@ const ManageEmployer = () => {
 
     return (
         <Container maxWidth="md" sx={{ mt: 4, mb: 8 }}>
-            <Paper
-                elevation={3}
-                sx={{
-                    p: 4,
-                    borderRadius: 2,
-                    overflow: 'hidden'
-                }}
-            >
+            <Paper elevation={3} sx={{ p: 4, borderRadius: 2, overflow: 'hidden' }}>
+                {/* Header */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h5" fontWeight={600}>
                         Company Approval
@@ -250,34 +311,20 @@ const ManageEmployer = () => {
                             label={badgeStatus}
                             color="primary"
                             variant="outlined"
-                            sx={{ 
-                                borderRadius: 1,
-                                px: 1,
-                                fontWeight: 500
-                            }}
+                            sx={{ borderRadius: 1, px: 1, fontWeight: 500 }}
                         />
                     )}
                 </Box>
-
                 <Divider sx={{ mb: 3 }} />
 
                 {/* Company Information Section */}
                 <Box sx={{ mb: 4 }}>
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: 3,
-                            mb: 3,
-                            backgroundColor: 'rgba(0, 162, 237, 0.04)',
-                            borderRadius: 2
-                        }}
-                    >
+                    <Paper elevation={0} sx={{ p: 3, mb: 3, backgroundColor: 'rgba(0, 162, 237, 0.04)', borderRadius: 2 }}>
                         <Stack direction="row" spacing={2} alignItems="center">
                             <BusinessIcon color="primary" />
                             <Typography variant="h6">Company Information</Typography>
                         </Stack>
                     </Paper>
-
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={6}>
                             <TextField
@@ -288,7 +335,6 @@ const ManageEmployer = () => {
                                 variant="outlined"
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <TextField
                                 label="Email"
@@ -299,7 +345,6 @@ const ManageEmployer = () => {
                                 type="email"
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <TextField
                                 label="Website"
@@ -310,7 +355,6 @@ const ManageEmployer = () => {
                                 placeholder="https://example.com"
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <TextField
                                 label="Industry"
@@ -320,7 +364,6 @@ const ManageEmployer = () => {
                                 variant="outlined"
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <FormControl fullWidth variant="outlined">
                                 <InputLabel>Company Type</InputLabel>
@@ -336,7 +379,6 @@ const ManageEmployer = () => {
                                 </Select>
                             </FormControl>
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <TextField
                                 label="Total Workforce"
@@ -352,21 +394,12 @@ const ManageEmployer = () => {
 
                 {/* Address Details Section */}
                 <Box sx={{ mb: 4 }}>
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: 3,
-                            mb: 3,
-                            backgroundColor: 'rgba(0, 162, 237, 0.04)',
-                            borderRadius: 2
-                        }}
-                    >
+                    <Paper elevation={0} sx={{ p: 3, mb: 3, backgroundColor: 'rgba(0, 162, 237, 0.04)', borderRadius: 2 }}>
                         <Stack direction="row" spacing={2} alignItems="center">
                             <LocationOnIcon color="primary" />
                             <Typography variant="h6">Address Details</Typography>
                         </Stack>
                     </Paper>
-
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={6}>
                             <FormControl fullWidth variant="outlined">
@@ -384,7 +417,6 @@ const ManageEmployer = () => {
                                 </Select>
                             </FormControl>
                         </Grid>
-
                         {loading && (
                             <Grid item xs={12}>
                                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -395,13 +427,11 @@ const ManageEmployer = () => {
                                 </Box>
                             </Grid>
                         )}
-                        
                         {error && (
                             <Grid item xs={12}>
                                 <Alert severity="error">{error}</Alert>
                             </Grid>
                         )}
-
                         {selectedCountry === 'Philippines' ? (
                             <>
                                 <Grid item xs={12} md={6}>
@@ -425,7 +455,6 @@ const ManageEmployer = () => {
                                         </Select>
                                     </FormControl>
                                 </Grid>
-
                                 <Grid item xs={12} md={6}>
                                     <FormControl fullWidth variant="outlined">
                                         <InputLabel>Province</InputLabel>
@@ -447,7 +476,6 @@ const ManageEmployer = () => {
                                         </Select>
                                     </FormControl>
                                 </Grid>
-
                                 <Grid item xs={12} md={6}>
                                     <FormControl fullWidth variant="outlined">
                                         <InputLabel>Municipality</InputLabel>
@@ -468,7 +496,6 @@ const ManageEmployer = () => {
                                         </Select>
                                     </FormControl>
                                 </Grid>
-
                                 <Grid item xs={12} md={6}>
                                     <FormControl fullWidth variant="outlined">
                                         <InputLabel>Barangay</InputLabel>
@@ -500,7 +527,6 @@ const ManageEmployer = () => {
                                 />
                             </Grid>
                         )}
-
                         <Grid item xs={12} md={6}>
                             <TextField
                                 label="House No. / Street / Building"
@@ -510,7 +536,6 @@ const ManageEmployer = () => {
                                 variant="outlined"
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <TextField
                                 label="Zip Code / Postal Code"
@@ -525,21 +550,12 @@ const ManageEmployer = () => {
 
                 {/* Required Documents Section */}
                 <Box sx={{ mb: 4 }}>
-                    <Paper
-                        elevation={0}
-                        sx={{
-                            p: 3,
-                            mb: 3,
-                            backgroundColor: 'rgba(0, 162, 237, 0.04)',
-                            borderRadius: 2
-                        }}
-                    >
+                    <Paper elevation={0} sx={{ p: 3, mb: 3, backgroundColor: 'rgba(0, 162, 237, 0.04)', borderRadius: 2 }}>
                         <Stack direction="row" spacing={2} alignItems="center">
                             <DescriptionIcon color="primary" />
                             <Typography variant="h6">Required Documents</Typography>
                         </Stack>
                     </Paper>
-
                     <Grid container spacing={3}>
                         <Grid item xs={12} md={6}>
                             <FileUploadItem
@@ -548,7 +564,6 @@ const ManageEmployer = () => {
                                 setFile={setLogoImage}
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <FileUploadItem
                                 label="Upload Business Permit"
@@ -556,7 +571,6 @@ const ManageEmployer = () => {
                                 setFile={setBusinessPermit}
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <FileUploadItem
                                 label="Upload BIR Forms"
@@ -564,7 +578,6 @@ const ManageEmployer = () => {
                                 setFile={setBirForms}
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <FileUploadItem
                                 label="Upload POEA Files"
@@ -572,7 +585,6 @@ const ManageEmployer = () => {
                                 setFile={setPoeaFiles}
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <FileUploadItem
                                 label="Upload PHILNET Reg Cert"
@@ -580,7 +592,6 @@ const ManageEmployer = () => {
                                 setFile={setPhilnetRegCert}
                             />
                         </Grid>
-
                         <Grid item xs={12} md={6}>
                             <FileUploadItem
                                 label="Upload DOLE Cert"
@@ -588,7 +599,6 @@ const ManageEmployer = () => {
                                 setFile={setDoleCert}
                             />
                         </Grid>
-
                         <Grid item xs={12}>
                             <TextField
                                 label="Admin Remarks (Optional)"
@@ -604,6 +614,7 @@ const ManageEmployer = () => {
                     </Grid>
                 </Box>
 
+                {/* Submit Button */}
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
                     <Button
                         variant="contained"

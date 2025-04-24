@@ -17,9 +17,11 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PostedScholarship from './PostedScholarship';
 import { CloudUpload, Close as CloseIcon } from '@mui/icons-material';
+//Backend
 import axios from '../../../../../../axios';
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../../store/actions/index";
+import { useNavigate } from "react-router-dom";
 
 const scholarshipSchema = yup.object().shape({
     scholarship_title: yup.string().required("Scholarship Title is required"),
@@ -32,6 +34,7 @@ const maxImages = 5;
 
 const ScholarshipPosting = () => {
     const [createScholarshipOpen, setCreateScholarshipOpen] = useState(false);
+    const [companyStatus, setCompanyStatus] = useState("");
 
     console.log("ScholarshipPosting - Form setup with resolver only");
 
@@ -111,28 +114,76 @@ const ScholarshipPosting = () => {
         }
     };
 
+    useEffect(() => {
+        axios.get('/api/get-company-information', {
+            auth: { username: auth.token }
+        })
+            .then((response) => {
+                setCompanyStatus(response.data.company_information.status)
+            })
+            .catch((error) => {
+                console.error('Error data:', error);
+
+            });
+    }, []);
+
+    const navigate = useNavigate();
+
+    // Function to handle button click
+    const handleButtonClick = () => {
+        if (companyStatus === "pending") {
+            // Optionally, show a modal or alert instead of immediate redirection
+            alert("Your company status is pending. Please complete your company details before posting a scholarship.");
+            navigate("/dashboard/manage-employers")
+        } else if (companyStatus === "accept") {
+            setCreateScholarshipOpen(!createScholarshipOpen);
+        }
+        else if (companyStatus === "reject") {
+            alert("Your company status is rejected. Please contact support for more information.");
+            navigate("/dashboard/manage-employers")
+        } else {
+            alert("Error. Please check your company status.");
+            navigate("/dashboard/manage-employers")
+        }
+    };
+
+
     return (
         <Box className="flex flex-col w-full h-full">
             <Grid container className="h-full">
                 <Grid item xs={12}>
                     <Button
-                        onClick={() => setCreateScholarshipOpen(!createScholarshipOpen)}
+                        onClick={handleButtonClick}
                         className="flex items-center justify-center w-full"
                         sx={{
-                            backgroundColor: createScholarshipOpen ? '#f44336' : '#1976d2',
-                            '&:hover': {
-                                backgroundColor: createScholarshipOpen ? '#d32f2f' : '#115293',
+                            backgroundColor: createScholarshipOpen ? "#f44336" : "#1976d2",
+                            "&:hover": {
+                                backgroundColor: createScholarshipOpen ? "#d32f2f" : "#115293",
                             },
-                            color: 'white',
-                            py: 1
+                            color: "white",
+                            py: 1,
+                            transition: "background-color 0.3s ease", // Smooth hover effect
                         }}
+                        aria-label={companyStatus === "pending" ? "Complete company details" : createScholarshipOpen ? "Cancel Scholarship posting" : "Create Scholarship posting"}
                     >
                         <Typography
                             variant="h5"
                             className="w-full text-center font-bold py-5"
-                            sx={{ color: 'white' }}
+                            sx={{ color: "white" }}
                         >
-                            {createScholarshipOpen ? "Cancel Scholarship Posting" : "Create Scholarship Posting"}
+                            {companyStatus === "pending" ? (
+                                <>
+                                    Finish Company Details
+                                    <br />
+                                    <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                                        You can't post scholarship without completing company details.
+                                    </span>
+                                </>
+                            ) : createScholarshipOpen ? (
+                                "Cancel Scholarship Posting"
+                            ) : (
+                                "Create Scholarship Posting"
+                            )}
                         </Typography>
                     </Button>
                 </Grid>

@@ -20,6 +20,7 @@ import * as actions from "../../../../../../store/actions/index";
 import PostedJob from "./PostedJob";
 import countriesList from "../../../../../../reusable/constants/countriesList";
 import axios from '../../../../../../axios';
+import { useNavigate } from "react-router-dom";
 
 //Pop-upModals
 import { ToastContainer, toast } from 'react-toastify';
@@ -53,7 +54,7 @@ const JobPosting = ({ isCollapsed }) => {
   });
 
   const [selectedCountry, setSelectedCountry] = useState("");
-
+  const [companyStatus, setCompanyStatus] = useState("");
   // setup auth, retrieving the token from local storage
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
@@ -149,28 +150,74 @@ const JobPosting = ({ isCollapsed }) => {
 
   const [createJobOpen, setCreateJobOpen] = useState(false);
 
+  useEffect(() => {
+    axios.get('/api/get-company-information', {
+      auth: { username: auth.token }
+    })
+      .then((response) => {
+        setCompanyStatus(response.data.company_information.status)
+      })
+      .catch((error) => {
+        console.error('Error data:', error);
+
+      });
+  }, []);
+
+  const navigate = useNavigate();
+
+  // Function to handle button click
+  const handleButtonClick = () => {
+    if (companyStatus === "pending") {
+      // Optionally, show a modal or alert instead of immediate redirection
+      alert("Your company status is pending. Please complete your company details before posting a job.");
+      navigate("/dashboard/manage-employers")
+    } else if (companyStatus === "accept") {
+      setCreateJobOpen(!createJobOpen);
+    }
+    else if (companyStatus === "reject") {
+      alert("Your company status is rejected. Please contact support for more information.");
+      navigate("/dashboard/manage-employers")
+    } else {
+      alert("Error. Please check your company status.");
+      navigate("/dashboard/manage-employers")
+    }
+  };
   return (
     <Box className="flex flex-col w-full h-full">
       <Grid container className="h-full">
         <Grid item xs={12}>
           <Button
-            onClick={() => setCreateJobOpen(!createJobOpen)}
+            onClick={handleButtonClick}
             className="flex items-center justify-center w-full"
             sx={{
-              backgroundColor: createJobOpen ? '#f44336' : '#1976d2',
-              '&:hover': {
-                backgroundColor: createJobOpen ? '#d32f2f' : '#115293',
+              backgroundColor: createJobOpen ? "#f44336" : "#1976d2",
+              "&:hover": {
+                backgroundColor: createJobOpen ? "#d32f2f" : "#115293",
               },
-              color: 'white',
-              py: 1
+              color: "white",
+              py: 1,
+              transition: "background-color 0.3s ease", // Smooth hover effect
             }}
+            aria-label={companyStatus === "pending" ? "Complete company details" : createJobOpen ? "Cancel job posting" : "Create job posting"}
           >
             <Typography
               variant="h5"
               className="w-full text-center font-bold py-5"
-              sx={{ color: 'white' }}
+              sx={{ color: "white" }}
             >
-              {createJobOpen ? "Cancel Job Posting" : "Create Job Posting"}
+              {companyStatus === "pending" ? (
+                <>
+                  Finish Company Details
+                  <br />
+                  <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                    You can't post jobs without completing company details.
+                  </span>
+                </>
+              ) : createJobOpen ? (
+                "Cancel Job Posting"
+              ) : (
+                "Create Job Posting"
+              )}
             </Typography>
           </Button>
         </Grid>

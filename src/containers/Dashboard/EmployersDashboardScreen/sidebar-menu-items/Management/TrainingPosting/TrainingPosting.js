@@ -20,6 +20,7 @@ import axios from '../../../../../../axios';
 
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../../store/actions/index";
+import { useNavigate } from "react-router-dom";
 
 const schema = yup.object().shape({
   training_title: yup.string().required('Training title is required'),
@@ -30,7 +31,7 @@ const schema = yup.object().shape({
 
 const TrainingPosting = () => {
   const [createTrainingOpen, setCreateTrainingOpen] = useState(false);
-
+  const [companyStatus, setCompanyStatus] = useState("");
   // setup auth, retrieving the token from local storage
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
@@ -90,28 +91,75 @@ const TrainingPosting = () => {
     setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
+  useEffect(() => {
+    axios.get('/api/get-company-information', {
+      auth: { username: auth.token }
+    })
+      .then((response) => {
+        setCompanyStatus(response.data.company_information.status)
+      })
+      .catch((error) => {
+        console.error('Error data:', error);
+
+      });
+  }, []);
+
+  const navigate = useNavigate();
+
+  // Function to handle button click
+  const handleButtonClick = () => {
+    if (companyStatus === "pending") {
+      // Optionally, show a modal or alert instead of immediate redirection
+      alert("Your company status is pending. Please complete your company details before posting a training.");
+      navigate("/dashboard/manage-employers")
+    } else if (companyStatus === "accept") {
+      setCreateTrainingOpen(!createTrainingOpen);
+    }
+    else if (companyStatus === "reject") {
+      alert("Your company status is rejected. Please contact support for more information.");
+      navigate("/dashboard/manage-employers")
+    } else {
+      alert("Error. Please check your company status.");
+      navigate("/dashboard/manage-employers")
+    }
+  };
+
   return (
     <Box className="flex flex-col w-full h-full">
       <Grid container className="h-full">
         <Grid item xs={12}>
           <Button
-            onClick={() => setCreateTrainingOpen(!createTrainingOpen)}
+            onClick={handleButtonClick}
             className="flex items-center justify-center w-full"
             sx={{
-              backgroundColor: createTrainingOpen ? '#f44336' : '#1976d2',
-              '&:hover': {
-                backgroundColor: createTrainingOpen ? '#d32f2f' : '#115293',
+              backgroundColor: createTrainingOpen ? "#f44336" : "#1976d2",
+              "&:hover": {
+                backgroundColor: createTrainingOpen ? "#d32f2f" : "#115293",
               },
-              color: 'white',
-              py: 1
+              color: "white",
+              py: 1,
+              transition: "background-color 0.3s ease", // Smooth hover effect
             }}
+            aria-label={companyStatus === "pending" ? "Complete company details" : createTrainingOpen ? "Cancel Training posting" : "Create Training posting"}
           >
             <Typography
               variant="h5"
               className="w-full text-center font-bold py-5"
-              sx={{ color: 'white' }}
+              sx={{ color: "white" }}
             >
-              {createTrainingOpen ? "Cancel Training Posting" : "Create Training Posting"}
+              {companyStatus === "pending" ? (
+                <>
+                  Finish Company Details
+                  <br />
+                  <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                    You can't post training without completing company details.
+                  </span>
+                </>
+              ) : createTrainingOpen ? (
+                "Cancel Training Posting"
+              ) : (
+                "Create Training Posting"
+              )}
             </Typography>
           </Button>
         </Grid>
