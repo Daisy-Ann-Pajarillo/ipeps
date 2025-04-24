@@ -125,47 +125,40 @@ const Employer = () => {
     fetchData();
   }, [auth.token]);
 
-  // Handle viewing a company's details
   const handleView = (company) => {
-    setSelectedCompany(company);
-    setAdminRemarks(company.admin_remarks || "");
-    setActiveTab("info");
+    setSelectedCompany(company); // Set the selected company's data
+    setAdminRemarks(company.admin_remarks || ""); // Optionally set admin remarks
+    setActiveTab("info"); // Switch to the "info" tab
   };
-
   // Handle closing the modal
   const handleClose = () => setSelectedCompany(null);
 
-  const handleApprove = async (companyId) => {
+  const handleApprove = async () => {
     try {
-      console.log(`Approving company with ID: ${companyId}`);
-
-      // Find the company in the local state to retrieve its admin remarks
-      const companyToApprove = companiesData.find(
-        (company) => company.employer_companyinfo_id === companyId
-      );
-
-      if (!companyToApprove) {
-        throw new Error("Company not found in local data");
+      if (!selectedCompany) {
+        throw new Error("No company selected");
       }
 
-      // Extract admin remarks from the company data
-      const adminRemarks = companyToApprove.admin_remarks || "No remarks provided";
+      const companyId = selectedCompany.employer_companyinfo_id; // Retrieve employer_companyinfo_id
+      console.log(`Approving company with ID: ${companyId}`);
 
-      // Prepare the payload to match the required structure
+      // Prepare the payload
       const payload = {
-        admin_remarks: adminRemarks,
+        admin_remarks: adminRemarks || "No remarks provided",
+        company_id: companyId, // Use employer_companyinfo_id as company_id
         status: "approved"
       };
 
       console.log("Sending approval payload:", payload);
 
-      // Make the API call to approve the company
-      const response = await axios.put("/api/approve-company-information", {
-        ...payload,
-        company_id: companyId // Use companyId directly
-      }, {
-        auth: { username: auth.token }
-      });
+      // Make the API call
+      const response = await axios.put(
+        "/api/approve-company-information",
+        payload,
+        {
+          auth: { username: auth.token }
+        }
+      );
 
       if (response.status === 200) {
         console.log("Company approved successfully");
@@ -200,22 +193,64 @@ const Employer = () => {
     }
   };
 
-  // Handle rejecting a company
-  const handleReject = () => {
-    const updatedCompanies = companiesData.map((company) =>
-      company.id === selectedCompany.id
-        ? { ...company, status: "Inactive", admin_remarks: adminRemarks }
-        : company
-    );
-    setCompaniesData(updatedCompanies);
-    setNotification({
-      open: true,
-      message: `${selectedCompany.company_name} has been rejected`,
-      severity: "error"
-    });
-    handleClose();
-  };
+  const handleReject = async () => {
+    try {
+      if (!selectedCompany) {
+        throw new Error("No company selected");
+      }
 
+      const companyId = selectedCompany.employer_companyinfo_id; // Retrieve employer_companyinfo_id
+      console.log(`Rejecting company with ID: ${companyId}`);
+
+      // Prepare the payload
+      const payload = {
+        admin_remarks: adminRemarks || "No remarks provided",
+        company_id: companyId, // Use employer_companyinfo_id as company_id
+        status: "reject"
+      };
+
+      console.log("Sending rejection payload:", payload);
+
+      // Make the API call
+      const response = await axios.put("/api/approve-company-information",
+        payload,
+        {
+          auth: { username: auth.token }
+        }
+      );
+
+      if (response.status === 200) {
+        console.log("Company rejected successfully");
+
+        // Update the local state to reflect the rejection
+        setCompaniesData((prevData) =>
+          prevData.map((company) =>
+            company.employer_companyinfo_id === companyId
+              ? { ...company, status: "rejected" }
+              : company
+          )
+        );
+
+        // Show success notification
+        setNotification({
+          open: true,
+          message: `${selectedCompany.company_name} has been rejected`,
+          severity: "error"
+        });
+      } else {
+        throw new Error("Failed to reject company");
+      }
+    } catch (error) {
+      console.error("Error rejecting company:", error);
+
+      // Show error notification
+      setNotification({
+        open: true,
+        message: "Failed to reject company. Please try again later.",
+        severity: "error"
+      });
+    }
+  };
   // Handle closing the notification snackbar
   const handleCloseNotification = () => {
     setNotification({ ...notification, open: false });

@@ -1,3 +1,4 @@
+//PostedJob.js
 import React, { useState, useEffect } from "react";
 import axios from "../../../../../../axios";
 import { useSelector, useDispatch } from "react-redux";
@@ -655,11 +656,29 @@ const PostedJob = ({ createJobOpen }) => {
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <Typography color="text.secondary">Country</Typography>
-                <Typography>{selectedApplicant?.personal_information?.permanent_country || 'N/A'}</Typography>
+                <Typography>{selectedApplicant?.job_preference?.country || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Province</Typography>
+                <Typography>{selectedApplicant?.job_preference?.province || 'N/A'}</Typography>
               </Grid>
               <Grid item xs={6}>
                 <Typography color="text.secondary">Municipality/City</Typography>
-                <Typography>{selectedApplicant?.personal_information?.permanent_municipality || 'N/A'}</Typography>
+                <Typography>{selectedApplicant?.job_preference?.municipality || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Industry</Typography>
+                <Typography>{selectedApplicant?.job_preference?.industry || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Preferred Occupation</Typography>
+                <Typography>{selectedApplicant?.job_preference?.preferred_occupation || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Salary Range</Typography>
+                <Typography>
+                  {selectedApplicant?.job_preference?.salary_from || 'N/A'} - {selectedApplicant?.job_preference?.salary_to || 'N/A'}
+                </Typography>
               </Grid>
             </Grid>
 
@@ -669,19 +688,27 @@ const PostedJob = ({ createJobOpen }) => {
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">School Name</Typography>
-                    <Typography>{edu.school_name}</Typography>
+                    <Typography>{edu.school_name || 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography color="text.secondary">Course/Program</Typography>
-                    <Typography>{edu.course}</Typography>
+                    <Typography color="text.secondary">Field of Study</Typography>
+                    <Typography>{edu.field_of_study || 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography color="text.secondary">Year Level</Typography>
-                    <Typography>{edu.year_level}</Typography>
+                    <Typography color="text.secondary">Degree/Qualification</Typography>
+                    <Typography>{edu.degree_or_qualification || 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography color="text.secondary">School Year</Typography>
-                    <Typography>{edu.school_year}</Typography>
+                    <Typography color="text.secondary">Program Duration</Typography>
+                    <Typography>{edu.program_duration ? `${edu.program_duration} years` : 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Date From</Typography>
+                    <Typography>{edu.date_from || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Date To</Typography>
+                    <Typography>{edu.date_to || 'N/A'}</Typography>
                   </Grid>
                 </Grid>
               </Paper>
@@ -762,10 +789,10 @@ const PostedJob = ({ createJobOpen }) => {
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>OTHER SKILLS</Typography>
             <Box sx={{ mb: 2 }}>
               {selectedApplicant?.other_skills?.map((skill, index) => (
-                <Chip 
-                  key={index} 
-                  label={skill.skills} 
-                  sx={chipStyles} 
+                <Chip
+                  key={index}
+                  label={skill.skills}
+                  sx={chipStyles}
                 />
               ))}
             </Box>
@@ -777,4 +804,4 @@ const PostedJob = ({ createJobOpen }) => {
   );
 };
 
-export default PostedJob; 
+export default PostedJob;

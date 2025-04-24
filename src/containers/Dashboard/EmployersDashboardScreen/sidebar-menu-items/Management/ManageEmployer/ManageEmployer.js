@@ -142,9 +142,7 @@ const ManageEmployer = () => {
                 setLoading(true);
                 setError(null);
                 const response = await axios.get('/api/get-company-information', {
-                    auth: {
-                        username: auth.token,
-                    },
+                    auth: { username: auth.token },
                 });
                 if (response.status === 200) {
                     const data = response.data.company_information;
@@ -254,7 +252,7 @@ const ManageEmployer = () => {
             setLoading(true);
             setError(null);
             const response = await axios.post('/api/add-company-information', requestData, {
-                headers: { Authorization: `Bearer ${auth.token}` }
+                auth: { username: auth.token },
             });
             if (response.status === 200 || response.status === 201) {
                 console.log("Request for Approval submitted", requestData);

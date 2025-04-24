@@ -1,19 +1,68 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import * as actions from '../../../../../store/actions/index';
+import axios from '../../../../../axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+const audienceOptions = ['Jobseeker', 'Student', 'Employer', 'Academe'];
+
+// API: Add Announcement
+const Add_Announcement = async (announcement, authToken) => {
+    try {
+        const response = await axios.post('/api/add-announcement', announcement, {
+            auth: { username: authToken },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error adding announcement:', error);
+        throw error;
+    }
+};
+
+// API: Get Announcements
+const Get_Announcement = async (authToken) => {
+    try {
+        const response = await axios.get('/api/get-announcements', {
+            auth: { username: authToken },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching announcements:', error);
+        return [];
+    }
+};
 
 export default function Announcement() {
+    const dispatch = useDispatch();
+    const auth = useSelector((state) => state.auth);
     const [showForm, setShowForm] = useState(false);
+    const [previewMode, setPreviewMode] = useState(false);
     const [announcements, setAnnouncements] = useState([]);
+
     const [formData, setFormData] = useState({
         title: '',
         content: '',
         targetAudience: [],
         expiryDate: '',
-        createdDate: ''
     });
 
-    const [previewMode, setPreviewMode] = useState(false);
+    useEffect(() => {
+        dispatch(actions.getAuthStorage());
+    }, [dispatch]);
 
-    const audienceOptions = ['Jobseeker', 'Student', 'Employer', 'Academe'];
+    useEffect(() => {
+        if (auth?.token) {
+            (async () => {
+                const fetched = await Get_Announcement(auth.token);
+                const safeAnnouncements = fetched.map((a) => ({
+                    ...a,
+                    targetAudience: Array.isArray(a.targetAudience) ? a.targetAudience : [],
+                }));
+                setAnnouncements(safeAnnouncements);
+            })();
+        }
+    }, [auth?.token]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -21,59 +70,64 @@ export default function Announcement() {
     };
 
     const handleAudienceToggle = (audience) => {
-        // If "All" is selected
         if (audience === 'All') {
-            // If all options are already selected, clear them
-            if (formData.targetAudience.length === audienceOptions.length) {
-                setFormData({ ...formData, targetAudience: [] });
-            } else {
-                // Otherwise select all options
-                setFormData({ ...formData, targetAudience: [...audienceOptions] });
-            }
-            return;
+            setFormData({
+                ...formData,
+                targetAudience:
+                    formData.targetAudience.length === audienceOptions.length ? [] : [...audienceOptions],
+            });
+        } else {
+            setFormData((prev) => ({
+                ...prev,
+                targetAudience: prev.targetAudience.includes(audience)
+                    ? prev.targetAudience.filter((a) => a !== audience)
+                    : [...prev.targetAudience, audience],
+            }));
         }
-
-        // Handle individual audience option toggle
-        setFormData(prev => {
-            if (prev.targetAudience.includes(audience)) {
-                return { ...prev, targetAudience: prev.targetAudience.filter(a => a !== audience) };
-            } else {
-                return { ...prev, targetAudience: [...prev.targetAudience, audience] };
-            }
-        });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Add current date to the announcement
+
         const newAnnouncement = {
-            ...formData,
-            createdDate: new Date().toISOString().split('T')[0],
-            id: Date.now() // Add a unique ID
+            title: formData.title,
+            details: formData.content,
+            target_audience: formData.targetAudience,
+            expiration_date: formData.expiryDate,
         };
 
-        // Add the new announcement to the list
-        setAnnouncements([...announcements, newAnnouncement]);
+        try {
+            if (auth?.token) {
+                await Add_Announcement(newAnnouncement, auth.token);
+                const updated = await Get_Announcement(auth.token);
+                const safeUpdated = updated.map((a) => ({
+                    ...a,
+                    targetAudience: Array.isArray(a.targetAudience) ? a.targetAudience : [],
+                }));
+                setAnnouncements(safeUpdated);
+                toast.success('Announcement posted successfully!');
+            } else {
+                toast.warning('Authentication token not found.');
+            }
 
-        // Reset the form data
-        setFormData({
-            title: '',
-            content: '',
-            targetAudience: [],
-            expiryDate: ''
-        });
-
-        // Close the form
-        setShowForm(false);
-
-        console.log("Announcement created:", newAnnouncement);
+            setFormData({
+                title: '',
+                content: '',
+                targetAudience: [],
+                expiryDate: '',
+            });
+            setShowForm(false);
+        } catch (error) {
+            toast.error('Failed to post announcement.');
+        }
     };
 
-    // Check if all audience options are selected
     const allSelected = formData.targetAudience.length === audienceOptions.length;
 
     return (
         <div className="max-w-4xl mx-auto p-6">
+            <ToastContainer position="top-right" autoClose={3000} />
+
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800">Announcements</h1>
                 {!showForm && (
@@ -101,7 +155,9 @@ export default function Announcement() {
                     {!previewMode ? (
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Announcement Title</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Announcement Title
+                                </label>
                                 <input
                                     type="text"
                                     name="title"
@@ -114,7 +170,9 @@ export default function Announcement() {
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Announcement Content</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Announcement Content
+                                </label>
                                 <textarea
                                     name="content"
                                     value={formData.content}
@@ -127,9 +185,10 @@ export default function Announcement() {
                             </div>
 
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Target Audience
+                                </label>
                                 <div className="flex flex-wrap gap-2">
-                                    {/* All option */}
                                     <button
                                         type="button"
                                         onClick={() => handleAudienceToggle('All')}
@@ -140,8 +199,6 @@ export default function Announcement() {
                                     >
                                         All
                                     </button>
-
-                                    {/* Individual audience options */}
                                     {audienceOptions.map((audience) => (
                                         <button
                                             type="button"
@@ -159,7 +216,9 @@ export default function Announcement() {
                             </div>
 
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Expiry Date
+                                </label>
                                 <input
                                     type="date"
                                     name="expiryDate"
@@ -188,15 +247,18 @@ export default function Announcement() {
                     ) : (
                         <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 mb-6">
                             <h3 className="text-xl font-bold text-gray-800 mb-2">
-                                {formData.title || "Announcement Title Preview"}
+                                {formData.title || 'Announcement Title Preview'}
                             </h3>
                             <p className="text-gray-600 mb-4">
-                                {formData.content || "Announcement content preview will appear here."}
+                                {formData.content || 'Announcement content preview will appear here.'}
                             </p>
                             <div className="flex flex-wrap gap-2 mb-2">
                                 {formData.targetAudience.length > 0 ? (
-                                    formData.targetAudience.map(audience => (
-                                        <span key={audience} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                    formData.targetAudience.map((audience) => (
+                                        <span
+                                            key={audience}
+                                            className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                                        >
                                             {audience}
                                         </span>
                                     ))
@@ -214,31 +276,37 @@ export default function Announcement() {
                 </div>
             )}
 
-            {/* Announcements Cards Section */}
             {announcements.length > 0 && (
                 <div className="mt-8">
                     <h2 className="text-xl font-semibold text-gray-800 mb-4">Published Announcements</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {announcements.map(announcement => (
-                            <div key={announcement.id} className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                        {announcements.map((announcement) => (
+                            <div
+                                key={announcement.id}
+                                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
+                            >
                                 <div className="p-5">
                                     <div className="flex justify-between items-start mb-2">
                                         <h3 className="text-lg font-bold text-gray-800">{announcement.title}</h3>
                                     </div>
                                     <p className="text-gray-600 mb-4 line-clamp-3">{announcement.content}</p>
                                     <div className="flex flex-wrap gap-2 mb-3">
-                                        {announcement.targetAudience.map(audience => (
-                                            <span key={audience} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                                                {audience}
-                                            </span>
-                                        ))}
+                                        {Array.isArray(announcement.targetAudience) &&
+                                            announcement.targetAudience.map((audience) => (
+                                                <span
+                                                    key={audience}
+                                                    className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                                                >
+                                                    {audience}
+                                                </span>
+                                            ))}
                                     </div>
-                                    <div className="flex justify-between text-xs text-gray-500">
-                                        <span>Created: {announcement.createdDate}</span>
-                                        {announcement.expiryDate && (
-                                            <span>Expires: {announcement.expiryDate}</span>
-                                        )}
-                                    </div>
+                                    {announcement.expiration_date && (
+                                        <div className="text-xs text-gray-500">
+                                            Expires: {new Date(announcement.expiration_date).toLocaleDateString()}
+                                        </div>
+                                    )}
+
                                 </div>
                             </div>
                         ))}
