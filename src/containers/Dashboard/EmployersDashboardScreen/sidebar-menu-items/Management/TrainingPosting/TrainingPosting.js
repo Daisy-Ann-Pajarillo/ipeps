@@ -147,20 +147,39 @@ const TrainingPosting = () => {
               className="w-full text-center font-bold py-5"
               sx={{ color: "white" }}
             >
-              {companyStatus === "pending" ? (
-                <>
-                  Finish Company Details
-                  <br />
-                  <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
-                    You can't post training without completing company details.
-                  </span>
-                </>
+              {companyStatus !== "accept" ? (
+                companyStatus === "" ? (
+                  <>
+                    Finish Company Details
+                    <br />
+                    <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                      You can't post training without completing company details.
+                    </span>
+                  </>
+                ) : companyStatus === "pending" ? (
+                  <>
+                    Wait for Admin Verification
+                    <br />
+                    <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                      You can't post training without admin validation.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Admin rejected your company
+                    <br />
+                    <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                      You can't post training without admin validation.
+                    </span>
+                  </>
+                )
               ) : createTrainingOpen ? (
                 "Cancel Training Posting"
               ) : (
                 "Create Training Posting"
               )}
             </Typography>
+
           </Button>
         </Grid>
 

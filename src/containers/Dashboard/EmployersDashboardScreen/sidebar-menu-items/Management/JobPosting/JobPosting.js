@@ -167,6 +167,7 @@ const JobPosting = ({ isCollapsed }) => {
 
   // Function to handle button click
   const handleButtonClick = () => {
+
     if (companyStatus === "pending") {
       // Optionally, show a modal or alert instead of immediate redirection
       alert("Your company status is pending. Please complete your company details before posting a job.");
@@ -205,20 +206,39 @@ const JobPosting = ({ isCollapsed }) => {
               className="w-full text-center font-bold py-5"
               sx={{ color: "white" }}
             >
-              {companyStatus === "pending" ? (
-                <>
-                  Finish Company Details
-                  <br />
-                  <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
-                    You can't post jobs without completing company details.
-                  </span>
-                </>
+              {companyStatus !== "accept" ? (
+                companyStatus === "" ? (
+                  <>
+                    Finish Company Details
+                    <br />
+                    <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                      You can't post jobs without completing company details.
+                    </span>
+                  </>
+                ) : companyStatus === "pending" ? (
+                  <>
+                    Wait for Admin Verification
+                    <br />
+                    <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                      You can't post jobs without admin validation.
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Admin rejected your company
+                    <br />
+                    <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                      You can't post jobs without admin validation.
+                    </span>
+                  </>
+                )
               ) : createJobOpen ? (
                 "Cancel Job Posting"
               ) : (
                 "Create Job Posting"
               )}
             </Typography>
+
           </Button>
         </Grid>
 
@@ -283,9 +303,9 @@ const JobPosting = ({ isCollapsed }) => {
                               error={!!errors.experience_level}
                             >
                               <MenuItem value="">Select</MenuItem>
-                              <MenuItem value="Junior">Junior</MenuItem>
-                              <MenuItem value="Mid">Mid</MenuItem>
-                              <MenuItem value="Senior">Senior</MenuItem>
+                              <MenuItem value="Junior">Junior (0-3 years)</MenuItem>
+                              <MenuItem value="Mid">Mid (3-5 years)</MenuItem>
+                              <MenuItem value="Senior">Senior (5+ years)</MenuItem>
                             </Select>
                           )}
                         />

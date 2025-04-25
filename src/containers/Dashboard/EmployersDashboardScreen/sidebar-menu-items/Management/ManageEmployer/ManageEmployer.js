@@ -135,80 +135,64 @@ const ManageEmployer = () => {
         dispatch(actions.getAuthStorage());
     }, [dispatch]);
 
-    // Fetch company information on component mount
     useEffect(() => {
-        const fetchCompanyInformation = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const response = await axios.get('/api/get-company-information', {
-                    auth: { username: auth.token },
-                });
-                if (response.status === 200) {
-                    const data = response.data.company_information;
-                    setCompany({ name: data.company_name });
-                    setEmail(data.company_email);
-                    setWebsite(data.company_website);
-                    setIndustry(data.company_industry);
-                    setCompanyType(data.company_type);
-                    setTotalWorkforce(data.company_total_workforce);
-                    setSelectedCountry(data.company_country);
-                    if (data.company_country === 'Philippines') {
-                        setSelectedRegion(data.company_address.split(',')[0].trim());
-                        setSelectedProvince(data.company_address.split(',')[1].trim());
-                        setSelectedMunicipality(data.company_address.split(',')[2].trim());
-                        setSelectedBarangay(data.company_address.split(',')[3].trim());
-                    } else {
-                        setInternationalAddress(data.company_address);
-                    }
-                    setHouseNo(data.company_house_no_street);
-                    setZipPostalCode(data.company_postal_code);
-                    setAdminRem(data.admin_remarks);
-                    setBadgeStatus(data.status);
-                } else {
+        axios.get('/api/get-company-information', {
+            auth: { username: auth.token }
+        })
+            .then((response) => {
+                console.log("Company Information Response:", response.data);
+            })
+            .catch((error) => {
+                console.error('Error data:', error);
+
+            });
+    }, []);
+
+    ////////////////////////////////
+    useEffect(() => {
+        axios.get('/api/get-company-information', {
+            auth: { username: auth.token },
+        })
+            .then(response => {
+                console.log("Company Information Response:", response.data);
+                if (response.status !== 200) {
                     throw new Error('Failed to fetch company information');
                 }
-            } catch (error) {
+
+                const data = response.data.company_information;
+
+                setCompany({ name: data.company_name });
+                setEmail(data.company_email);
+                setWebsite(data.company_website);
+                setIndustry(data.company_industry);
+                setCompanyType(data.company_type);
+                setTotalWorkforce(data.company_total_workforce);
+                setSelectedCountry(data.company_country);
+
+                if (data.company_country === 'Philippines') {
+                    const [region, province, municipality, barangay] = data.company_address.split(',').map(s => s.trim());
+                    setSelectedRegion(region);
+                    setSelectedProvince(province);
+                    setSelectedMunicipality(municipality);
+                    setSelectedBarangay(barangay);
+                } else {
+                    setInternationalAddress(data.company_address);
+                }
+
+                setHouseNo(data.company_house_no_street);
+                setZipPostalCode(data.company_postal_code);
+                setAdminRem(data.admin_remarks);
+                setBadgeStatus(data.status);
+            })
+            .catch(error => {
                 console.error('Error fetching company information:', error);
                 setError('Failed to load company information. Please try again.');
-                toast.error('An error occurred while loading your company information.');
-            } finally {
+            })
+            .finally(() => {
                 setLoading(false);
-            }
-        };
-        if (auth.token) fetchCompanyInformation();
-    }, [auth.token]);
+            });
 
-    // Load JSON data for Philippines location dropdowns
-    useEffect(() => {
-        const loadJsonData = async () => {
-            if (selectedCountry === 'Philippines') {
-                setLoading(true);
-                setError(null);
-                try {
-                    const regionsData = await import('../../../../../../UserApplicationForm/json/refregion.json');
-                    const provincesData = await import('../../../../../../UserApplicationForm/json/refprovince.json');
-                    const municipalitiesData = await import('../../../../../../UserApplicationForm/json/refcitymun.json');
-                    const barangaysData = await import('../../../../../../UserApplicationForm/json/refbrgy.json');
-                    setRegions(regionsData.RECORDS || []);
-                    setProvinces(provincesData.RECORDS || []);
-                    setMunicipalities(municipalitiesData.RECORDS || []);
-                    setBarangays(barangaysData.RECORDS || []);
-                } catch (error) {
-                    console.error('Error loading JSON data:', error);
-                    setError('Failed to load location data');
-                } finally {
-                    setLoading(false);
-                }
-            } else {
-                setRegions([]);
-                setProvinces([]);
-                setMunicipalities([]);
-                setBarangays([]);
-            }
-        };
-        loadJsonData();
-    }, [selectedCountry]);
+    }, []);
 
     // Helper functions for filtering locations
     const getProvincesByRegion = (regionCode) => {
@@ -244,7 +228,7 @@ const ManageEmployer = () => {
             poea_file_path: poeaFiles ? poeaFiles.name : null,
             philhealth_file_path: philnetRegCert ? philnetRegCert.name : null,
             dole_certificate_path: doleCert ? doleCert.name : null,
-            admin_remarks: adminRem,
+            admin_remarks: "waiting...",
             status: 'pending' // Default status
         };
 
@@ -299,6 +283,11 @@ const ManageEmployer = () => {
     return (
         <Container maxWidth="md" sx={{ mt: 4, mb: 8 }}>
             <Paper elevation={3} sx={{ p: 4, borderRadius: 2, overflow: 'hidden' }}>
+                {error && (
+                    <Grid item xs={12} sx={{ mb: 4 }}>
+                        <Alert severity="error">{error}</Alert>
+                    </Grid>
+                )}
                 {/* Header */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h5" fontWeight={600}>
@@ -314,6 +303,21 @@ const ManageEmployer = () => {
                     )}
                 </Box>
                 <Divider sx={{ mb: 3 }} />
+                {
+                    adminRem && (<Grid item xs={12}>
+                        <TextField
+                            label="Admin Remarks"
+                            value={adminRem}
+                            disabled
+                            fullWidth
+                            variant="filled"
+                            multiline
+                            rows={3}
+                            placeholder="Any additional information or special requirements..."
+                        />
+                        <Divider sx={{ mb: 3 }} />
+                    </Grid>)
+                }
 
                 {/* Company Information Section */}
                 <Box sx={{ mb: 4 }}>
@@ -425,11 +429,7 @@ const ManageEmployer = () => {
                                 </Box>
                             </Grid>
                         )}
-                        {error && (
-                            <Grid item xs={12}>
-                                <Alert severity="error">{error}</Alert>
-                            </Grid>
-                        )}
+
                         {selectedCountry === 'Philippines' ? (
                             <>
                                 <Grid item xs={12} md={6}>
@@ -597,18 +597,7 @@ const ManageEmployer = () => {
                                 setFile={setDoleCert}
                             />
                         </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="Admin Remarks (Optional)"
-                                value={adminRem}
-                                onChange={(e) => setAdminRem(e.target.value)}
-                                fullWidth
-                                variant="outlined"
-                                multiline
-                                rows={3}
-                                placeholder="Any additional information or special requirements..."
-                            />
-                        </Grid>
+
                     </Grid>
                 </Box>
 

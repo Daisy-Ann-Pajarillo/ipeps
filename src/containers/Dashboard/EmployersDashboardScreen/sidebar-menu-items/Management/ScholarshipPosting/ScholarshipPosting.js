@@ -171,20 +171,39 @@ const ScholarshipPosting = () => {
                             className="w-full text-center font-bold py-5"
                             sx={{ color: "white" }}
                         >
-                            {companyStatus === "pending" ? (
-                                <>
-                                    Finish Company Details
-                                    <br />
-                                    <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
-                                        You can't post scholarship without completing company details.
-                                    </span>
-                                </>
+                            {companyStatus !== "accept" ? (
+                                companyStatus === "" ? (
+                                    <>
+                                        Finish Company Details
+                                        <br />
+                                        <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                                            You can't post scholarship without completing company details.
+                                        </span>
+                                    </>
+                                ) : companyStatus === "pending" ? (
+                                    <>
+                                        Wait for Admin Verification
+                                        <br />
+                                        <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                                            You can't post scholarship without admin validation.
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        Admin rejected your company
+                                        <br />
+                                        <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>
+                                            You can't post scholarship without admin validation.
+                                        </span>
+                                    </>
+                                )
                             ) : createScholarshipOpen ? (
                                 "Cancel Scholarship Posting"
                             ) : (
                                 "Create Scholarship Posting"
                             )}
                         </Typography>
+
                     </Button>
                 </Grid>
 
