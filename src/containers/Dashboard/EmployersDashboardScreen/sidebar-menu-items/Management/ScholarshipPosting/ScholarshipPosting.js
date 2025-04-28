@@ -135,7 +135,7 @@ const ScholarshipPosting = () => {
             // Optionally, show a modal or alert instead of immediate redirection
             alert("Your company status is pending. Please complete your company details before posting a scholarship.");
             navigate("/dashboard/manage-employers")
-        } else if (companyStatus === "accept") {
+        } else if (companyStatus === "approved") {
             setCreateScholarshipOpen(!createScholarshipOpen);
         }
         else if (companyStatus === "reject") {
@@ -171,7 +171,7 @@ const ScholarshipPosting = () => {
                             className="w-full text-center font-bold py-5"
                             sx={{ color: "white" }}
                         >
-                            {companyStatus !== "accept" ? (
+                            {companyStatus !== "approved" ? (
                                 companyStatus === "" ? (
                                     <>
                                         Finish Company Details

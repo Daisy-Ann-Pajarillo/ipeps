@@ -172,7 +172,7 @@ const JobPosting = ({ isCollapsed }) => {
       // Optionally, show a modal or alert instead of immediate redirection
       alert("Your company status is pending. Please complete your company details before posting a job.");
       navigate("/dashboard/manage-employers")
-    } else if (companyStatus === "accept") {
+    } else if (companyStatus === "approved") {
       setCreateJobOpen(!createJobOpen);
     }
     else if (companyStatus === "reject") {
@@ -206,7 +206,7 @@ const JobPosting = ({ isCollapsed }) => {
               className="w-full text-center font-bold py-5"
               sx={{ color: "white" }}
             >
-              {companyStatus !== "accept" ? (
+              {companyStatus !== "approved" ? (
                 companyStatus === "" ? (
                   <>
                     Finish Company Details

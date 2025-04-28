@@ -112,7 +112,7 @@ const TrainingPosting = () => {
       // Optionally, show a modal or alert instead of immediate redirection
       alert("Your company status is pending. Please complete your company details before posting a training.");
       navigate("/dashboard/manage-employers")
-    } else if (companyStatus === "accept") {
+    } else if (companyStatus === "approved") {
       setCreateTrainingOpen(!createTrainingOpen);
     }
     else if (companyStatus === "reject") {
@@ -147,7 +147,7 @@ const TrainingPosting = () => {
               className="w-full text-center font-bold py-5"
               sx={{ color: "white" }}
             >
-              {companyStatus !== "accept" ? (
+              {companyStatus !== "approved" ? (
                 companyStatus === "" ? (
                   <>
                     Finish Company Details
