@@ -27,6 +27,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTheme } from "@mui/material";
 
+
 // Function to map status to MUI color
 const getStatusColor = (status) => {
   switch (status?.toLowerCase()) {
@@ -41,6 +42,7 @@ const getStatusColor = (status) => {
   }
 };
 
+
 const PostedJob = ({ createJobOpen }) => {
   const theme = useTheme();
   // Define chipStyles using MUI theme directly
@@ -49,6 +51,7 @@ const PostedJob = ({ createJobOpen }) => {
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.primary.contrastText
   };
+
 
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -59,14 +62,17 @@ const PostedJob = ({ createJobOpen }) => {
   const [showApplicantDetails, setShowApplicantDetails] = useState(false);
   const [openDetailDialog, setOpenDetailDialog] = useState(false);
 
+
   // setup auth, retrieving the token from local storage
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
+
 
   // Load authentication state
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
+
 
   useEffect(() => {
     // Fetch job postings from the API
@@ -93,12 +99,14 @@ const PostedJob = ({ createJobOpen }) => {
     fetchJobs();
   }, [auth.token]);
 
+
   // Debug log to check first job record structure
   useEffect(() => {
     if (jobs.length > 0) {
       console.log("First job record:", jobs[0]);
     }
   }, [jobs]);
+
 
   const handleViewDetails = (job) => {
     setSelectedJob(job);
@@ -109,11 +117,13 @@ const PostedJob = ({ createJobOpen }) => {
     setSelectedApplicant(null);
   };
 
+
   const handleCloseDetails = () => {
     setDetailsPanelOpen(false);
     setApplicantsOpen(false);
     setShowApplicantDetails(false);
   };
+
 
   const handleViewApplicants = async (jobId) => {
     try {
@@ -123,31 +133,39 @@ const PostedJob = ({ createJobOpen }) => {
         return;
       }
 
+
       const response = await axios.get(`/api/get-applied-jobs/${jobId}`, {
         auth: { username: auth.token }
       });
 
+
       if (response.data && Array.isArray(response.data.applications)) {
-        const formattedApplicants = response.data.applications.map(applicant => ({
-          id: applicant.application_id,
-          application_date: applicant.created_at,
-          status: applicant.status || 'pending',
-          user_details: applicant.user_details,
-          first_name: applicant.user_details?.personal_information?.first_name || 'N/A',
-          last_name: applicant.user_details?.personal_information?.last_name || 'N/A',
-          email: applicant.user_details?.email || 'N/A',
-          phone_number: applicant.user_details?.personal_information?.cellphone_number || 'N/A',
-          location: `${applicant.user_details?.personal_information?.permanent_municipality || 'N/A'}, ${applicant.user_details?.personal_information?.permanent_country || 'N/A'}`,
-          educational_background: applicant.user_details?.educational_background || [],
-          trainings: applicant.user_details?.trainings || [],
-          professional_licenses: applicant.user_details?.professional_licenses || [],
-          work_experiences: applicant.user_details?.work_experiences || [],
-          other_skills: applicant.user_details?.other_skills || [],
-          personal_information: applicant.user_details?.personal_information || {}
-        }));
+        const formattedApplicants = response.data.applications.map(applicant => {
+          const personalInfo = applicant.user_details?.personal_information || {};
+          return {
+            id: applicant.application_id,
+            application_date: applicant.created_at,
+            status: applicant.status || 'pending',
+            first_name: personalInfo.first_name || 'N/A',
+            last_name: personalInfo.last_name || 'N/A',
+            email: applicant.user_details?.email || 'N/A',
+            phone_number: personalInfo.cellphone_number || 'N/A',
+            // Just store place_of_birth directly as the location
+            location: personalInfo.place_of_birth || 'Not provided',
+            educational_background: applicant.user_details?.educational_background || [],
+            trainings: applicant.user_details?.trainings || [],
+            professional_licenses: applicant.user_details?.professional_licenses || [],
+            work_experiences: applicant.user_details?.work_experiences || [],
+            other_skills: applicant.user_details?.other_skills || [],
+            job_preference: applicant.user_details?.job_preference || {},
+            personal_information: personalInfo
+          };
+        });
+
 
         setJobApplicants(formattedApplicants);
         setApplicantsOpen(true);
+
 
         if (formattedApplicants.length === 0) {
           toast.info("No applicants found for this job");
@@ -159,10 +177,12 @@ const PostedJob = ({ createJobOpen }) => {
     }
   };
 
+
   const handleViewApplicantDetails = (applicant) => {
     setSelectedApplicant(applicant);
     setShowApplicantDetails(true);
   };
+
 
   const handleHireApplicant = async (applicantId) => {
     try {
@@ -180,6 +200,7 @@ const PostedJob = ({ createJobOpen }) => {
     }
   };
 
+
   const handleRejectApplicant = async (applicantId) => {
     try {
       // For demo, just update the state locally
@@ -196,13 +217,16 @@ const PostedJob = ({ createJobOpen }) => {
     }
   };
 
+
   const handleViewFullDetails = () => {
     setOpenDetailDialog(true);
   };
 
+
   const handleCloseDialog = () => {
     setOpenDetailDialog(false);
   };
+
 
   return (
     <Box sx={{ height: "100%", position: "relative", display: "flex", flexDirection: "column" }}>
@@ -541,24 +565,36 @@ const PostedJob = ({ createJobOpen }) => {
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant="subtitle2" color="text.secondary">Location</Typography>
-                        <Typography variant="body1">{selectedApplicant.location || 'Not provided'}</Typography>
+                        <Typography variant="body1">
+                          {selectedApplicant?.location}
+                        </Typography>
                       </Grid>
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Education</Typography>
-                        <Typography variant="body1">{selectedApplicant.education || 'Not provided'}</Typography>
+                        <Typography variant="body1">
+                          {selectedApplicant.educational_background && selectedApplicant.educational_background.length > 0
+                            ? selectedApplicant.educational_background.map((edu, idx) =>
+                              `${edu.degree_or_qualification || ''}${edu.field_of_study ? ' in ' + edu.field_of_study : ''}${edu.school_name ? ', ' + edu.school_name : ''}`
+                            ).join('; ')
+                            : 'Not provided'}
+                        </Typography>
                       </Grid>
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Experience</Typography>
-                        <Typography variant="body1">{selectedApplicant.experience || 'Not provided'}</Typography>
+                        <Typography variant="body1">
+                          {selectedApplicant.work_experiences && selectedApplicant.work_experiences.length > 0
+                            ? selectedApplicant.work_experiences.map((exp, idx) =>
+                              `${exp.position || ''}${exp.company_name ? ' at ' + exp.company_name : ''}`
+                            ).join('; ')
+                            : 'Not provided'}
+                        </Typography>
                       </Grid>
                       <Grid item xs={12}>
                         <Typography variant="subtitle2" color="text.secondary">Skills</Typography>
-                        <Typography variant="body1">{selectedApplicant.skills || 'Not provided'}</Typography>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary">Cover Letter</Typography>
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                          {selectedApplicant.cover_letter || 'No cover letter provided'}
+                        <Typography variant="body1">
+                          {selectedApplicant.other_skills && selectedApplicant.other_skills.length > 0
+                            ? selectedApplicant.other_skills.map(skill => skill.skills).join(', ')
+                            : 'Not provided'}
                         </Typography>
                       </Grid>
                       <Grid item xs={12}>
@@ -650,7 +686,36 @@ const PostedJob = ({ createJobOpen }) => {
                 <Typography color="text.secondary">Last Name</Typography>
                 <Typography>{selectedApplicant?.personal_information?.last_name || 'N/A'}</Typography>
               </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Suffix</Typography>
+                <Typography>{selectedApplicant?.personal_information?.suffix || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Sex</Typography>
+                <Typography>{selectedApplicant?.personal_information?.sex || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Date of Birth</Typography>
+                <Typography>{selectedApplicant?.personal_information?.date_of_birth || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Place of Birth</Typography>
+                <Typography>{selectedApplicant?.personal_information?.place_of_birth || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Civil Status</Typography>
+                <Typography>{selectedApplicant?.personal_information?.civil_status || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Phone Number</Typography>
+                <Typography>{selectedApplicant?.personal_information?.cellphone_number || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Religion</Typography>
+                <Typography>{selectedApplicant?.personal_information?.religion || 'N/A'}</Typography>
+              </Grid>
             </Grid>
+
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PREFERRED WORK LOCATION</Typography>
             <Grid container spacing={2}>
@@ -681,6 +746,7 @@ const PostedJob = ({ createJobOpen }) => {
                 </Typography>
               </Grid>
             </Grid>
+
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>EDUCATIONAL BACKGROUND</Typography>
             {selectedApplicant?.educational_background?.map((edu, index) => (
@@ -714,29 +780,57 @@ const PostedJob = ({ createJobOpen }) => {
               </Paper>
             ))}
 
+
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>TRAININGS</Typography>
             {selectedApplicant?.trainings?.map((training, index) => (
               <Paper key={index} sx={{ p: 2, mb: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">Training Title</Typography>
-                    <Typography>{training.training_title}</Typography>
+                    <Typography>{training.course_name || 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">Training Institution</Typography>
-                    <Typography>{training.training_institution}</Typography>
+                    <Typography>{training.training_institution || 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography color="text.secondary">Duration</Typography>
-                    <Typography>{training.duration}</Typography>
+                    <Typography color="text.secondary">Skills Acquired</Typography>
+                    <Typography>{training.skills_acquired || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Hours of Training</Typography>
+                    <Typography>{training.hours_of_training || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Start Date</Typography>
+                    <Typography>{training.start_date ? new Date(training.start_date).toLocaleDateString() : 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">End Date</Typography>
+                    <Typography>{training.end_date ? new Date(training.end_date).toLocaleDateString() : 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">Certificate Received</Typography>
-                    <Typography>{training.certificate_received}</Typography>
+                    <Typography>{training.certificates_received || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Credential ID</Typography>
+                    <Typography>{training.credential_id || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography color="text.secondary">Credential URL</Typography>
+                    <Typography>
+                      {training.credential_url ? (
+                        <a href={training.credential_url} target="_blank" rel="noopener noreferrer">
+                          {training.credential_url}
+                        </a>
+                      ) : 'N/A'}
+                    </Typography>
                   </Grid>
                 </Grid>
               </Paper>
             ))}
+
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PROFESSIONAL LICENSE</Typography>
             {selectedApplicant?.professional_licenses?.map((license, index) => (
@@ -744,19 +838,32 @@ const PostedJob = ({ createJobOpen }) => {
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">License Name</Typography>
-                    <Typography>{license.license_name}</Typography>
+                    <Typography>{license.name || 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={6}>
-                    <Typography color="text.secondary">License Number</Typography>
-                    <Typography>{license.license_number}</Typography>
+                    <Typography color="text.secondary">License Type</Typography>
+                    <Typography>{license.license || 'N/A'}</Typography>
                   </Grid>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">Valid Until</Typography>
-                    <Typography>{new Date(license.valid_until).toLocaleDateString()}</Typography>
+                    <Typography>
+                      {/* Debug: Show raw value */}
+                      {/* {JSON.stringify(license.validity)} */}
+                      {
+                        license.validity && typeof license.validity === 'string' && /^\d{4}-\d{2}-\d{2}/.test(license.validity)
+                          ? new Date(license.validity + 'T00:00:00').toLocaleDateString()
+                          : 'N/A'
+                      }
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Rating</Typography>
+                    <Typography>{license.rating || 'N/A'}</Typography>
                   </Grid>
                 </Grid>
               </Paper>
             ))}
+
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>WORK EXPERIENCE</Typography>
             {selectedApplicant?.work_experiences?.map((exp, index) => (
@@ -776,15 +883,47 @@ const PostedJob = ({ createJobOpen }) => {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">Start Date</Typography>
-                    <Typography>{new Date(exp.start_date).toLocaleDateString()}</Typography>
+                    <Typography>
+                      {
+                        exp.date_start
+                          ? (() => {
+                            // Accept both 'YYYY-MM-DD' and 'YYYY-MM-DDTHH:mm:ss' formats
+                            const d = new Date(exp.date_start);
+                            return isNaN(d.getTime())
+                              ? (
+                                /^\d{4}-\d{2}-\d{2}$/.test(exp.date_start)
+                                  ? new Date(exp.date_start + 'T00:00:00').toLocaleDateString()
+                                  : 'N/A'
+                              )
+                              : d.toLocaleDateString();
+                          })()
+                          : 'N/A'
+                      }
+                    </Typography>
                   </Grid>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">End Date</Typography>
-                    <Typography>{exp.end_date ? new Date(exp.end_date).toLocaleDateString() : 'Present'}</Typography>
+                    <Typography>
+                      {
+                        exp.date_end
+                          ? (() => {
+                            const d = new Date(exp.date_end);
+                            return isNaN(d.getTime())
+                              ? (
+                                /^\d{4}-\d{2}-\d{2}$/.test(exp.date_end)
+                                  ? new Date(exp.date_end + 'T00:00:00').toLocaleDateString()
+                                  : 'N/A'
+                              )
+                              : d.toLocaleDateString();
+                          })()
+                          : 'Present'
+                      }
+                    </Typography>
                   </Grid>
                 </Grid>
               </Paper>
             ))}
+
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>OTHER SKILLS</Typography>
             <Box sx={{ mb: 2 }}>
@@ -804,4 +943,6 @@ const PostedJob = ({ createJobOpen }) => {
   );
 };
 
+
 export default PostedJob;
+

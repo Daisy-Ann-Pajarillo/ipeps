@@ -13,20 +13,16 @@ import {
   Button,
   Autocomplete,
 } from "@mui/material";
-
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../../store/actions/index";
-
 import PostedJob from "./PostedJob";
 import countriesList from "../../../../../../reusable/constants/countriesList";
 import axios from '../../../../../../axios';
 import { useNavigate } from "react-router-dom";
-
-//Pop-upModals
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Updated schema without required courses
+// Updated schema with required fields
 const jobSchema = yup.object().shape({
   job_title: yup.string().required("Job Title is required"),
   job_type: yup.string().required("Job Type is required"),
@@ -40,6 +36,9 @@ const jobSchema = yup.object().shape({
   expiration_date: yup.date().required("Expiration Date is required"),
   other_skills: yup.string().required("Other Skills are required"),
   tech_voc_training: yup.string(),
+  Deployment_region: yup.string().required("Deployment Region is required"),
+  Contract_period: yup.string().required("Contract Period is required"),
+  local_or_overseas: yup.string().required("Local/Overseas is required"),
 });
 
 const JobPosting = ({ isCollapsed }) => {
@@ -55,23 +54,42 @@ const JobPosting = ({ isCollapsed }) => {
 
   const [selectedCountry, setSelectedCountry] = useState("");
   const [companyStatus, setCompanyStatus] = useState("");
-  // setup auth, retrieving the token from local storage
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   // Load authentication state
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-  // Submit the form data to the backend
-  const onSubmit = async (data) => {
-    if (data.expiration_date) {
-      data.expiration_date = new Date(data.expiration_date)
-        .toISOString()
-        .split("T")[0];
+  // Fetch company status
+  useEffect(() => {
+    if (auth.token) {
+      axios
+        .get('/api/get-company-information', {
+          auth: { username: auth.token },
+        })
+        .then((response) => {
+          setCompanyStatus(response.data.company_information.status);
+        })
+        .catch((error) => {
+          console.error('Error fetching company information:', error);
+        });
     }
+  }, [auth.token]);
+
+  // Handle form submission
+  const onSubmit = async (data) => {
     try {
+      // Format expiration date
+      if (data.expiration_date) {
+        data.expiration_date = new Date(data.expiration_date)
+          .toISOString()
+          .split("T")[0];
+      }
+
+      // Send data to backend
       const response = await axios.post("/api/job-postings", data, {
         headers: {
           "Content-Type": "application/json",
@@ -80,12 +98,8 @@ const JobPosting = ({ isCollapsed }) => {
           username: auth.token,
         },
       });
-      console.log("Response:", response.data);
-      if (response.status === 201) {
-        console.log("✅ Job posting created successfully");
-        console.log("Response Data:", response.data);
 
-        // Show success toast notification
+      if (response.status === 201) {
         toast.success("Job posting created successfully!", {
           position: "top-right",
           autoClose: 3000,
@@ -93,12 +107,10 @@ const JobPosting = ({ isCollapsed }) => {
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
-          progress: undefined,
           theme: "light",
-          onClose: () => window.location.reload(),
         });
 
-        // Reset the form fields to their default values
+        // Reset form and state
         reset({
           job_title: "",
           job_type: "",
@@ -112,14 +124,12 @@ const JobPosting = ({ isCollapsed }) => {
           expiration_date: "",
           other_skills: "",
           tech_voc_training: "",
+          Deployment_region: "",
+          Contract_period: "",
+          local_or_overseas: "",
         });
-
-        // Clear the selected country in the Autocomplete
         setSelectedCountry("");
       } else {
-        console.warn("⚠️ Unexpected status code:", response.status);
-
-        // Show warning toast notification
         toast.warn(`Unexpected status code: ${response.status}`, {
           position: "top-right",
           autoClose: 3000,
@@ -127,14 +137,10 @@ const JobPosting = ({ isCollapsed }) => {
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
-          progress: undefined,
           theme: "colored",
         });
       }
     } catch (error) {
-      console.error("❌ Error submitting job posting:", error.message);
-
-      // Show error toast notification
       toast.error(`Error submitting job posting: ${error.message}`, {
         position: "top-right",
         autoClose: 3000,
@@ -142,47 +148,29 @@ const JobPosting = ({ isCollapsed }) => {
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
-        progress: undefined,
         theme: "colored",
       });
     }
   };
 
-  const [createJobOpen, setCreateJobOpen] = useState(false);
-
-  useEffect(() => {
-    axios.get('/api/get-company-information', {
-      auth: { username: auth.token }
-    })
-      .then((response) => {
-        setCompanyStatus(response.data.company_information.status)
-      })
-      .catch((error) => {
-        console.error('Error data:', error);
-
-      });
-  }, []);
-
-  const navigate = useNavigate();
-
-  // Function to handle button click
+  // Handle button click based on company status
   const handleButtonClick = () => {
-
     if (companyStatus === "pending") {
-      // Optionally, show a modal or alert instead of immediate redirection
       alert("Your company status is pending. Please complete your company details before posting a job.");
-      navigate("/dashboard/manage-employers")
+      navigate("/dashboard/manage-employers");
     } else if (companyStatus === "approved") {
       setCreateJobOpen(!createJobOpen);
-    }
-    else if (companyStatus === "reject") {
+    } else if (companyStatus === "reject") {
       alert("Your company status is rejected. Please contact support for more information.");
-      navigate("/dashboard/manage-employers")
+      navigate("/dashboard/manage-employers");
     } else {
       alert("Error. Please check your company status.");
-      navigate("/dashboard/manage-employers")
+      navigate("/dashboard/manage-employers");
     }
   };
+
+  const [createJobOpen, setCreateJobOpen] = useState(false);
+
   return (
     <Box className="flex flex-col w-full h-full">
       <Grid container className="h-full">
@@ -197,9 +185,15 @@ const JobPosting = ({ isCollapsed }) => {
               },
               color: "white",
               py: 1,
-              transition: "background-color 0.3s ease", // Smooth hover effect
+              transition: "background-color 0.3s ease",
             }}
-            aria-label={companyStatus === "pending" ? "Complete company details" : createJobOpen ? "Cancel job posting" : "Create job posting"}
+            aria-label={
+              companyStatus === "pending"
+                ? "Complete company details"
+                : createJobOpen
+                  ? "Cancel job posting"
+                  : "Create job posting"
+            }
           >
             <Typography
               variant="h5"
@@ -238,7 +232,6 @@ const JobPosting = ({ isCollapsed }) => {
                 "Create Job Posting"
               )}
             </Typography>
-
           </Button>
         </Grid>
 
@@ -250,20 +243,21 @@ const JobPosting = ({ isCollapsed }) => {
                   onSubmit={handleSubmit(onSubmit)}
                   className="flex flex-col gap-6"
                 >
+                  {/* Job Details Section */}
                   <div className="border-b pb-4">
                     <Typography variant="h6" className="font-semibold">
                       Job Details
                     </Typography>
-                    <Grid item xs={12} className="my-3">
-                      <TextField
-                        label="Job Title"
-                        {...register("job_title")}
-                        fullWidth
-                        error={!!errors.job_title}
-                        helperText={errors.job_title?.message}
-                      />
-                    </Grid>
                     <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Job Title"
+                          {...register("job_title")}
+                          fullWidth
+                          error={!!errors.job_title}
+                          helperText={errors.job_title?.message}
+                        />
+                      </Grid>
                       <Grid item xs={12} md={6}>
                         <InputLabel>Job Type</InputLabel>
                         <Controller
@@ -289,7 +283,6 @@ const JobPosting = ({ isCollapsed }) => {
                           </p>
                         )}
                       </Grid>
-
                       <Grid item xs={12} md={6}>
                         <InputLabel>Experience Level</InputLabel>
                         <Controller
@@ -315,7 +308,6 @@ const JobPosting = ({ isCollapsed }) => {
                           </p>
                         )}
                       </Grid>
-
                       <Grid item xs={12}>
                         <TextField
                           label="Job Description"
@@ -341,6 +333,7 @@ const JobPosting = ({ isCollapsed }) => {
                     </Grid>
                   </div>
 
+                  {/* Salary & Location Section */}
                   <div className="border-b pb-4">
                     <Typography variant="h6" className="font-semibold mb-2">
                       Salary & Location
@@ -366,7 +359,6 @@ const JobPosting = ({ isCollapsed }) => {
                           helperText={errors.estimated_salary_to?.message}
                         />
                       </Grid>
-
                       <Grid item xs={12} sm={6}>
                         <Controller
                           name="country"
@@ -400,7 +392,6 @@ const JobPosting = ({ isCollapsed }) => {
                           helperText={errors.city_municipality?.message}
                         />
                       </Grid>
-
                       <Grid item xs={12}>
                         <TextField
                           label="Number of Vacancies"
@@ -411,7 +402,26 @@ const JobPosting = ({ isCollapsed }) => {
                           helperText={errors.no_of_vacancies?.message}
                         />
                       </Grid>
-
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            label="Deployment Region"
+                            {...register("Deployment_region")}
+                            fullWidth
+                            error={!!errors.Deployment_region}
+                            helperText={errors.Deployment_region?.message}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <TextField
+                            label="Contract Period"
+                            {...register("Contract_period")}
+                            fullWidth
+                            error={!!errors.Contract_period}
+                            helperText={errors.Contract_period?.message}
+                          />
+                        </Grid>
+                      </Grid>
                       <Grid item xs={12}>
                         <TextField
                           label="Other Skills"
@@ -424,9 +434,34 @@ const JobPosting = ({ isCollapsed }) => {
                           helperText={errors.other_skills?.message}
                         />
                       </Grid>
+                      <Grid item xs={12} md={6}>
+                        <InputLabel>Local/Overseas</InputLabel>
+                        <Controller
+                          name="local_or_overseas"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              {...field}
+                              fullWidth
+                              defaultValue=""
+                              error={!!errors.local_or_overseas}
+                            >
+                              <MenuItem value="">Select</MenuItem>
+                              <MenuItem value="Local">Local</MenuItem>
+                              <MenuItem value="Overseas">Overseas</MenuItem>
+                            </Select>
+                          )}
+                        />
+                        {errors.local_or_overseas && (
+                          <p className="text-red-500 text-sm">
+                            {errors.local_or_overseas.message}
+                          </p>
+                        )}
+                      </Grid>
                     </Grid>
                   </div>
 
+                  {/* Technical/Vocational Training Section */}
                   <div>
                     <Grid item xs={12}>
                       <TextField
@@ -442,6 +477,7 @@ const JobPosting = ({ isCollapsed }) => {
                     </Grid>
                   </div>
 
+                  {/* Submit Button */}
                   <Button
                     type="submit"
                     variant="contained"

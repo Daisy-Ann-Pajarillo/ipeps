@@ -12,7 +12,13 @@ import {
   CardMedia,
   TextField,
   InputLabel,
-  Avatar
+  Avatar,
+  Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Chip,
+  useTheme
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from '@mui/icons-material/Person';
@@ -23,11 +29,13 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { CloudUpload } from '@mui/icons-material';
 
+
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../../store/actions/index";
 import AddIcon from '@mui/icons-material/Add';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
 
 // Function to map status to MUI color
 const getStatusColor = (status) => {
@@ -43,13 +51,16 @@ const getStatusColor = (status) => {
   }
 };
 
+
 const schema = yup.object().shape({
   training_title: yup.string().required('Training title is required'),
   training_description: yup.string().required('Training description is required'),
   expiration_date: yup.date().required('Expiration date is required'),
 });
 
+
 const PostedTraining = () => {
+  const theme = useTheme();
   const [trainingData, setTrainingData] = useState([]);
   const [bookmarked, setBookmarked] = useState({});
   const [selectedTraining, setSelectedTraining] = useState(null);
@@ -61,15 +72,20 @@ const PostedTraining = () => {
   const [trainingApplicants, setTrainingApplicants] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showApplicantDetails, setShowApplicantDetails] = useState(false);
+  const [fullDetailsOpen, setFullDetailsOpen] = useState(false);
+  const [openDetailDialog, setOpenDetailDialog] = useState(false);
+
 
   // setup auth, retrieving the token from local storage
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
   // Load authentication state
 
+
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
+
 
   const {
     register,
@@ -78,13 +94,16 @@ const PostedTraining = () => {
     formState: { errors },
   } = useForm({ resolver: yupResolver(schema) });
 
+
   // Add this to watch the slots value
   const watchedSlots = watch("slots");
+
 
   // Log when the slots value changes
   useEffect(() => {
     console.log("Current slots value:", watchedSlots);
   }, [watchedSlots]);
+
 
   //Get Training Data
   useEffect(() => {
@@ -93,36 +112,18 @@ const PostedTraining = () => {
         const response = await axios.get('/api/get-training-postings', {
           auth: { username: auth.token }
         });
-
-        const responseData = response.data;
-        const data = Array.isArray(responseData.training_postings)
-          ? responseData.training_postings
-          : [];
-
-        console.log('Complete Raw Training Data:', responseData); // Log the entire response
-        console.log('Training Data Array:', data); // Log the training data array
-
-        // Log all potential slot field names for the first item if available
-        if (data.length > 0) {
-          console.log('First training item field names:', Object.keys(data[0]));
-          console.log('Potential slot values in first item:', {
-            slots: data[0].slots,
-            no_of_slots: data[0].no_of_slots,
-            vacancies: data[0].vacancies,
-            no_of_vacancies: data[0].no_of_vacancies,
-            slot: data[0].slot,
-            rawObject: JSON.stringify(data[0])
-          });
-        }
-
+        const data = Array.isArray(response.data.training_postings) ? response.data.training_postings : [];
+        console.log('Training Data from API:', data); // Debug log
         setTrainingData(data);
       } catch (error) {
         console.error('Error fetching training data:', error);
       }
     };
 
+
     fetchTrainingData();
   }, [auth.token]);
+
 
   // More thorough debug log to check training record structure
   useEffect(() => {
@@ -132,19 +133,21 @@ const PostedTraining = () => {
     }
   }, [trainingData]);
 
+
   const handleBookmark = (id) => {
     setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+
   const handleTrainingClick = (training) => {
-    console.log("Viewing training details with slots:", training.slots);
+    console.log("Selected training:", training); // Debug log
     setSelectedTraining(training);
     setDetailsOpen(true);
-    // Reset applicant views when showing a new training
     setApplicantsOpen(false);
     setShowApplicantDetails(false);
     setSelectedApplicant(null);
   };
+
 
   const handleCloseDetails = () => {
     setDetailsOpen(false);
@@ -152,17 +155,21 @@ const PostedTraining = () => {
     setShowApplicantDetails(false);
   };
 
+
   const handleCreateTraining = () => {
     setCreateTrainingOpen(true);
   };
+
 
   const handleCloseCreateTraining = () => {
     setCreateTrainingOpen(false);
   };
 
+
   const onSubmit = async (data) => {
     console.log("Form data on submit:", data);
     console.log("Slots value on submit:", data.slots);
+
 
     const formattedData = {
       training_title: data.training_title,
@@ -173,12 +180,15 @@ const PostedTraining = () => {
       slots: data.slots // Ensure slots is included in the submission
     };
 
+
     console.log("Formatted data being sent:", formattedData);
+
 
     try {
       const response = await axios.post('/api/training-posting', formattedData, {
         auth: { username: auth.token }
       });
+
 
       if (response.status === 201) {
         toast.success('Training posted successfully!', { autoClose: 3000 });
@@ -193,6 +203,7 @@ const PostedTraining = () => {
     }
   };
 
+
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files);
     if (images.length + files.length > maxImages) {
@@ -202,82 +213,69 @@ const PostedTraining = () => {
     setImages((prev) => [...prev, ...files]);
   };
 
+
   const handleRemoveImage = (indexToRemove) => {
     setImages((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
+
   const handleViewApplicants = async (trainingId) => {
+    console.log("Attempting to fetch applicants for training ID:", trainingId); // Debug log
     try {
-      // In a real app, you'd fetch from an API
-      // For demo purposes, we'll create dummy data
-      const dummyApplicants = [
-        {
-          id: 1,
-          first_name: "David",
-          last_name: "Reyes",
-          email: "david.reyes@example.com",
-          phone_number: "+639876543210",
-          location: "Makati, Philippines",
-          education: "BSIT, University of Manila",
-          statement: "I'm interested in this training program to enhance my web development skills...",
-          application_date: "2023-07-20",
-          profile_pic: "",
-          status: "pending"
-        },
-        {
-          id: 2,
-          first_name: "Maria",
-          last_name: "Cruz",
-          email: "maria.cruz@example.com",
-          phone_number: "+639123456789",
-          location: "Pasig, Philippines",
-          education: "BS Computer Science, State University",
-          statement: "Looking to expand my knowledge in this field to apply it to my current work...",
-          application_date: "2023-07-19",
-          profile_pic: "",
-          status: "pending"
-        },
-        {
-          id: 3,
-          first_name: "Juan",
-          last_name: "Dela Cruz",
-          email: "juan.delacruz@example.com",
-          phone_number: "+639111222333",
-          location: "Quezon City, Philippines",
-          education: "BSIT, Philippine College",
-          statement: "I'm eager to learn new skills that will help me advance in my career...",
-          application_date: "2023-07-18",
-          profile_pic: "",
-          status: "accepted"
-        }
-      ];
+      if (!trainingId) {
+        console.error('Training ID is undefined. Selected Training:', selectedTraining); // Debug log
+        toast.error('Invalid training ID');
+        return;
+      }
 
-      setTrainingApplicants(dummyApplicants);
-      setApplicantsOpen(true);
 
-      /* In production, you'd use actual API:
-      const response = await axios.get(`/api/training-applicants/${trainingId}`, {
+      const response = await axios.get(`/api/get-applied-trainings/${trainingId}`, {
         auth: { username: auth.token }
       });
-      
-      if (response.status === 200) {
-        setTrainingApplicants(response.data.applicants || []);
+
+
+      if (response.data && Array.isArray(response.data.applications)) {
+        const formattedApplicants = response.data.applications.map(applicant => {
+          const personalInfo = applicant.user_details?.personal_information || {};
+          return {
+            id: applicant.application_id,
+            application_date: applicant.created_at,
+            status: applicant.status || 'pending',
+            first_name: personalInfo.first_name || 'N/A',
+            last_name: personalInfo.last_name || 'N/A',
+            email: applicant.user_details?.email || 'N/A',
+            phone_number: personalInfo.cellphone_number || 'N/A',
+            // Just store place_of_birth directly as the location
+            location: personalInfo.place_of_birth || 'Not provided',
+            educational_background: applicant.user_details?.educational_background || [],
+            trainings: applicant.user_details?.trainings || [],
+            professional_licenses: applicant.user_details?.professional_licenses || [],
+            work_experiences: applicant.user_details?.work_experiences || [],
+            other_skills: applicant.user_details?.other_skills || [],
+            job_preference: applicant.user_details?.job_preference || {},
+            personal_information: personalInfo
+          };
+        });
+        setTrainingApplicants(formattedApplicants);
         setApplicantsOpen(true);
-      } else {
-        console.error('Failed to fetch training applicants');
-        toast.error('Failed to fetch applicants');
+
+
+        if (formattedApplicants.length === 0) {
+          toast.info("No applicants found for this training");
+        }
       }
-      */
     } catch (error) {
       console.error('Error fetching training applicants:', error);
-      toast.error('Error loading applicants');
+      toast.error('Error loading applicants. Please try again later.');
     }
   };
+
 
   const handleViewApplicantDetails = (applicant) => {
     setSelectedApplicant(applicant);
     setShowApplicantDetails(true);
   };
+
 
   const handleAcceptApplicant = async (applicantId) => {
     try {
@@ -288,15 +286,17 @@ const PostedTraining = () => {
         )
       );
 
+
       setSelectedApplicant(prev => ({ ...prev, status: 'accepted' }));
       toast.success('Applicant accepted successfully!');
 
+
       /* In production:
-      const response = await axios.post(`/api/accept-training-applicant`, 
+      const response = await axios.post(`/api/accept-training-applicant`,
         { applicant_id: applicantId, training_id: selectedTraining.id },
         { auth: { username: auth.token } }
       );
-      
+     
       if (response.status === 200) {
         toast.success('Applicant accepted successfully!');
         // Refresh the applicants list
@@ -311,6 +311,7 @@ const PostedTraining = () => {
     }
   };
 
+
   const handleRejectApplicant = async (applicantId) => {
     try {
       // For demo, just update the state locally
@@ -320,15 +321,17 @@ const PostedTraining = () => {
         )
       );
 
+
       setSelectedApplicant(prev => ({ ...prev, status: 'rejected' }));
       toast.success('Applicant rejected');
 
+
       /* In production:
-      const response = await axios.post(`/api/reject-training-applicant`, 
+      const response = await axios.post(`/api/reject-training-applicant`,
         { applicant_id: applicantId, training_id: selectedTraining.id },
         { auth: { username: auth.token } }
       );
-      
+     
       if (response.status === 200) {
         toast.success('Applicant rejected');
         // Refresh the applicants list
@@ -343,17 +346,58 @@ const PostedTraining = () => {
     }
   };
 
+
   // Simplified helper function to get slot value directly
   const getSlotValue = (training) => {
     console.log(`Raw training object:`, training);
+
 
     // Log each potential field value separately for clarity
     console.log(`slots value: ${training.slots}`);
     console.log(`no_of_slots value: ${training.no_of_slots}`);
 
+
     // Directly return user-entered value or undefined
     return training.slots;
   };
+
+
+  const handleViewFullDetails = (applicant) => {
+    setSelectedApplicant(applicant);
+    setOpenDetailDialog(true);
+  };
+
+
+  const handleCloseDialog = () => {
+    setOpenDetailDialog(false);
+  };
+
+
+  const chipStyles = {
+    m: 0.5,
+    backgroundColor: theme.palette.primary.main,
+    color: theme.palette.primary.contrastText
+  };
+
+
+  const formatDataToMatch = (applicant) => {
+    return {
+      ...applicant,
+      educational_text: applicant.educational_background?.map(edu => {
+        const degree = edu.degree_or_qualification || 'Bachelor of Science';
+        const field = edu.field_of_study || 'Computer Science';
+        const school = edu.school_name || edu.school || 'University of Example';
+        return `${degree} in ${field}, ${school}`;
+      }).join('; ') || 'Not provided',
+      experience_text: applicant.work_experiences?.map(work =>
+        `${work.position || 'N/A'} at ${work.company_name || 'N/A'}`
+      ).join('; ') || 'Not provided',
+      skills_text: applicant.other_skills?.map(skill =>
+        typeof skill === 'object' ? skill.skills : skill
+      ).join(', ') || 'Not provided'
+    };
+  };
+
 
   return (
     <Box sx={{ height: '100%', position: 'relative', display: 'flex', flexDirection: 'column' }}>
@@ -366,6 +410,7 @@ const PostedTraining = () => {
             </IconButton>
           </Box>
           <Divider sx={{ mb: 3 }} />
+
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={2}>
@@ -440,6 +485,7 @@ const PostedTraining = () => {
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>Training Posted</Typography>
             </Box>
 
+
             <Box
               className={`p-6 grid gap-3 grid-cols-3`}
             >
@@ -471,6 +517,7 @@ const PostedTraining = () => {
                     </Box>
                   </Box>
 
+
                   <Typography variant="body2" color="text.secondary" sx={{
                     mb: 2,
                     display: '-webkit-box',
@@ -481,6 +528,7 @@ const PostedTraining = () => {
                   }}>
                     {training.training_description}
                   </Typography>
+
 
                   <Box sx={{ mt: 'auto' }}>
                     <Typography variant="body2" color="text.secondary">
@@ -514,6 +562,7 @@ const PostedTraining = () => {
             </Box>
           </Box>
 
+
           {/* Sliding details panel */}
           <Slide direction="left" in={detailsOpen} mountOnEnter unmountOnExit>
             <Box
@@ -544,7 +593,9 @@ const PostedTraining = () => {
                     </IconButton>
                   </Box>
 
+
                   <Divider sx={{ mb: 2 }} />
+
 
                   {/* Show training details when applicants section is closed */}
                   {!applicantsOpen && !showApplicantDetails && (
@@ -553,10 +604,12 @@ const PostedTraining = () => {
                         <Typography variant="h6" color="primary">{selectedTraining.training_title}</Typography>
                       </Grid>
 
+
                       <Grid item xs={12}>
                         <Typography variant="subtitle1" fontWeight="bold">Description</Typography>
                         <Typography variant="body1">{selectedTraining.training_description}</Typography>
                       </Grid>
+
 
                       <Grid item xs={6}>
                         <Typography variant="subtitle1" fontWeight="bold">Status</Typography>
@@ -575,12 +628,14 @@ const PostedTraining = () => {
                         </Button>
                       </Grid>
 
+
                       <Grid item xs={6}>
                         <Typography variant="subtitle1" fontWeight="bold">Expiration Date</Typography>
                         <Typography variant="body1">
                           {selectedTraining.expiration_date || 'Not specified'}
                         </Typography>
                       </Grid>
+
 
                       <Grid item xs={6}>
                         <Typography variant="subtitle1" fontWeight="bold">Slots</Typography>
@@ -589,19 +644,24 @@ const PostedTraining = () => {
                         </Typography>
                       </Grid>
 
+
                       <Grid item xs={12} sx={{ mt: 2 }}>
                         <Button
                           variant="contained"
                           color="primary"
                           fullWidth
                           startIcon={<PersonIcon />}
-                          onClick={() => handleViewApplicants(selectedTraining.id)}
+                          onClick={() => {
+                            console.log("Training ID being used:", selectedTraining?.training_id); // Debug log
+                            handleViewApplicants(selectedTraining?.training_id)
+                          }}
                         >
                           View Applicants
                         </Button>
                       </Grid>
                     </Grid>
                   )}
+
 
                   {/* Show applicants section when opened */}
                   {applicantsOpen && !showApplicantDetails && (
@@ -619,7 +679,9 @@ const PostedTraining = () => {
                         </Button>
                       </Box>
 
+
                       <Divider sx={{ mb: 2 }} />
+
 
                       {trainingApplicants.length === 0 ? (
                         <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
@@ -674,13 +736,12 @@ const PostedTraining = () => {
                     </>
                   )}
 
+
                   {/* Individual applicant details */}
                   {showApplicantDetails && selectedApplicant && (
                     <>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="h6">
-                          Application Review
-                        </Typography>
+                        <Typography variant="h6">Application Review</Typography>
                         <Button
                           variant="outlined"
                           size="small"
@@ -690,7 +751,9 @@ const PostedTraining = () => {
                         </Button>
                       </Box>
 
+
                       <Divider sx={{ mb: 3 }} />
+
 
                       <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Avatar
@@ -707,32 +770,52 @@ const PostedTraining = () => {
                         </Typography>
                       </Box>
 
+
                       <Grid container spacing={2}>
                         <Grid item xs={6}>
                           <Typography variant="subtitle2" color="text.secondary">Phone</Typography>
                           <Typography variant="body1">{selectedApplicant.phone_number || 'Not provided'}</Typography>
                         </Grid>
 
+
                         <Grid item xs={6}>
                           <Typography variant="subtitle2" color="text.secondary">Location</Typography>
                           <Typography variant="body1">{selectedApplicant.location || 'Not provided'}</Typography>
                         </Grid>
 
+
                         <Grid item xs={12}>
                           <Typography variant="subtitle2" color="text.secondary">Education</Typography>
-                          <Typography variant="body1">{selectedApplicant.education || 'Not provided'}</Typography>
+                          <Typography variant="body1">{formatDataToMatch(selectedApplicant).educational_text}</Typography>
                         </Grid>
+
 
                         <Grid item xs={12}>
-                          <Typography variant="subtitle2" color="text.secondary">Statement</Typography>
-                          <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                            {selectedApplicant.statement || 'No statement provided'}
-                          </Typography>
+                          <Typography variant="subtitle2" color="text.secondary">Experience</Typography>
+                          <Typography variant="body1">{formatDataToMatch(selectedApplicant).experience_text}</Typography>
                         </Grid>
 
+
+                        <Grid item xs={12}>
+                          <Typography variant="subtitle2" color="text.secondary">Skills</Typography>
+                          <Typography variant="body1">{formatDataToMatch(selectedApplicant).skills_text}</Typography>
+                        </Grid>
+
+
                         <Grid item xs={12} sx={{ mt: 2 }}>
+                          <Button
+                            variant="contained"
+                            fullWidth
+                            sx={{ mb: 2 }}
+                            onClick={() => handleViewFullDetails(selectedApplicant)}
+                          >
+                            VIEW FULL DETAILS OF APPLICANT
+                          </Button>
+
+
                           <Divider sx={{ mb: 2 }} />
                           <Typography variant="subtitle1" sx={{ mb: 2 }}>Application Status</Typography>
+
 
                           {selectedApplicant.status !== 'accepted' && selectedApplicant.status !== 'rejected' ? (
                             <Box sx={{ display: 'flex', gap: 2 }}>
@@ -775,9 +858,299 @@ const PostedTraining = () => {
           </Slide>
         </Box>
       )}
+
+
+      {/* Full Details Modal */}
+      <Dialog
+        open={openDetailDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Applicant Full Details
+            <IconButton onClick={handleCloseDialog}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>ABOUT</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={2}>
+                <Typography color="text.secondary">Prefix</Typography>
+                <Typography>{selectedApplicant?.personal_information?.prefix || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={4}>
+                <Typography color="text.secondary">First Name</Typography>
+                <Typography>{selectedApplicant?.personal_information?.first_name || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Middle Name</Typography>
+                <Typography>{selectedApplicant?.personal_information?.middle_name || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Last Name</Typography>
+                <Typography>{selectedApplicant?.personal_information?.last_name || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Suffix</Typography>
+                <Typography>{selectedApplicant?.personal_information?.suffix || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Sex</Typography>
+                <Typography>{selectedApplicant?.personal_information?.sex || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Date of Birth</Typography>
+                <Typography>{selectedApplicant?.personal_information?.date_of_birth || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Place of Birth</Typography>
+                <Typography>{selectedApplicant?.personal_information?.place_of_birth || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Civil Status</Typography>
+                <Typography>{selectedApplicant?.personal_information?.civil_status || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Phone Number</Typography>
+                <Typography>{selectedApplicant?.personal_information?.cellphone_number || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Typography color="text.secondary">Religion</Typography>
+                <Typography>{selectedApplicant?.personal_information?.religion || 'N/A'}</Typography>
+              </Grid>
+            </Grid>
+
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PREFERRED WORK LOCATION</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Country</Typography>
+                <Typography>{selectedApplicant?.job_preference?.country || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Province</Typography>
+                <Typography>{selectedApplicant?.job_preference?.province || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Municipality/City</Typography>
+                <Typography>{selectedApplicant?.job_preference?.municipality || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Industry</Typography>
+                <Typography>{selectedApplicant?.job_preference?.industry || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Preferred Occupation</Typography>
+                <Typography>{selectedApplicant?.job_preference?.preferred_occupation || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Salary Range</Typography>
+                <Typography>
+                  {selectedApplicant?.job_preference?.salary_from || 'N/A'} - {selectedApplicant?.job_preference?.salary_to || 'N/A'}
+                </Typography>
+              </Grid>
+            </Grid>
+
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>EDUCATIONAL BACKGROUND</Typography>
+            {selectedApplicant?.educational_background?.map((edu, index) => (
+              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">School Name</Typography>
+                    <Typography>{edu.school_name || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Field of Study</Typography>
+                    <Typography>{edu.field_of_study || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Degree/Qualification</Typography>
+                    <Typography>{edu.degree_or_qualification || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Program Duration</Typography>
+                    <Typography>{edu.program_duration ? `${edu.program_duration} years` : 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Date From</Typography>
+                    <Typography>{edu.date_from || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Date To</Typography>
+                    <Typography>{edu.date_to || 'N/A'}</Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+            ))}
+
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>TRAININGS</Typography>
+            {selectedApplicant?.trainings?.map((training, index) => (
+              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Training Title</Typography>
+                    <Typography>{training.course_name || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Training Institution</Typography>
+                    <Typography>{training.training_institution || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Skills Acquired</Typography>
+                    <Typography>{training.skills_acquired || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Hours of Training</Typography>
+                    <Typography>{training.hours_of_training || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Start Date</Typography>
+                    <Typography>{training.start_date ? new Date(training.start_date).toLocaleDateString() : 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">End Date</Typography>
+                    <Typography>{training.end_date ? new Date(training.end_date).toLocaleDateString() : 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Certificate Received</Typography>
+                    <Typography>{training.certificates_received || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Credential ID</Typography>
+                    <Typography>{training.credential_id || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography color="text.secondary">Credential URL</Typography>
+                    <Typography>
+                      {training.credential_url ? (
+                        <a href={training.credential_url} target="_blank" rel="noopener noreferrer">
+                          {training.credential_url}
+                        </a>
+                      ) : 'N/A'}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+            ))}
+
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PROFESSIONAL LICENSE</Typography>
+            {selectedApplicant?.professional_licenses?.map((license, index) => (
+              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">License Name</Typography>
+                    <Typography>{license.name || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">License Type</Typography>
+                    <Typography>{license.license || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Valid Until</Typography>
+                    <Typography>
+                      {/* Debug: Show raw value */}
+                      {/* {JSON.stringify(license.validity)} */}
+                      {
+                        license.validity && typeof license.validity === 'string' && /^\d{4}-\d{2}-\d{2}/.test(license.validity)
+                          ? new Date(license.validity + 'T00:00:00').toLocaleDateString()
+                          : 'N/A'
+                      }
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Rating</Typography>
+                    <Typography>{license.rating || 'N/A'}</Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+            ))}
+
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>WORK EXPERIENCE</Typography>
+            {selectedApplicant?.work_experiences?.map((exp, index) => (
+              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Company Name</Typography>
+                    <Typography>{exp.company_name}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Position</Typography>
+                    <Typography>{exp.position}</Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography color="text.secondary">Job Description</Typography>
+                    <Typography>{exp.job_description}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">Start Date</Typography>
+                    <Typography>
+                      {
+                        exp.date_start
+                          ? (() => {
+                            // Accept both 'YYYY-MM-DD' and 'YYYY-MM-DDTHH:mm:ss' formats
+                            const d = new Date(exp.date_start);
+                            return isNaN(d.getTime())
+                              ? (
+                                /^\d{4}-\d{2}-\d{2}$/.test(exp.date_start)
+                                  ? new Date(exp.date_start + 'T00:00:00').toLocaleDateString()
+                                  : 'N/A'
+                              )
+                              : d.toLocaleDateString();
+                          })()
+                          : 'N/A'
+                      }
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography color="text.secondary">End Date</Typography>
+                    <Typography>
+                      {
+                        exp.date_end
+                          ? (() => {
+                            const d = new Date(exp.date_end);
+                            return isNaN(d.getTime())
+                              ? (
+                                /^\d{4}-\d{2}-\d{2}$/.test(exp.date_end)
+                                  ? new Date(exp.date_end + 'T00:00:00').toLocaleDateString()
+                                  : 'N/A'
+                              )
+                              : d.toLocaleDateString();
+                          })()
+                          : 'Present'
+                      }
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+            ))}
+
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>OTHER SKILLS</Typography>
+            <Box sx={{ mb: 2 }}>
+              {selectedApplicant?.other_skills?.map((skill, index) => (
+                <Chip
+                  key={index}
+                  label={skill.skills}
+                  sx={chipStyles}
+                />
+              ))}
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
       <ToastContainer />
     </Box>
   );
 };
+
 
 export default PostedTraining;
