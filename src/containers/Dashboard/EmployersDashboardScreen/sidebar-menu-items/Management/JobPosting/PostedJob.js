@@ -13,8 +13,6 @@ import {
   IconButton,
   Grid,
   Divider,
-  Card,
-  CardMedia,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -22,7 +20,6 @@ import {
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from '@mui/icons-material/Person';
-import DownloadIcon from '@mui/icons-material/Download';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTheme } from "@mui/material";

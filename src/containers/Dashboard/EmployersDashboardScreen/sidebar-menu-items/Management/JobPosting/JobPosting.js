@@ -402,25 +402,23 @@ const JobPosting = ({ isCollapsed }) => {
                           helperText={errors.no_of_vacancies?.message}
                         />
                       </Grid>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            label="Deployment Region"
-                            {...register("Deployment_region")}
-                            fullWidth
-                            error={!!errors.Deployment_region}
-                            helperText={errors.Deployment_region?.message}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <TextField
-                            label="Contract Period"
-                            {...register("Contract_period")}
-                            fullWidth
-                            error={!!errors.Contract_period}
-                            helperText={errors.Contract_period?.message}
-                          />
-                        </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Deployment Region"
+                          {...register("Deployment_region")}
+                          fullWidth
+                          error={!!errors.Deployment_region}
+                          helperText={errors.Deployment_region?.message}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          label="Contract Period"
+                          {...register("Contract_period")}
+                          fullWidth
+                          error={!!errors.Contract_period}
+                          helperText={errors.Contract_period?.message}
+                        />
                       </Grid>
                       <Grid item xs={12}>
                         <TextField
