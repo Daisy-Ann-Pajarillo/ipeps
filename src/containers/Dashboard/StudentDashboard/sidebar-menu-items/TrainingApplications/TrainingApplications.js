@@ -1,302 +1,162 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Grid, Paper, Chip, Avatar, Button } from '@mui/material';
-import { AccessTime, School, Payment } from '@mui/icons-material';
-import TrainingApplicationView from './TrainingApplicationView';
+import { Box } from '@mui/material';
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
 import SearchData from '../../../components/layout/Search';
+import axios from "../../../../../axios";
+import TrainingApplicationView from './TrainingApplicationView';  // Import from same directory
 
 const TrainingApplications = ({ isCollapsed }) => {
-  const [enrolledTrainings, setEnrolledTrainings] = useState([]);
-  const [selectedTraining, setSelectedTraining] = useState(null);
+  const [appliedTrainings, setAppliedTrainings] = useState([]);
+  const [selectedApplication, setSelectedApplication] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [enrollmentTimes, setEnrollmentTimes] = useState({});
-  const headerHeight = '72px';
+  const [applicationTimes, setApplicationTimes] = useState({});
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
 
   useEffect(() => {
-    const loadEnrollments = () => {
-      const appliedItemsList = JSON.parse(localStorage.getItem('appliedItems') || '{}');
-      const applicationTimesList = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const loadApplications = () => {
+      const appliedItemsList = JSON.parse(localStorage.getItem('appliedTrainings') || '{}');
+      const applicationTimesList = JSON.parse(localStorage.getItem('trainingApplicationTimes') || '{}');
       const allTrainings = JSON.parse(localStorage.getItem('allTrainings') || '[]');
 
-      const enrolledTrainingsData = Object.keys(appliedItemsList)
+      const appliedTrainingsData = Object.keys(appliedItemsList)
         .filter(key => key.startsWith('training-') && appliedItemsList[key])
         .map(key => {
           const trainingId = parseInt(key.replace('training-', ''));
-          const training = allTrainings.find(t => t.id === trainingId);
+          const training = allTrainings.find(training => training.id === trainingId);
           if (training) {
             return {
               ...training,
-              enrollmentTime: applicationTimesList[`training-${trainingId}`]
+              applicationTime: applicationTimesList[`training-${trainingId}`]
             };
           }
           return null;
         })
         .filter(Boolean);
 
-      setEnrolledTrainings(enrolledTrainingsData);
-      // Always set the first training as selected if available
-      if (enrolledTrainingsData.length > 0) {
-        setSelectedTraining(enrolledTrainingsData[0]);
-      }
-      setEnrollmentTimes(applicationTimesList);
+      setAppliedTrainings(appliedTrainingsData);
+      setApplicationTimes(applicationTimesList);
     };
 
-    loadEnrollments();
-    window.addEventListener('storage', loadEnrollments);
-    return () => window.removeEventListener('storage', loadEnrollments);
+    loadApplications();
+    window.addEventListener('storage', loadApplications);
+    return () => window.removeEventListener('storage', loadApplications);
   }, []);
 
-  const handleWithdrawal = (trainingId) => {
-    setEnrolledTrainings(prev => prev.filter(t => t.id !== trainingId));
-    setSelectedTraining(null);
+  useEffect(() => {
+    const loadAppliedTrainings = async () => {
+      try {
+        if (auth.token) {
+          const response = await axios.get("/api/get-applied-trainings", {
+            auth: { username: auth.token },
+          });
 
-    const appliedItems = JSON.parse(localStorage.getItem('appliedItems') || '{}');
-    const applicationTimes = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
+          if (response.data.success && Array.isArray(response.data.applications)) {
+            setAppliedTrainings(response.data.applications);
+            // Auto-select first training application
+            if (response.data.applications.length > 0) {
+              setSelectedApplication(response.data.applications[0]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching applied trainings:", error);
+      }
+    };
 
-    delete appliedItems[`training-${trainingId}`];
-    delete applicationTimes[`training-${trainingId}`];
-
-    localStorage.setItem('appliedItems', JSON.stringify(appliedItems));
-    localStorage.setItem('applicationTimes', JSON.stringify(applicationTimes));
-  };
+    loadAppliedTrainings();
+  }, [auth.token]);
 
   const canWithdraw = (trainingId) => {
-    const enrollmentTime = enrollmentTimes[`training-${trainingId}`];
-    if (!enrollmentTime) return false;
+    const applicationTime = applicationTimes[`training-${trainingId}`];
+    if (!applicationTime) return false;
     const now = new Date().getTime();
-    const timeDiff = now - enrollmentTime;
+    const timeDiff = now - applicationTime;
     return timeDiff <= 24 * 60 * 60 * 1000;
   };
 
   const getTimeRemaining = (trainingId) => {
-    const enrollmentTime = enrollmentTimes[`training-${trainingId}`];
-    if (!enrollmentTime) return null;
+    const applicationTime = applicationTimes[`training-${trainingId}`];
+    if (!applicationTime) return null;
     const now = new Date().getTime();
-    const timeLeft = (enrollmentTime + 24 * 60 * 60 * 1000) - now;
-    if (timeLeft <= 0) return 'Enrollment confirmed';
-
+    const timeLeft = (applicationTime + 24 * 60 * 60 * 1000) - now;
+    if (timeLeft <= 0) return 'Application submitted';
     const hours = Math.floor(timeLeft / (60 * 60 * 1000));
     const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
     return `${hours}h ${minutes}m remaining to withdraw`;
   };
-  const [trainings] = useState([
-    {
-      id: 1,
-      title: "Web Development Bootcamp",
-      provider: "Tech Academy",
-      location: "Online",
-      type: "Full Time",  // Matches Training Type dropdown
-      duration: "12 weeks",
-      cost: "₱15,000",
-      startDate: "2024-03-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Entry",  // Matches Experience Level dropdown
-      description: "A comprehensive bootcamp covering HTML, CSS, JavaScript, React, and backend development.",
-    },
-    {
-      id: 2,
-      title: "Cloud Computing Fundamentals",
-      provider: "Tech Academy",
-      location: "Online",
-      type: "Part Time",  // Matches Training Type dropdown
-      duration: "8 weeks",
-      cost: "₱12,000",
-      startDate: "2024-03-15",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Mid",
-      description: "Learn cloud computing principles, AWS, Azure, and Google Cloud basics in this beginner-friendly course.",
-    },
-    {
-      id: 3,
-      title: "Data Science Essentials",
-      provider: "Data Institute",
-      location: "Hybrid",
-      type: "Contract",  // Matches Training Type dropdown
-      duration: "16 weeks",
-      cost: "₱20,000",
-      startDate: "2024-04-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Senior",
-      description: "A practical course in Python, Machine Learning, and AI, with hands-on projects.",
-    },
-    {
-      id: 4,
-      title: "Cybersecurity for Beginners",
-      provider: "Security Academy",
-      location: "In-Person",
-      type: "Full Time",
-      duration: "10 weeks",
-      cost: "₱18,000",
-      startDate: "2024-04-10",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Entry",
-      description: "Gain hands-on experience in cybersecurity fundamentals, ethical hacking, and network security.",
-    },
-    {
-      id: 5,
-      title: "AI and Machine Learning",
-      provider: "AI Institute",
-      location: "Online",
-      type: "Internship",  // Matches Training Type dropdown
-      duration: "6 months",
-      cost: "₱25,000",
-      startDate: "2024-05-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Mid",
-      description: "An advanced AI/ML program covering deep learning, NLP, and reinforcement learning techniques.",
-    },
-    {
-      id: 6,
-      title: "Project Management Professional (PMP)",
-      provider: "Business Academy",
-      location: "Hybrid",
-      type: "Part Time",
-      duration: "5 months",
-      cost: "₱30,000",
-      startDate: "2024-06-01",
-      companyImage: "https://bit.ly/3Qgevzn",
-      experienceLevel: "Senior",
-      description: "A certified PMP course covering Agile, Scrum, risk management, and project planning.",
-    },
-  ]);
-  const [sortedTrainings, setSortedTrainings] = useState(trainings);
-  const [query, setQuery] = useState("");
 
-  const filterAndSortScholarships = (query, scholarships) => {
-    if (!query.trim()) return scholarships; // Return all if query is empty
-
-    return scholarships
-      .filter(({ title, provider, description }) =>
-        [title, provider, description].some((field) =>
-          field.toLowerCase().includes(query.toLowerCase())
-        )
-      )
-      .sort((a, b) => b.rating - a.rating || b.openPositions - a.openPositions);
+  const handleWithdrawal = (trainingId) => {
+    setAppliedTrainings(prev => prev.filter(training => training.training_posting_id !== trainingId));
+    setSelectedApplication(null);
+    const appliedItems = JSON.parse(localStorage.getItem('appliedTrainings') || '{}');
+    const applicationTimes = JSON.parse(localStorage.getItem('trainingApplicationTimes') || '{}');
+    delete appliedItems[`training-${trainingId}`];
+    delete applicationTimes[`training-${trainingId}`];
+    localStorage.setItem('appliedTrainings', JSON.stringify(appliedItems));
+    localStorage.setItem('trainingApplicationTimes', JSON.stringify(applicationTimes));
   };
 
-  useEffect(() => {
-    setSortedTrainings(filterAndSortScholarships(query, trainings));
-  }, [query, trainings]); // Runs when `query` or `companies` change
-
-  useEffect(() => {
-    // Set first training as default from the trainings array
-    if (sortedTrainings.length > 0) {
-      setSelectedTraining(sortedTrainings[0]);
-    }
-  }, [sortedTrainings]);
-
   return (
-    <Box>
-      <SearchData
-        placeholder="Find a training..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full"
-      />
-      <Box
-        sx={{
-          display: 'flex',
-          position: 'fixed',
-          top: headerHeight,
-          left: isCollapsed ? '80px' : '250px',
-          right: 0,
-          bottom: 0,
-          transition: 'left 0.3s'
-        }}
-      >
-        {/* Training List Panel */}
-        <Box
-          sx={{
-            width: '60%',
-            height: '100%',
-            overflowY: 'auto',
-            p: 3,
-            borderRight: '1px solid rgba(0, 0, 0, 0.12)',
-          }}
-        >
-          <Typography variant="h4" gutterBottom>
-            Training Enrollments
-          </Typography>
-          <Grid container spacing={2}>
-            {sortedTrainings.map(training => (
-              <Grid item xs={12} key={training.id}>
-                <Paper
-                  elevation={0}
-                  onClick={() => setSelectedTraining(training)}
-                  sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: selectedTraining?.id === training.id ? 'primary.main' : 'divider',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                    <Avatar
-                      variant="rounded"
-                      src={training.companyImage}
-                      sx={{ width: 60, height: 60 }}
-                    >
-                      {training.provider[0]}
-                    </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="h6">{training.title}</Typography>
-                      <Typography color="text.secondary" gutterBottom>
-                        {training.provider}
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                        <Chip icon={<School />} label={training.level} size="small" />
-                        <Chip icon={<AccessTime />} label={training.duration} size="small" />
-                        <Chip
-                          icon={<AccessTime />}
-                          label={getTimeRemaining(training.id)}
-                          size="small"
-                          color={canWithdraw(training.id) ? "error" : "success"}
-                        />
-                      </Box>
-                    </Box>
-                  </Box>
-                </Paper>
-              </Grid>
-            ))}
-            {sortedTrainings.length <= 0 && (
-              <Grid item xs={12}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 4,
-                    textAlign: 'center',
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider'
-                  }}
-                >
-                  <Typography color="text.secondary">
-                    No training enrollments yet
-                  </Typography>
-                </Paper>
-              </Grid>
-            )}
-          </Grid>
-        </Box>
+    <Box className="flex h-screen">
+      {/* Left Panel - Applications List */}
+      <Box className="w-3/5 p-4 overflow-y-auto">
+        <SearchData
+          placeholder="Find a training application..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full mb-4"
+        />
+        {appliedTrainings
+          .filter(training =>
+            training.training_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            training.company_name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          .map(training => (
+            <div
+              key={training.training_posting_id}
+              onClick={() => setSelectedApplication(training)}
+              className={`border rounded-xl p-4 mb-4 shadow-sm cursor-pointer transition-all duration-300 ${selectedApplication?.training_posting_id === training.training_posting_id
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-300 bg-white hover:shadow-md'
+                }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex items-center justify-center bg-gray-200 rounded-lg w-16 h-16 text-xl font-bold text-gray-700 uppercase">
+                  {training.company_name[0]}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800">{training.training_title}</h3>
+                  <p className="text-gray-600 mb-2">{training.company_name}</p>
+                  <div className="flex flex-wrap gap-2 text-sm mb-2">
+                    <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                      Status: {training.status}
+                    </span>
+                    <span className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                      Slots: {training.occupied_slots}/{training.slots}
+                    </span>
+                    <span className={`flex items-center gap-1 px-2 py-1 rounded ${canWithdraw(training.training_posting_id) ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                      {getTimeRemaining(training.training_posting_id)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 line-clamp-2">{training.training_description}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+      </Box>
 
-        {/* Training View Panel */}
-        <Box
-          sx={{
-            width: '40%',
-            height: '100%',
-            overflowY: 'auto',
-            backgroundColor: 'white',
-          }}
-        >
-          <TrainingApplicationView
-            training={selectedTraining}
-            onWithdraw={handleWithdrawal}
-          />
-        </Box>
+      {/* Right Panel - Application View */}
+      <Box className="w-2/5 border-l border-gray-200">
+        <TrainingApplicationView
+          application={selectedApplication}
+          onWithdraw={handleWithdrawal}
+        />
       </Box>
     </Box>
   );
