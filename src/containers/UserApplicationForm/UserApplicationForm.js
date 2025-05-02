@@ -125,7 +125,7 @@ const UserApplicationForm = (props) => {
   // Handle auth data loading
   useEffect(() => {
     if (props.auth && props.auth.user) {
-      const userType = props.auth.user.user_type;
+      const userType = props.auth.user.user_type.toUpperCase();
 
       // Set steps based on user type
       if (userType === "JOBSEEKER" || userType === "STUDENT") {
@@ -149,22 +149,26 @@ const UserApplicationForm = (props) => {
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
-  // Fetch user work experience data
+
   useEffect(() => {
-    const fetchWorkExperiences = async () => {
-      try {
-        const response = await axios.get("/api/check-personal-information-status", {
-          auth: {
-            username: auth.token,
-          },
+    const fetchWorkExperiences = () => {
+      axios.get("/api/check-personal-information-status", {
+        auth: {
+          username: auth.token,
+        },
+      })
+        .then((response) => {
+          //console.log("Response from check-personal-information-status:", response.data);
+          setFinishedFillUp(response.data.has_personal_info);
+        })
+        .catch((error) => {
+          console.error("Error fetching user work experience:", error);
         });
-        setFinishedFillUp(response.data.has_personal_info);
-      } catch (error) {
-        console.error("Error fetching user work experience:", error);
-      }
     };
+
     fetchWorkExperiences();
   }, []);
+
 
 
   // Handle navigation

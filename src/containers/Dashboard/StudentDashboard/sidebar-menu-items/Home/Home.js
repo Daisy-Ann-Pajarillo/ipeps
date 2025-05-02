@@ -17,6 +17,11 @@ import SchoolIcon from "@mui/icons-material/School";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import Badge from "@mui/material/Badge";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import { styled } from "@mui/system";
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../store/actions/index";
 import axios from "../../../../../axios";
@@ -75,6 +80,9 @@ const Dashboard = () => {
   const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [recommendedTrainings, setRecommendedTrainings] = useState([]);
   const [recommendedScholarships, setRecommendedScholarships] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [bookmarkedItems, setBookmarkedItems] = useState({
     jobs: [],
     trainings: [],
@@ -96,6 +104,21 @@ const Dashboard = () => {
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (auth.token) {
+      // Simulate fetching notifications
+      const dummyNotifications = [
+        { id: 1, message: "New job matched your skills!", read: false },
+        { id: 2, message: "Your training application was accepted.", read: true },
+        { id: 3, message: "A new scholarship is now available!", read: false },
+      ];
+
+      setNotifications(dummyNotifications);
+      setUnreadCount(dummyNotifications.filter((n) => !n.read).length);
+    }
+  }, [auth.token]);
+
 
   // Function to fetch job recommendations
   const fetchJobRecommendations = async () => {
@@ -217,6 +240,9 @@ const Dashboard = () => {
               </Typography>
               <Typography variant="body2" className="text-gray-600 break-normal">
                 {job.employer?.company_name || "Company"}
+              </Typography>
+              <Typography variant="body2" className="text-gray-600 break-normal">
+                {job.full_name || "Company"}
               </Typography>
             </div>
           </div>
@@ -463,23 +489,68 @@ const Dashboard = () => {
   return (
     <div className="bg-white p-6 rounded-lg flex flex-col">
       {/* Main Title */}
-      <div className="mb-10 text-center">
-        <Typography
-          variant="h3"
-          component="h1"
-          className="font-bold text-gray-800 mb-2"
-        >
-          Start your Journey
-        </Typography>
-        <Typography
-          variant="h5"
-          component="h2"
-          className="font-normal text-gray-600"
-        >
-          {userType === "JOBSEEKER" ? "Find Work and Train" : "Work, Train and Learn"}
-        </Typography>
-        <div className="w-24 h-1 bg-blue-600 mx-auto mt-4"></div>
+      <div className="mb-10 flex justify-between items-center">
+        {/* Centered Title Section */}
+        <div className="flex flex-col items-center text-center">
+          <Typography
+            variant="h3"
+            component="h1"
+            className="font-bold text-gray-800 mb-2"
+          >
+            Start your Journey
+          </Typography>
+          <Typography
+            variant="h5"
+            component="h2"
+            className="font-normal text-gray-600"
+          >
+            {userType === "JOBSEEKER" ? "Find Work and Train" : "Work, Train and Learn"}
+          </Typography>
+          <div className="w-24 h-1 bg-blue-600 mx-auto mt-4"></div>
+        </div>
+
+        {/* Notification Bell */}
+        <div>
+          <IconButton
+            color="inherit"
+            onClick={(e) => setAnchorEl(e.currentTarget)}
+            aria-controls={Boolean(anchorEl) ? "notification-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={Boolean(anchorEl) ? "true" : undefined}
+          >
+            <Badge badgeContent={unreadCount} color="error">
+              <NotificationsIcon fontSize="large" />
+            </Badge>
+          </IconButton>
+
+          {/* Notification Dropdown */}
+          <Menu
+            id="notification-menu"
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={() => setAnchorEl(null)}
+            MenuListProps={{
+              "aria-labelledby": "notification-button",
+            }}
+          >
+            {notifications.length > 0 ? (
+              notifications.map((notif) => (
+                <MenuItem key={notif.id} dense>
+                  <Typography
+                    variant="body2"
+                    style={{ opacity: notif.read ? 0.6 : 1 }}
+                  >
+                    {notif.message}
+                  </Typography>
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem disabled>No notifications</MenuItem>
+            )}
+          </Menu>
+        </div>
       </div>
+
 
       {/* Jobs Section */}
       {!loading.jobs && (

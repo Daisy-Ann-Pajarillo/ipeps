@@ -16,7 +16,7 @@ const TrainingSearch = ({ isCollapsed }) => {
   const [sortBy, setSortBy] = useState("");
   const [filteredTrainings, setFilteredTrainings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  // const [appliedTrainingIds, setAppliedTrainingIds] = useState([]);
+  const [employerName, setEmployerName] = useState(""); // Store employer full name
 
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
@@ -30,7 +30,6 @@ const TrainingSearch = ({ isCollapsed }) => {
     const fetchTrainings = async () => {
       try {
         setIsLoading(true);
-
         if (auth.token) {
           const response = await axios.get("/api/all-training-postings", {
             auth: { username: auth.token },
@@ -39,13 +38,20 @@ const TrainingSearch = ({ isCollapsed }) => {
           console.log("API Response for All Trainings:", response.data); // Log API response
 
           if (response.data && Array.isArray(response.data.training_postings)) {
-            const formattedTrainings = response.data.training_postings.map(
-              (t) => ({
-                ...t,
-                training_id: t.training_id.toString(), // Ensure training IDs are strings
-              })
-            );
+            const formattedTrainings = response.data.training_postings.map((t) => ({
+              ...t,
+              training_id: t.training_id.toString(), // Ensure training IDs are strings
+            }));
+
             setTrainings(formattedTrainings);
+
+            // Extract employer full name from first item or default
+            const fullName = formattedTrainings.length > 0
+              ? formattedTrainings[0].employer?.full_name || "Unknown Provider"
+              : "Unknown Provider";
+
+            setEmployerName(fullName);
+
             // Auto-select first training
             if (formattedTrainings.length > 0 && !selectedTraining) {
               setSelectedTraining(formattedTrainings[0]);
@@ -199,8 +205,8 @@ const TrainingSearch = ({ isCollapsed }) => {
               <div
                 key={training.training_id}
                 className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedTraining?.training_id === training.training_id
-                    ? "bg-gray-200 dark:bg-gray-800"
-                    : "bg-white dark:bg-gray-900"
+                  ? "bg-gray-200 dark:bg-gray-800"
+                  : "bg-white dark:bg-gray-900"
                   } hover:bg-primary-400 dark:hover:bg-primary-600`}
                 onClick={() => handleTrainingClick(training.training_id)}
               >
@@ -240,16 +246,11 @@ const TrainingSearch = ({ isCollapsed }) => {
                           {formatCost(training.estimated_cost_to)}
                         </div>
                       )}
-                  </div>
-
-                  {/* Application Status Indicator
-                  {appliedTrainingIds.includes(training.training_id) && (
-                    <div className="flex items-start">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Enrolled
-                      </span>
+                    {/* Posted By Employer */}
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {"Posted By: " + (training.employer?.full_name || 'N/A')}
                     </div>
-                  )} */}
+                  </div>
                 </div>
               </div>
             ))

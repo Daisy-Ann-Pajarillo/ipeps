@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../store/actions/index";
-
 import axios from "../../../../../axios";
 import SavedJobsView from "./SavedJobsView";
 import SearchData from "../../../components/layout/Search";
@@ -32,7 +30,6 @@ const SavedJobs = () => {
         const response = await axios.get("/api/get-applied-jobs", {
           auth: { username: auth.token },
         });
-
         if (
           response.data.success &&
           Array.isArray(response.data.applications)
@@ -78,6 +75,9 @@ const SavedJobs = () => {
             expiration_date: job.expiration_date,
             company: job.employer?.company_name || "N/A",
             companyImage: job.employer?.logo_url || "http://bij.ly/4ib59B1",
+            employer: {
+              full_name: job.employer?.full_name || "Unknown Employer",
+            },
           }));
 
           setSavedJobs(jobs);
@@ -91,7 +91,6 @@ const SavedJobs = () => {
       }
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
-      //toast.error(error.response?.data?.message || "Failed to load saved jobs");
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +137,6 @@ const SavedJobs = () => {
           auth: { username: auth.token },
         }
       );
-
       if (response.data.success) {
         toast.success("Successfully applied to job");
         // Update the applied jobs list
@@ -164,16 +162,13 @@ const SavedJobs = () => {
           auth: { username: auth.token },
         }
       );
-
       const updatedJobs = savedJobs.filter(
         (job) => job.employer_jobpost_id !== jobId
       );
       setSavedJobs(updatedJobs);
-
       if (selectedJob?.employer_jobpost_id === jobId) {
         setSelectedJob(updatedJobs[0] || null);
       }
-
       toast.success("Job removed from saved");
     } catch (error) {
       console.error("Error removing saved job:", error);
@@ -191,7 +186,6 @@ const SavedJobs = () => {
   return (
     <div className="flex flex-col h-full bg-gray-100 dark:bg-gray-900">
       <ToastContainer />
-
       {/* Search Bar */}
       <SearchData
         placeholder="Search saved jobs..."
@@ -209,7 +203,6 @@ const SavedJobs = () => {
           if (index === 0) setSortBy(value);
         }}
       />
-
       {/* Main Content */}
       <div className="flex flex-grow overflow-hidden">
         {/* Left Panel - Job List */}
@@ -220,7 +213,6 @@ const SavedJobs = () => {
           <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
             Total: {sortedJobs.length} saved jobs
           </div>
-
           {isLoading ? (
             <div className="flex justify-center items-center h-40">
               <p className="text-gray-500 dark:text-gray-400">
@@ -258,7 +250,6 @@ const SavedJobs = () => {
                       }}
                     />
                   </div>
-
                   {/* Job Info */}
                   <div className="flex-1">
                     <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -273,8 +264,11 @@ const SavedJobs = () => {
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       💰 {job.estimated_salary_from} - {job.estimated_salary_to}
                     </div>
+                    {/* Posted By Employer */}
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {"Posted By: " + (job.employer?.full_name || "N/A")}
+                    </div>
                   </div>
-
                   {/* Remove Button */}
                   <button
                     className="text-red-500 hover:text-red-700 self-start"
@@ -290,7 +284,6 @@ const SavedJobs = () => {
             ))
           )}
         </div>
-
         {/* Right Panel - Job Details */}
         {selectedJob && (
           <div className="w-2/5 h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">

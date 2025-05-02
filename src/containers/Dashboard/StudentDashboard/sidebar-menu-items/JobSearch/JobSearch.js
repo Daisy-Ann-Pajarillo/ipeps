@@ -17,6 +17,7 @@ const JobSearch = ({ isCollapsed }) => {
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [appliedJobIds, setAppliedJobIds] = useState([]);
+  const [employerName, setEmployerName] = useState(""); // Store employer full name
 
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
@@ -56,10 +57,19 @@ const JobSearch = ({ isCollapsed }) => {
             auth: { username: auth.token },
           });
 
-          if (response.data && Array.isArray(response.data.job_postings)) {
+          if (
+            response.data &&
+            Array.isArray(response.data.job_postings)
+          ) {
             const jobsData = response.data.job_postings;
+
+            // Extract full_name from the API response
+            const fullName =
+              response.data.full_name || "Unknown Company";
+
+            setEmployerName(fullName);
             setJobs(jobsData);
-            // Auto-select the first job if available and no job is currently selected
+
             if (jobsData.length > 0 && !selectedJob) {
               setSelectedJob(jobsData[0]);
             }
@@ -240,6 +250,9 @@ const JobSearch = ({ isCollapsed }) => {
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       💰 {formatSalary(job.estimated_salary_from)} -{" "}
                       {formatSalary(job.estimated_salary_to)}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {"Posted By: " + (job.employer.full_name || 'N/A')}
                     </div>
                   </div>
 

@@ -23,7 +23,7 @@ const SavedScholarships = () => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-  // Load applied scholarships to check which scholarships the user has already applied for
+  // Load applied scholarships
   const loadAppliedScholarships = async () => {
     try {
       if (auth.token) {
@@ -35,13 +35,11 @@ const SavedScholarships = () => {
           response.data.success &&
           Array.isArray(response.data.applications)
         ) {
-          // Create a map of scholarship IDs to application status
-          const appliedIds = {};
+          const appliedMap = {};
           response.data.applications.forEach((app) => {
-            appliedIds[app.employer_scholarshippost_id] = true;
+            appliedMap[app.employer_scholarshippost_id] = true;
           });
-
-          setAppliedScholarshipIds(appliedIds);
+          setAppliedScholarshipIds(appliedMap);
         }
       }
     } catch (error) {
@@ -62,22 +60,22 @@ const SavedScholarships = () => {
           response.data.success &&
           Array.isArray(response.data.scholarships)
         ) {
-          // Map backend data to component format
-          const scholarships = response.data.scholarships.map(
-            (scholarship) => ({
-              saved_scholarship_id: scholarship.saved_scholarship_id,
-              employer_scholarshippost_id: scholarship.scholarship_posting_id,
-              scholarship_title: scholarship.scholarship_title,
-              scholarship_description: scholarship.scholarship_description,
-              scholarship_type: scholarship.scholarship_type,
-              amount: scholarship.amount,
-              deadline: scholarship.deadline,
-              country: scholarship.country,
-              city_municipality: scholarship.city_municipality,
-              created_at: scholarship.created_at,
-              logo: scholarship.logo_url || "http://bij.ly/4ib59B1",
-            })
-          );
+          const scholarships = response.data.scholarships.map((item) => ({
+            saved_scholarship_id: item.saved_scholarship_id,
+            employer_scholarshippost_id: item.scholarship_posting_id,
+            scholarship_title: item.scholarship_title,
+            scholarship_description: item.scholarship_description,
+            scholarship_type: item.scholarship_type,
+            amount: item.amount,
+            deadline: item.deadline,
+            country: item.country,
+            city_municipality: item.city_municipality,
+            created_at: item.created_at,
+            logo: item.logo_url || "http://bij.ly/4ib59B1",
+            employer: {
+              full_name: item.employer?.full_name || "Unknown Provider",
+            },
+          }));
 
           setSavedScholarships(scholarships);
 
@@ -106,22 +104,14 @@ const SavedScholarships = () => {
     }
   }, [auth.token]);
 
-  // Filter scholarships based on search query
-  const filteredScholarships = savedScholarships.filter(
-    (scholarship) =>
-      scholarship.scholarship_title
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      scholarship.scholarship_description
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      scholarship.country?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      scholarship.city_municipality
-        ?.toLowerCase()
-        .includes(searchQuery.toLowerCase())
+  // Filter scholarships
+  const filteredScholarships = savedScholarships.filter((s) =>
+    s.scholarship_title
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase())
   );
 
-  // Sort scholarships based on selected option
+  // Sort scholarships
   const sortedScholarships = [...filteredScholarships].sort((a, b) => {
     if (sortBy === "Most Recent") {
       return new Date(b.created_at) - new Date(a.created_at);
@@ -133,10 +123,9 @@ const SavedScholarships = () => {
     return 0;
   });
 
-  // Handle scholarship application
+  // Handle Apply
   const handleApplyScholarship = async (scholarshipId) => {
     try {
-      // First check if already applied
       const checkResponse = await axios.post(
         "/api/check-scholarship-status",
         { employer_scholarshippost_id: scholarshipId },
@@ -145,107 +134,64 @@ const SavedScholarships = () => {
 
       if (checkResponse.data.is_applied) {
         toast.info("You have already applied for this scholarship");
-
-        // Update the applied state to reflect that it's applied
         setAppliedScholarshipIds((prev) => ({
           ...prev,
           [scholarshipId]: true,
         }));
-
         return;
       }
 
-      const response = await axios.post(
+      await axios.post(
         "/api/apply-scholarships",
         { employer_scholarshippost_id: scholarshipId },
         { auth: { username: auth.token } }
       );
 
-      // Update the applied scholarships list
       setAppliedScholarshipIds((prev) => ({
         ...prev,
         [scholarshipId]: true,
       }));
-
       toast.success("Successfully applied to scholarship");
 
-      // No need to refresh saved scholarships as we're only updating the apply status
     } catch (error) {
-      console.error("Error applying for scholarship:", error);
-
-      // Handle the case where user already applied
-      if (
-        error.response?.data?.error ===
-        "You have already applied for this scholarship"
-      ) {
-        toast.info("You have already applied for this scholarship");
-
-        // Update state to show as applied
-        setAppliedScholarshipIds((prev) => ({
-          ...prev,
-          [scholarshipId]: true,
-        }));
-      } else {
-        toast.error(
-          error.response?.data?.error || "Failed to apply for scholarship"
-        );
-      }
+      toast.error(
+        error.response?.data?.error || "Failed to apply for scholarship"
+      );
     }
   };
 
-  // Handle scholarship removal from saved scholarships
+  // Remove from saved
   const handleRemoveFromSaved = async (scholarshipId) => {
     try {
-      // The save-scholarship endpoint toggles saved status
       await axios.post(
         "/api/save-scholarship",
         { employer_scholarshippost_id: scholarshipId },
         { auth: { username: auth.token } }
       );
 
-      // Update the UI by removing the scholarship
-      const updatedScholarships = savedScholarships.filter(
-        (scholarship) =>
-          scholarship.employer_scholarshippost_id !== scholarshipId
+      const updatedList = savedScholarships.filter(
+        (s) => s.employer_scholarshippost_id !== scholarshipId
       );
+      setSavedScholarships(updatedList);
 
-      setSavedScholarships(updatedScholarships);
-
-      // If the currently selected scholarship was removed, select another one
-      if (selectedScholarship?.employer_scholarshippost_id === scholarshipId) {
-        setSelectedScholarship(updatedScholarships[0] || null);
+      if (
+        selectedScholarship?.employer_scholarshippost_id === scholarshipId
+      ) {
+        setSelectedScholarship(updatedList[0] || null);
       }
 
-      // Show only one toast notification
       toast.success("Scholarship removed from saved");
-    } catch (error) {
-      console.error("Error removing saved scholarship:", error);
-      toast.error(
-        error.response?.data?.error ||
-          "Failed to remove scholarship from saved list"
-      );
-    }
-  };
 
-  // Handle scholarship selection for detailed view
-  const handleSelectScholarship = (scholarship) => {
-    setSelectedScholarship(scholarship);
+    } catch (error) {
+      toast.error("Failed to remove scholarship");
+    }
   };
 
   return (
     <div className="flex flex-col h-full bg-gray-100 dark:bg-gray-900">
-      <ToastContainer
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      {/* Search Bar */}
+      <ToastContainer />
+
+      {/* Search */}
       <SearchData
         placeholder="Search saved scholarships..."
         value={searchQuery}
@@ -262,22 +208,20 @@ const SavedScholarships = () => {
           if (index === 0) setSortBy(value);
         }}
       />
-      {/* Main Content */}
+
       <div className="flex flex-grow overflow-hidden">
-        {/* Left Panel - Scholarship List */}
+        {/* Scholarship List */}
         <div
-          className={`${
-            selectedScholarship ? "w-3/5" : "w-full"
-          } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700`}
+          className={`${selectedScholarship ? "w-3/5" : "w-full"
+            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700`}
         >
           <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
             Total: {sortedScholarships.length} saved scholarships
           </div>
+
           {isLoading ? (
             <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500 dark:text-gray-400">
-                Loading saved scholarships...
-              </p>
+              <p className="text-gray-500 dark:text-gray-400">Loading...</p>
             </div>
           ) : sortedScholarships.length === 0 ? (
             <div className="flex justify-center items-center h-40">
@@ -289,16 +233,15 @@ const SavedScholarships = () => {
             sortedScholarships.map((scholarship) => (
               <div
                 key={scholarship.saved_scholarship_id}
-                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${
-                  selectedScholarship?.saved_scholarship_id ===
+                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedScholarship?.saved_scholarship_id ===
                   scholarship.saved_scholarship_id
-                    ? "bg-gray-200 dark:bg-gray-800"
-                    : "bg-white dark:bg-gray-900"
-                } hover:bg-primary-400 dark:hover:bg-primary-600`}
-                onClick={() => handleSelectScholarship(scholarship)}
+                  ? "bg-gray-200 dark:bg-gray-800"
+                  : "bg-white dark:bg-gray-900"
+                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
+                onClick={() => setSelectedScholarship(scholarship)}
               >
                 <div className="flex gap-3">
-                  {/* Scholarship Logo */}
+                  {/* Logo */}
                   <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
                     <img
                       src={scholarship.logo || "http://bij.ly/4ib59B1"}
@@ -306,7 +249,8 @@ const SavedScholarships = () => {
                       className="w-full h-full object-contain p-2"
                     />
                   </div>
-                  {/* Scholarship Info */}
+
+                  {/* Info */}
                   <div className="flex-1">
                     <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       {scholarship.scholarship_title}
@@ -314,7 +258,11 @@ const SavedScholarships = () => {
                     <div className="text-sm text-gray-600 dark:text-gray-400">
                       {scholarship.scholarship_description}
                     </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {`Posted By: ${scholarship.employer?.full_name || "N/A"}`}
+                    </div>
                   </div>
+
                   {/* Remove Button */}
                   <button
                     className="text-red-500 hover:text-red-700 self-start"
@@ -325,21 +273,22 @@ const SavedScholarships = () => {
                       );
                     }}
                   >
-                    ✖
+                    ✕
                   </button>
                 </div>
               </div>
             ))
           )}
         </div>
-        {/* Right Panel - Scholarship Details */}
+
+        {/* Details View */}
         {selectedScholarship && (
           <div className="w-2/5 h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
             <SavedScholarshipsView
               scholarship={selectedScholarship}
               isApplied={
                 appliedScholarshipIds[
-                  selectedScholarship.employer_scholarshippost_id
+                selectedScholarship.employer_scholarshippost_id
                 ]
               }
               onApply={() =>
@@ -352,10 +301,6 @@ const SavedScholarships = () => {
                   selectedScholarship.employer_scholarshippost_id
                 )
               }
-              onScholarshipStatusChanged={() => {
-                loadSavedScholarships();
-                loadAppliedScholarships();
-              }}
             />
           </div>
         )}
