@@ -142,6 +142,8 @@ const UserApplicationForm = (props) => {
     }
   }, [props.auth]);
 
+  const userType = props.auth?.user?.user_type?.toUpperCase();
+  console.log("Auth data:", userType);
 
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
@@ -186,7 +188,7 @@ const UserApplicationForm = (props) => {
 
   // Page data management
   const getPageDataKey = (stepIndex) => {
-    const userType = props.auth?.user?.user_type;
+    const userType = props.auth?.user?.user_type.toUpperCase();
     let pageDataKeys = {};
 
     if (userType === "JOBSEEKER" || userType === "STUDENT") {
@@ -228,7 +230,7 @@ const UserApplicationForm = (props) => {
         handleBack={handleBack}
         handleNext={handleNext}
         review={steps}
-        user_type={props.auth?.user?.user_type}
+        user_type={props.auth?.user?.user_type.toUpperCase()}
       />
     );
   };

@@ -80,7 +80,7 @@ const PersonalInfo = ({
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
-
+  console.log("user_type: ", user_type);
   // Fetch user data first
   useEffect(() => {
     const fetchUserInfo = async () => {
