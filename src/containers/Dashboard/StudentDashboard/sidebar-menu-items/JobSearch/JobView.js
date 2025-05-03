@@ -166,10 +166,13 @@ const JobView = ({ job }) => {
         </Box>
 
         <Typography variant="h4" gutterBottom>
-          {job.job_title}
+          {job?.job_title || "Job Title Not Available"}
         </Typography>
         <Typography variant="h5" color="primary" gutterBottom>
-          {job.country}
+          {job?.companyName || "Not Available"}
+        </Typography>
+        <Typography variant="h5" color="primary" gutterBottom>
+          {job?.country || "Country Not Available"}
         </Typography>
 
         <Stack spacing={1} sx={{ mb: 3 }}>

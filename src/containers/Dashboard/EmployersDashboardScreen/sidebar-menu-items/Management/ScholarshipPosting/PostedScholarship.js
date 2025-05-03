@@ -203,8 +203,11 @@ const PostedScholarship = () => {
             work_experiences: applicant.user_details?.work_experiences || [],
             other_skills: applicant.user_details?.other_skills || [],
             job_preference: applicant.user_details?.job_preference || {},
-            personal_information: personalInfo
+            personal_information: personalInfo,
+            // 🔥 Safely include user_id from user_details
+            user_id: applicant.user_details?.user_id || null
           };
+
         });
 
 
@@ -228,18 +231,38 @@ const PostedScholarship = () => {
     setShowApplicantDetails(true);
   };
 
-
   const handleApproveApplicant = async (applicantId) => {
     try {
-      setScholarshipApplicants(prevApplicants =>
-        prevApplicants.map(app =>
-          app.id === applicantId ? { ...app, status: 'accepted' } : app
-        )
-      );
+      const applicant = scholarshipApplicants.find(app => app.id === applicantId);
+      if (!applicant || !applicant.user_id) {
+        toast.error('Applicant data is incomplete');
+        return;
+      }
 
+      const payload = {
+        application_id: applicantId,
+        status: 'approved',
+        user_id: applicant.user_id,
+      };
 
-      setSelectedApplicant(prev => ({ ...prev, status: 'accepted' }));
-      toast.success('Applicant accepted successfully!');
+      console.log('Sending payload:', payload);
+
+      const response = await axios.put('/api/update-scholarship-status', payload, {
+        auth: { username: auth.token },
+      });
+
+      if (response.status === 200) {
+        setScholarshipApplicants(prevApplicants =>
+          prevApplicants.map(app =>
+            app.id === applicantId ? { ...app, status: 'accepted' } : app
+          )
+        );
+
+        setSelectedApplicant(prev => ({ ...prev, status: 'accepted' }));
+        toast.success('Applicant accepted successfully!');
+      } else {
+        toast.error('Failed to approve applicant');
+      }
     } catch (error) {
       console.error('Error accepting applicant:', error);
       toast.error('Error processing request');
@@ -249,15 +272,36 @@ const PostedScholarship = () => {
 
   const handleRejectApplicant = async (applicantId) => {
     try {
-      setScholarshipApplicants(prevApplicants =>
-        prevApplicants.map(app =>
-          app.id === applicantId ? { ...app, status: 'rejected' } : app
-        )
-      );
+      const applicant = scholarshipApplicants.find(app => app.id === applicantId);
+      if (!applicant || !applicant.user_id) {
+        toast.error('Applicant data is incomplete');
+        return;
+      }
 
+      const payload = {
+        application_id: applicantId,
+        status: 'rejected',
+        user_id: applicant.user_id,
+      };
 
-      setSelectedApplicant(prev => ({ ...prev, status: 'rejected' }));
-      toast.success('Applicant rejected');
+      console.log('Sending payload:', payload);
+
+      const response = await axios.put('/api/update-scholarship-status', payload, {
+        auth: { username: auth.token },
+      });
+
+      if (response.status === 200) {
+        setScholarshipApplicants(prevApplicants =>
+          prevApplicants.map(app =>
+            app.id === applicantId ? { ...app, status: 'rejected' } : app
+          )
+        );
+
+        setSelectedApplicant(prev => ({ ...prev, status: 'rejected' }));
+        toast.success('Applicant rejected');
+      } else {
+        toast.error('Failed to reject applicant');
+      }
     } catch (error) {
       console.error('Error rejecting applicant:', error);
       toast.error('Error processing request');

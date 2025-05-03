@@ -121,7 +121,6 @@ const PostedJob = ({ createJobOpen }) => {
     setShowApplicantDetails(false);
   };
 
-
   const handleViewApplicants = async (jobId) => {
     try {
       if (!jobId) {
@@ -130,11 +129,9 @@ const PostedJob = ({ createJobOpen }) => {
         return;
       }
 
-
       const response = await axios.get(`/api/get-applied-jobs/${jobId}`, {
         auth: { username: auth.token }
       });
-
 
       if (response.data && Array.isArray(response.data.applications)) {
         const formattedApplicants = response.data.applications.map(applicant => {
@@ -155,14 +152,15 @@ const PostedJob = ({ createJobOpen }) => {
             work_experiences: applicant.user_details?.work_experiences || [],
             other_skills: applicant.user_details?.other_skills || [],
             job_preference: applicant.user_details?.job_preference || {},
-            personal_information: personalInfo
+            personal_information: personalInfo,
+
+            // 🔥 Safely include user_id from user_details
+            user_id: applicant.user_details?.user_id || null
           };
         });
 
-
         setJobApplicants(formattedApplicants);
         setApplicantsOpen(true);
-
 
         if (formattedApplicants.length === 0) {
           toast.info("No applicants found for this job");
@@ -180,40 +178,97 @@ const PostedJob = ({ createJobOpen }) => {
     setShowApplicantDetails(true);
   };
 
-
   const handleHireApplicant = async (applicantId) => {
     try {
-      // For demo, just update the state locally
-      setJobApplicants(prevApplicants =>
-        prevApplicants.map(app =>
-          app.id === applicantId ? { ...app, status: 'hired' } : app
-        )
-      );
-      setSelectedApplicant(prev => ({ ...prev, status: 'hired' }));
-      toast.success('Applicant hired successfully!');
+      console.log('handleHireApplicant called with ID:', applicantId); // Debug entry point
+
+      const applicant = jobApplicants.find((app) => app.id === applicantId);
+      console.log('Found applicant:', applicant); // Debug applicant result
+
+      if (!applicant) {
+        toast.error('Applicant not found');
+        return;
+      }
+
+      if (!applicant.user_id) {
+        toast.error('Applicant user ID is missing');
+        return;
+      }
+
+      const payload = {
+        application_id: applicantId,
+        status: 'hired',
+        user_id: applicant.user_id,
+      };
+
+      console.log('Payload to be sent:', payload);
+      console.log('Payload details:', JSON.stringify(payload, null, 2));
+
+      const response = await axios.put('/api/update-job-status', payload, {
+        auth: { username: auth.token },
+      });
+
+      if (response.status === 200) {
+        setJobApplicants((prevApplicants) =>
+          prevApplicants.map((app) =>
+            app.id === applicantId ? { ...app, status: 'hired' } : app
+          )
+        );
+        setSelectedApplicant((prev) => ({ ...prev, status: 'hired' }));
+        toast.success('Applicant hired successfully!');
+      } else {
+        toast.error('Failed to update applicant status');
+      }
     } catch (error) {
       console.error('Error hiring applicant:', error);
       toast.error('Error processing request');
     }
   };
 
-
+  // Reject Applicant (Updated to hit API too)
   const handleRejectApplicant = async (applicantId) => {
     try {
-      // For demo, just update the state locally
-      setJobApplicants(prevApplicants =>
-        prevApplicants.map(app =>
-          app.id === applicantId ? { ...app, status: 'rejected' } : app
-        )
-      );
-      setSelectedApplicant(prev => ({ ...prev, status: 'rejected' }));
-      toast.success('Applicant rejected');
+      const applicant = jobApplicants.find((app) => app.id === applicantId);
+
+      if (!applicant) {
+        toast.error('Applicant not found');
+        return;
+      }
+
+      if (!applicant.user_id) {
+        toast.error('Applicant user ID is missing');
+        return;
+      }
+
+      const payload = {
+        application_id: applicantId,
+        status: 'rejected',
+        user_id: applicant.user_id,
+      };
+
+      // Log the payload for debugging
+      console.log('Reject Payload to be sent:', payload);
+
+      const response = await axios.put('/api/update-job-status', payload, {
+        auth: { username: auth.token },
+      });
+
+      if (response.status === 200) {
+        setJobApplicants((prevApplicants) =>
+          prevApplicants.map((app) =>
+            app.id === applicantId ? { ...app, status: 'rejected' } : app
+          )
+        );
+        setSelectedApplicant((prev) => ({ ...prev, status: 'rejected' }));
+        toast.success('Applicant rejected successfully!');
+      } else {
+        toast.error('Failed to reject applicant');
+      }
     } catch (error) {
       console.error('Error rejecting applicant:', error);
       toast.error('Error processing request');
     }
   };
-
 
   const handleViewFullDetails = () => {
     setOpenDetailDialog(true);

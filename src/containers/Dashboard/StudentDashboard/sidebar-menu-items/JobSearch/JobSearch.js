@@ -45,7 +45,6 @@ const JobSearch = ({ isCollapsed }) => {
       console.error("Error fetching applied jobs:", error);
     }
   };
-
   // Fetch all jobs
   useEffect(() => {
     const fetchJobs = async () => {
@@ -57,21 +56,29 @@ const JobSearch = ({ isCollapsed }) => {
             auth: { username: auth.token },
           });
 
+          console.log("🔍 Full API Response:", response.data);
+
           if (
             response.data &&
             Array.isArray(response.data.job_postings)
           ) {
             const jobsData = response.data.job_postings;
 
+            console.log("📋 Jobs Data:", jobsData);
+
             // Extract full_name from the API response
             const fullName =
               response.data.full_name || "Unknown Company";
+
+            console.log("👤 Employer Full Name:", fullName);
+            console.log("🏢 Employer Raw Array:", response.data.employer);
 
             setEmployerName(fullName);
             setJobs(jobsData);
 
             if (jobsData.length > 0 && !selectedJob) {
               setSelectedJob(jobsData[0]);
+              console.log("✅ Default selected job set:", jobsData[0]);
             }
           } else {
             setJobs([]);
@@ -81,7 +88,7 @@ const JobSearch = ({ isCollapsed }) => {
           await loadAppliedJobs();
         }
       } catch (error) {
-        console.error("Error fetching job postings:", error);
+        console.error("❌ Error fetching job postings:", error);
         toast.error("Failed to load job postings");
         setJobs([]);
       } finally {
@@ -248,13 +255,16 @@ const JobSearch = ({ isCollapsed }) => {
                       {job.job_type} • {job.experience_level}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      💰 {formatSalary(job.estimated_salary_from)} -{" "}
-                      {formatSalary(job.estimated_salary_to)}
+                      💰 {formatSalary(job.estimated_salary_from)} - {formatSalary(job.estimated_salary_to)}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {"Posted By: " + (job.employer.full_name || 'N/A')}
+                      🏢 {job.employer?.company_name ?? 'Unknown Company'}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      👤 Posted By: {job.employer?.full_name ?? 'N/A'}
                     </div>
                   </div>
+
 
                   {/* Application Status Indicator */}
                   {appliedJobIds.includes(job.job_id) && (

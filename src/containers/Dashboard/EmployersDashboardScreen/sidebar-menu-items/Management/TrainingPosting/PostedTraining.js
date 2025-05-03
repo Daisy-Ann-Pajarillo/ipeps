@@ -253,7 +253,8 @@ const PostedTraining = () => {
             work_experiences: applicant.user_details?.work_experiences || [],
             other_skills: applicant.user_details?.other_skills || [],
             job_preference: applicant.user_details?.job_preference || {},
-            personal_information: personalInfo
+            personal_information: personalInfo,
+            user_id: applicant.user_details?.user_id || null
           };
         });
         setTrainingApplicants(formattedApplicants);
@@ -276,70 +277,70 @@ const PostedTraining = () => {
     setShowApplicantDetails(true);
   };
 
-
+  //Accept and Reject Applicants
   const handleAcceptApplicant = async (applicantId) => {
     try {
-      // For demo, just update the state locally
-      setTrainingApplicants(prevApplicants =>
-        prevApplicants.map(app =>
-          app.id === applicantId ? { ...app, status: 'accepted' } : app
-        )
-      );
+      const applicant = trainingApplicants.find(app => app.id === applicantId);
+      if (!applicant || !applicant.user_id) {
+        toast.error('Applicant data is incomplete');
+        return;
+      }
 
+      const payload = {
+        application_id: applicantId,
+        status: 'hired',
+        user_id: applicant.user_id,
+      };
 
-      setSelectedApplicant(prev => ({ ...prev, status: 'accepted' }));
-      toast.success('Applicant accepted successfully!');
+      const response = await axios.put('/api/update-training-status', payload, {
+        auth: { username: auth.token },
+      });
 
-
-      /* In production:
-      const response = await axios.post(`/api/accept-training-applicant`,
-        { applicant_id: applicantId, training_id: selectedTraining.id },
-        { auth: { username: auth.token } }
-      );
-     
       if (response.status === 200) {
+        setTrainingApplicants(prevApplicants =>
+          prevApplicants.map(app =>
+            app.id === applicantId ? { ...app, status: 'accepted' } : app
+          )
+        );
+        setSelectedApplicant(prev => ({ ...prev, status: 'accepted' }));
         toast.success('Applicant accepted successfully!');
-        // Refresh the applicants list
-        handleViewApplicants(selectedTraining.id);
       } else {
         toast.error('Failed to accept applicant');
       }
-      */
     } catch (error) {
       console.error('Error accepting applicant:', error);
       toast.error('Error processing request');
     }
   };
-
-
   const handleRejectApplicant = async (applicantId) => {
     try {
-      // For demo, just update the state locally
-      setTrainingApplicants(prevApplicants =>
-        prevApplicants.map(app =>
-          app.id === applicantId ? { ...app, status: 'rejected' } : app
-        )
-      );
+      const applicant = trainingApplicants.find(app => app.id === applicantId);
+      if (!applicant || !applicant.user_id) {
+        toast.error('Applicant data is incomplete');
+        return;
+      }
 
+      const payload = {
+        application_id: applicantId,
+        status: 'rejected',
+        user_id: applicant.user_id,
+      };
 
-      setSelectedApplicant(prev => ({ ...prev, status: 'rejected' }));
-      toast.success('Applicant rejected');
+      const response = await axios.put('/api/update-training-status', payload, {
+        auth: { username: auth.token },
+      });
 
-
-      /* In production:
-      const response = await axios.post(`/api/reject-training-applicant`,
-        { applicant_id: applicantId, training_id: selectedTraining.id },
-        { auth: { username: auth.token } }
-      );
-     
       if (response.status === 200) {
+        setTrainingApplicants(prevApplicants =>
+          prevApplicants.map(app =>
+            app.id === applicantId ? { ...app, status: 'rejected' } : app
+          )
+        );
+        setSelectedApplicant(prev => ({ ...prev, status: 'rejected' }));
         toast.success('Applicant rejected');
-        // Refresh the applicants list
-        handleViewApplicants(selectedTraining.id);
       } else {
         toast.error('Failed to reject applicant');
       }
-      */
     } catch (error) {
       console.error('Error rejecting applicant:', error);
       toast.error('Error processing request');
