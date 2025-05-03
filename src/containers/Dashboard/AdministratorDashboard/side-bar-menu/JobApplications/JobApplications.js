@@ -4,18 +4,30 @@ import {
   Visibility,
   Delete,
   CheckCircle,
-  Search,
-  FilterList,
-  ArrowUpward,
-  ArrowDownward,
   ArrowBackIos,
   ArrowForwardIos,
   Person,
 } from "@mui/icons-material";
+import ArrowUpward from "@mui/icons-material/ArrowUpward";
+import ArrowDownward from "@mui/icons-material/ArrowDownward";
+import Search from "@mui/icons-material/Search";
+import FilterList from "@mui/icons-material/FilterList";
+import { Chip } from "@mui/material";
 import * as actions from "../../../../../store/actions/index";
 import axios from "../../../../../axios";
 import { Cancel } from "@mui/icons-material";
 import { toast, ToastContainer } from "react-toastify";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Grid,
+  Typography,
+  IconButton,
+  Box,
+  Divider,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 
 function JobApplications() {
   const [query, setQuery] = useState("");
@@ -27,7 +39,8 @@ function JobApplications() {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [selectedApp, setSelectedApp] = useState(null); // Track selected application
   const [isLoading, setIsLoading] = useState(false); // Track loading state
-
+  const [openDetailDialog, setOpenDetailDialog] = useState(false);
+  const [selectedUserDetails, setSelectedUserDetails] = useState(null);
 
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
@@ -254,6 +267,23 @@ function JobApplications() {
     );
   };
 
+  const handleViewApplicantDetails = async (userId) => {
+    try {
+      const response = await axios.get(`/api/admin/get-user-info/${userId}`, {
+        auth: { username: auth.token },
+      });
+      setSelectedUserDetails(response.data);
+      setOpenDetailDialog(true);
+    } catch (error) {
+      toast.error("Failed to load applicant details.");
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDetailDialog(false);
+    setSelectedUserDetails(null);
+  };
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -441,6 +471,7 @@ function JobApplications() {
                           <Cancel fontSize="small" />
                         </button>
                         <button
+                          onClick={() => handleViewApplicantDetails(app.user_details.user_id)}
                           className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900"
                           title="View details"
                         >
@@ -521,6 +552,654 @@ function JobApplications() {
           </div>
         </div>
       </div>
+
+      {/* Applicant Details Dialog */}
+      {/* User Details Dialog */}
+      <Dialog
+        open={openDetailDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            User Information
+          <Divider sx={{ my: 2 }} />
+
+            <IconButton onClick={handleCloseDialog}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {selectedUserDetails ? (
+            <Box sx={{ p: 3 }}>
+              {/* ABOUT Section */}
+              <Typography variant="h6" gutterBottom>
+                About
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    User ID
+                  </Typography>
+                  <Typography variant="body1">
+                    {selectedUserDetails.user_id ?? "N/A"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Username
+                  </Typography>
+                  <Typography variant="body1">
+                    {selectedUserDetails.username ?? "N/A"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Email
+                  </Typography>
+                  <Typography variant="body1">
+                    {selectedUserDetails.email ?? "N/A"}
+                  </Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    User Type
+                  </Typography>
+                  <Typography variant="body1">
+                    {selectedUserDetails.user_type ?? "N/A"}
+                  </Typography>
+                </Grid>
+              </Grid>
+
+              {/* Render sections based on user type */}
+              {(() => {
+                const userType = (selectedUserDetails.user_type || "").toUpperCase();
+
+                // For ADMIN: Only show About section (already rendered above)
+                if (userType === "ADMIN") {
+                  return null;
+                }
+
+                // For EMPLOYER: Show Personal Information, but hide all other sections
+                if (userType === "EMPLOYER") {
+                  return (
+                    <>
+                      {/* PERSONAL INFORMATION Section */}
+                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                        Personal Information
+                      </Typography>
+                      {selectedUserDetails.personal_information ? (
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Employer Personal Info ID</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.employer_personal_info_id || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">User ID</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.user_id || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Prefix</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.prefix || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">First Name</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.first_name || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Middle Name</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.middle_name || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Last Name</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.last_name || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Suffix</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.suffix || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Company Type</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.company_type || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Company Classification</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.company_classification || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Company Industry</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.company_industry || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Company Workforce</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.company_workforce || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Email</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.email || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Employer Position</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.employer_position || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Employer ID Number</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.employer_id_number || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Temporary Country</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.temporary_country || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Temporary Province</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.temporary_province || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Temporary Municipality</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.temporary_municipality || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Temporary Zip Code</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.temporary_zip_code || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Temporary Barangay</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.temporary_barangay || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Temporary House/Street/Village</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.temporary_house_no_street_village || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Permanent Country</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_country || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Permanent Municipality</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_municipality || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Permanent Zip Code</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_zip_code || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Permanent Barangay</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_barangay || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Permanent House/Street/Village</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_house_no_street_village || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Cellphone Number</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.cellphone_number || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Landline Number</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.landline_number || "N/A"}</Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">Valid ID URL</Typography>
+                            <Typography variant="body1">{selectedUserDetails.personal_information.valid_id_url || "N/A"}</Typography>
+                          </Grid>
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No personal information available.
+                        </Typography>
+                      )}
+                    </>
+                  );
+                }
+
+                // For JOBSEEKER and STUDENT: Show everything
+                if (["JOBSEEKER", "STUDENT"].includes(userType)) {
+                  return (
+                    <>
+                      {/* PERSONAL INFORMATION Section */}
+                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                        Personal Information
+                      </Typography>
+                      {selectedUserDetails.personal_information ? (
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Prefix
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.prefix || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              First Name
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.first_name || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Middle Name
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.middle_name || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Last Name
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.last_name || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Suffix
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.suffix || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Sex
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.sex || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Date of Birth
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.date_of_birth
+                                ? new Date(selectedUserDetails.personal_information.date_of_birth).toLocaleDateString()
+                                : "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Place of Birth
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.place_of_birth || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Civil Status
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.civil_status || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Height
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.height || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Weight
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.weight || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Religion
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.religion || "N/A"}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Phone
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.cellphone_number || "N/A"}
+                            </Typography>
+                          </Grid>
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No personal information available.
+                        </Typography>
+                      )}
+
+                      {/* EDUCATIONAL BACKGROUND Section */}
+                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                        Educational Background
+                      </Typography>
+                      {selectedUserDetails.educational_background?.length > 0 ? (
+                        <Grid container spacing={2}>
+                          {selectedUserDetails.educational_background.map((edu, index) => (
+                            <React.Fragment key={index}>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  School Name
+                                </Typography>
+                                <Typography variant="body1">  
+                                  {edu.school_name || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Degree or Qualification
+                                </Typography>
+                                <Typography variant="body1">
+                                  {edu.degree_or_qualification || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Field of Study
+                                </Typography>
+                                <Typography variant="body1">
+                                  {edu.field_of_study || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Program Duration
+                                </Typography>
+                                <Typography variant="body1">
+                                  {edu.program_duration || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Date From
+                                </Typography>
+                                <Typography variant="body1">
+                                  {edu.date_from
+                                    ? new Date(edu.date_from).toLocaleDateString()
+                                    : "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Date To
+                                </Typography>
+                                <Typography variant="body1">
+                                  {edu.date_to
+                                    ? new Date(edu.date_to).toLocaleDateString()
+                                    : "N/A"}
+                                </Typography>
+                              </Grid>
+                            </React.Fragment>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No educational background available.
+                        </Typography>
+                      )}
+
+                      {/* WORK EXPERIENCE Section */}
+                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                        Work Experience
+                      </Typography>
+                      {selectedUserDetails.work_experiences?.length > 0 ? (
+                        <Grid container spacing={2}>
+                          {selectedUserDetails.work_experiences.map((work, index) => (
+                            <React.Fragment key={index}>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Company Name
+                                </Typography>
+                                <Typography variant="body1">
+                                  {work.company_name || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Company Address
+                                </Typography>
+                                <Typography variant="body1">
+                                  {work.company_address || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Position
+                                </Typography>
+                                <Typography variant="body1">
+                                  {work.position || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Employment Status
+                                </Typography>
+                                <Typography variant="body1">
+                                  {work.employment_status || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Date Start
+                                </Typography>
+                                <Typography variant="body1">
+                                  {work.date_start
+                                    ? new Date(work.date_start).toLocaleDateString()
+                                    : "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Date End
+                                </Typography>
+                                <Typography variant="body1">
+                                  {work.date_end
+                                    ? new Date(work.date_end).toLocaleDateString()
+                                    : "N/A"}
+                                </Typography>
+                              </Grid>
+                            </React.Fragment>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No work experience available.
+                        </Typography>
+                      )}
+
+                      {/* TRAININGS Section */}
+                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                        Trainings
+                      </Typography>
+                      {selectedUserDetails.trainings?.length > 0 ? (
+                        <Grid container spacing={2}>
+                          {selectedUserDetails.trainings.map((training, index) => (
+                            <React.Fragment key={index}>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Course Name
+                                </Typography>
+                                <Typography variant="body1">
+                                  {training.course_name || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Training Institution
+                                </Typography>
+                                <Typography variant="body1">
+                                  {training.training_institution || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Start Date
+                                </Typography>
+                                <Typography variant="body1">
+                                  {training.start_date
+                                    ? new Date(training.start_date).toLocaleDateString()
+                                    : "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  End Date
+                                </Typography>
+                                <Typography variant="body1">
+                                  {training.end_date
+                                    ? new Date(training.end_date).toLocaleDateString()
+                                    : "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Certificates Received
+                                </Typography>
+                                <Typography variant="body1">
+                                  {training.certificates_received || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Hours of Training
+                                </Typography>
+                                <Typography variant="body1">
+                                  {training.hours_of_training || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Skills Acquired
+                                </Typography>
+                                <Typography variant="body1">
+                                  {training.skills_acquired || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Credential ID
+                                </Typography>
+                                <Typography variant="body1">
+                                  {training.credential_id || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Credential URL
+                                </Typography>
+                                <Typography variant="body1">
+                                  {training.credential_url || "N/A"}
+                                </Typography>
+                              </Grid>
+                            </React.Fragment>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No trainings available.
+                        </Typography>
+                      )}
+
+                      {/* PROFESSIONAL LICENSES Section */}
+                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                        Professional Licenses
+                      </Typography>
+                      {selectedUserDetails.professional_licenses?.length > 0 ? (
+                        <Grid container spacing={2}>
+                          {selectedUserDetails.professional_licenses.map((license, index) => (
+                            <React.Fragment key={index}>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  License
+                                </Typography>
+                                <Typography variant="body1">
+                                  {license.license || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Name
+                                </Typography>
+                                <Typography variant="body1">
+                                  {license.name || "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Date
+                                </Typography>
+                                <Typography variant="body1">
+                                  {license.date
+                                    ? new Date(license.date).toLocaleDateString()
+                                    : "N/A"}
+                                </Typography>
+                              </Grid>
+                              <Grid item xs={6}>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                  Valid Until
+                                </Typography>
+                                <Typography variant="body1">
+                                  {license.valid
+                                    ? new Date(license.valid).toLocaleDateString()
+                                    : "N/A"}
+                                </Typography>
+                              </Grid>
+                            </React.Fragment>
+                          ))}
+                        </Grid>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No professional licenses available.
+                        </Typography>
+                      )}
+
+                      {/* OTHER SKILLS Section */}
+                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                        Other Skills
+                      </Typography>
+                      {selectedUserDetails.other_skills?.length > 0 ? (
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                          {selectedUserDetails.other_skills.map((skill, index) => (
+                            <Chip
+                              key={index}
+                              label={skill.skills || "N/A"}
+                              sx={{
+                                backgroundColor: "#e0f7fa",
+                                color: "#00796b",
+                                fontWeight: "bold",
+                                borderRadius: "4px",
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          No other skills available.
+                        </Typography>
+                      )}
+                    </>
+                  );
+                }
+
+                // Default: Show nothing extra
+                return null;
+              })()}
+            </Box>
+          ) : (
+            <Typography variant="body1" align="center">
+              Loading user details...
+            </Typography>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
