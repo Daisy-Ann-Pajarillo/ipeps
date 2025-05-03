@@ -267,14 +267,15 @@ function JobApplications() {
     );
   };
 
-  const handleViewApplicantDetails = async (userId) => {
+  const handleViewApplicantDetails = async (userId, application) => {
     try {
       const response = await axios.get(`/api/admin/get-user-info/${userId}`, {
         auth: { username: auth.token },
       });
       setSelectedUserDetails(response.data);
+      setSelectedApp(application); // Set the selected application
       setOpenDetailDialog(true);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load applicant details.");
     }
   };
@@ -471,7 +472,7 @@ function JobApplications() {
                           <Cancel fontSize="small" />
                         </button>
                         <button
-                          onClick={() => handleViewApplicantDetails(app.user_details.user_id)}
+                          onClick={() => handleViewApplicantDetails(app.user_details.user_id, app)} // Pass the application data
                           className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900"
                           title="View details"
                         >
@@ -563,7 +564,7 @@ function JobApplications() {
       >
         <DialogTitle>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            User Information
+            Review Application
           <Divider sx={{ my: 2 }} />
 
             <IconButton onClick={handleCloseDialog}>
@@ -574,6 +575,104 @@ function JobApplications() {
         <DialogContent>
           {selectedUserDetails ? (
             <Box sx={{ p: 3 }}>
+              {/* Job Details Section */}
+              {selectedApp && (
+                <>
+                  <Typography variant="h6" gutterBottom>
+                    Job Details
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Title
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.job_title}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Job Type
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.job_type}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Experience Level
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.experience_level}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Description
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.job_description}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Estimated Salary
+                      </Typography>
+                      <Typography variant="body1">
+                        ₱{selectedApp.estimated_salary_from?.toLocaleString()} - ₱
+                        {selectedApp.estimated_salary_to?.toLocaleString()}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        No. of Vacancies
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.no_of_vacancies}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Location
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.city_municipality}, {selectedApp.country}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Created At
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.created_at
+                          ? new Date(selectedApp.created_at).toLocaleDateString()
+                          : ""}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Updated At
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.updated_at
+                          ? new Date(selectedApp.updated_at).toLocaleDateString()
+                          : ""}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Expiration Date
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.expiration_date
+                          ? new Date(selectedApp.expiration_date).toLocaleDateString()
+                          : ""}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                  <Divider sx={{ my: 3 }} />
+                </>
+              )}
               {/* ABOUT Section */}
               <Typography variant="h6" gutterBottom>
                 About
@@ -717,32 +816,60 @@ function JobApplications() {
                             <Typography variant="body1">{selectedUserDetails.personal_information.permanent_country || "N/A"}</Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Permanent Municipality</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_municipality || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Permanent Municipality
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.permanent_municipality || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Permanent Zip Code</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_zip_code || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Permanent Zip Code
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.permanent_zip_code || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Permanent Barangay</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_barangay || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Permanent Barangay
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.permanent_barangay || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Permanent House/Street/Village</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_house_no_street_village || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Permanent House/Street/Village
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.permanent_house_no_street_village || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Cellphone Number</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.cellphone_number || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Cellphone Number
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.cellphone_number || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Landline Number</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.landline_number || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Landline Number
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.landline_number || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Valid ID URL</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.valid_id_url || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Valid ID URL
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.valid_id_url || "N/A"}
+                            </Typography>
                           </Grid>
                         </Grid>
                       ) : (

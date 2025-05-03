@@ -247,14 +247,15 @@ const TrainingApplications = () => {
     });
   };
 
-  const handleViewApplicantDetails = async (userId) => {
+  const handleViewApplicantDetails = async (userId, application) => {
     try {
       const response = await axios.get(`/api/admin/get-user-info/${userId}`, {
         auth: { username: auth.token },
       });
       setSelectedUserDetails(response.data);
+      setSelectedApp(application); // Set the selected application
       setOpenDetailDialog(true);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load applicant details.");
     }
   };
@@ -498,19 +499,19 @@ const TrainingApplications = () => {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Training
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Applicant
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Company
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Training Details
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Status
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                        Applied On
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Applied
                       </th>
-                      <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -519,32 +520,20 @@ const TrainingApplications = () => {
                     {currentItems.map((app) => (
                       <tr key={app.application_id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
                         <td className="px-6 py-4">
-                          <div className="flex items-start">
-                            <div className="flex-shrink-0 h-10 w-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                              <School className="h-5 w-5 text-blue-600 dark:text-blue-300" />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">{app.training_title}</div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">ID: {app.application_id}</div>
-                            </div>
-                          </div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{app.user_details?.fullname || "N/A"}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{app.user_details?.email || "N/A"}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <BusinessCenter className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
-                            <div className="text-sm text-gray-900 dark:text-white">{app.company_name}</div>
-                          </div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{app.training_title || "N/A"}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{app.company_name || "N/A"}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(app.application_status)}`}>
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(app.application_status)}`}>
                             {app.application_status?.toUpperCase()}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <CalendarToday className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-2" />
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{formatDate(app.applied_at)}</div>
-                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{formatDate(app.applied_at)}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <div className="flex justify-center space-x-2">
@@ -565,11 +554,11 @@ const TrainingApplications = () => {
                               <Cancel className="w-5 h-5" />
                             </button>
                             <button
-                              onClick={() => handleViewApplicantDetails(app.user_details.user_id)}
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-                              title="View Applicant Details"
+                              onClick={() => handleViewApplicantDetails(app.user_details.user_id, app)} // Pass the application data
+                              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900"
+                              title="View details"
                             >
-                              <Visibility className="w-5 h-5" />
+                              <Visibility fontSize="small" />
                             </button>
                           </div>
                         </td>
@@ -675,7 +664,7 @@ const TrainingApplications = () => {
       >
         <DialogTitle>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          Applicant Information
+          Review Application
           <Divider sx={{ my: 2 }} />
 
             <IconButton onClick={handleCloseDialog}>
@@ -686,7 +675,88 @@ const TrainingApplications = () => {
         <DialogContent>
           {selectedUserDetails ? (
             <Box sx={{ p: 3 }}>
-              {/* ABOUT Section */}
+              {/* Training Details Section */}
+              {selectedApp && (
+                <>
+                  <Typography variant="h6" gutterBottom>
+                    Training Details
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Title
+                      </Typography>
+                      <Typography variant="body1">
+                        {String(selectedApp.training_title || "N/A")}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Description
+                      </Typography>
+                      <Typography variant="body1">
+                        {String(selectedApp.training_description || "N/A")}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Slots
+                      </Typography>
+                      <Typography variant="body1">
+                        {String(selectedApp.slots || "N/A")}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Occupied Slots
+                      </Typography>
+                      <Typography variant="body1">
+                        {String(selectedApp.occupied_slots || "N/A")}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Status
+                      </Typography>
+                      <Typography variant="body1">
+                        {String(selectedApp.status || "N/A")}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Created At
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.created_at
+                          ? new Date(selectedApp.created_at).toLocaleDateString()
+                          : "N/A"}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Updated At
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.updated_at
+                          ? new Date(selectedApp.updated_at).toLocaleDateString()
+                          : "N/A"}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Expiration Date
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.expiration_date
+                          ? new Date(selectedApp.expiration_date).toLocaleDateString()
+                          : "N/A"}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                  <Divider sx={{ my: 3 }} />
+                </>
+              )}
+              {/* About Section */}
               <Typography variant="h6" gutterBottom>
                 About
               </Typography>
@@ -1185,83 +1255,6 @@ const TrainingApplications = () => {
                                 </Typography>
                                 <Typography variant="body1">
                                   {training.hours_of_training || "N/A"}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  Skills Acquired
-                                </Typography>
-                                <Typography variant="body1">
-                                  {training.skills_acquired || "N/A"}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  Credential ID
-                                </Typography>
-                                <Typography variant="body1">
-                                  {training.credential_id || "N/A"}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  Credential URL
-                                </Typography>
-                                <Typography variant="body1">
-                                  {training.credential_url || "N/A"}
-                                </Typography>
-                              </Grid>
-                            </React.Fragment>
-                          ))}
-                        </Grid>
-                      ) : (
-                        <Typography variant="body2" color="text.secondary">
-                          No trainings available.
-                        </Typography>
-                      )}
-
-                      {/* PROFESSIONAL LICENSES Section */}
-                      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                        Professional Licenses
-                      </Typography>
-                      {selectedUserDetails.professional_licenses?.length > 0 ? (
-                        <Grid container spacing={2}>
-                          {selectedUserDetails.professional_licenses.map((license, index) => (
-                            <React.Fragment key={index}>
-                              <Grid item xs={6}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  License
-                                </Typography>
-                                <Typography variant="body1">
-                                  {license.license || "N/A"}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  Name
-                                </Typography>
-                                <Typography variant="body1">
-                                  {license.name || "N/A"}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  Date
-                                </Typography>
-                                <Typography variant="body1">
-                                  {license.date
-                                    ? new Date(license.date).toLocaleDateString()
-                                    : "N/A"}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={6}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                  Valid Until
-                                </Typography>
-                                <Typography variant="body1">
-                                  {license.valid
-                                    ? new Date(license.valid).toLocaleDateString()
-                                    : "N/A"}
                                 </Typography>
                               </Grid>
                             </React.Fragment>

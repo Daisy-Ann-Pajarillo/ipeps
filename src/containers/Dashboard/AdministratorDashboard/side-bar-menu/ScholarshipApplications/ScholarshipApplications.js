@@ -14,11 +14,11 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  Grid,
   Typography,
   IconButton,
   Box,
   Divider,
+  Grid, // Ensure Grid is imported from @mui/material
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import * as actions from "../../../../../store/actions/index";
@@ -125,12 +125,13 @@ const ScholarshipApplications = () => {
       .finally(() => setIsLoading(false));
   };
 
-  const handleViewApplicantDetails = async (userId) => {
+  const handleViewApplicantDetails = async (userId, application) => {
     try {
       const response = await axios.get(`/api/admin/get-user-info/${userId}`, {
         auth: { username: auth.token },
       });
       setSelectedUserDetails(response.data);
+      setSelectedApp(application); // Set the selected application
       setOpenDetailDialog(true);
     } catch {
       toast.error("Failed to load applicant details.");
@@ -203,10 +204,13 @@ const ScholarshipApplications = () => {
                   Applicant
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Email
+                  Scholarship Details
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Applied
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Actions
@@ -224,10 +228,16 @@ const ScholarshipApplications = () => {
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {app.user_details?.fullname || "N/A"}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         {app.user_details?.email || "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {app.scholarship_title || "N/A"}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        {app.company_name || "N/A"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -242,6 +252,13 @@ const ScholarshipApplications = () => {
                       >
                         {app.application_status || "Pending"}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {new Date(app.applied_at).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex justify-center space-x-2">
@@ -260,7 +277,7 @@ const ScholarshipApplications = () => {
                           <Cancel fontSize="small" />
                         </button>
                         <button
-                          onClick={() => handleViewApplicantDetails(app.user_details.user_id)}
+                          onClick={() => handleViewApplicantDetails(app.user_details.user_id, app)} // Pass the application data
                           className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900"
                           title="View details"
                         >
@@ -273,7 +290,7 @@ const ScholarshipApplications = () => {
               ) : (
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan="5"
                     className="px-6 py-10 text-center text-gray-500 dark:text-gray-400"
                   >
                     No applications found.
@@ -343,7 +360,7 @@ const ScholarshipApplications = () => {
       >
         <DialogTitle>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          Applicant Information
+          Review Application          
           <Divider sx={{ my: 2 }} />
 
             <IconButton onClick={handleCloseDialog}>
@@ -354,6 +371,96 @@ const ScholarshipApplications = () => {
         <DialogContent>
           {selectedUserDetails ? (
             <Box sx={{ p: 3 }}>
+              {/* Scholarship Details Section */}
+              {selectedApp && (
+                <>
+                  <Typography variant="h6" gutterBottom>
+                    Scholarship Details
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Title
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.scholarship_title}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Description
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.scholarship_description}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Slots
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.slots}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Occupied Slots
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.occupied_slots}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Status
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.status}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Remarks
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.remarks}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Created At
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.created_at
+                          ? new Date(selectedApp.created_at).toLocaleDateString()
+                          : ""}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Updated At
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.updated_at
+                          ? new Date(selectedApp.updated_at).toLocaleDateString()
+                          : ""}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Expiration Date
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedApp.expiration_date
+                          ? new Date(selectedApp.expiration_date).toLocaleDateString()
+                          : ""}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                  <Divider sx={{ my: 3 }} />
+                </>
+              )}
+
               {/* ABOUT Section */}
               <Typography variant="h6" gutterBottom>
                 About
@@ -497,32 +604,60 @@ const ScholarshipApplications = () => {
                             <Typography variant="body1">{selectedUserDetails.personal_information.permanent_country || "N/A"}</Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Permanent Municipality</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_municipality || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Permanent Municipality
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.permanent_municipality || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Permanent Zip Code</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_zip_code || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Permanent Zip Code
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.permanent_zip_code || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Permanent Barangay</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_barangay || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Permanent Barangay
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.permanent_barangay || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Permanent House/Street/Village</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.permanent_house_no_street_village || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Permanent House/Street/Village
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.permanent_house_no_street_village || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Cellphone Number</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.cellphone_number || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Cellphone Number
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.cellphone_number || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Landline Number</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.landline_number || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Landline Number
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.landline_number || "N/A"}
+                            </Typography>
                           </Grid>
                           <Grid item xs={6}>
-                            <Typography variant="subtitle2" color="text.secondary">Valid ID URL</Typography>
-                            <Typography variant="body1">{selectedUserDetails.personal_information.valid_id_url || "N/A"}</Typography>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Valid ID URL
+                            </Typography>
+                            <Typography variant="body1">
+                              {selectedUserDetails.personal_information.valid_id_url || "N/A"}
+                            </Typography>
                           </Grid>
                         </Grid>
                       ) : (
@@ -968,8 +1103,6 @@ const ScholarshipApplications = () => {
                     </>
                   );
                 }
-
-                // Default: Show nothing extra
                 return null;
               })()}
             </Box>

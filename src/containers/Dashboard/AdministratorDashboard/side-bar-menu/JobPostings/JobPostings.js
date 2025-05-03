@@ -52,10 +52,8 @@ export default function JobBoard() {
       .then((response) => {
         const jobData = response.data.job_postings.data;
         setJobs(jobData);
-        // Auto-select first job
-        if (jobData && jobData.length > 0 && !selectedJob) {
-          setSelectedJob(jobData[0]);
-        }
+        // Remove auto-selection of the first job
+        setSelectedJob(null);
       })
       .catch((error) => {
         console.error("Error fetching postings:", error);

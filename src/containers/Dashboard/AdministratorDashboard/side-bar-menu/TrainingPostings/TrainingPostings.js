@@ -33,10 +33,8 @@ const TrainingPostings = () => {
       });
       const trainingData = response.data.training_postings.data;
       setTrainings(trainingData);
-      // Auto-select first training
-      if (trainingData.length > 0 && !selectedTraining) {
-        setSelectedTraining(trainingData[0]);
-      }
+      // Remove auto-selection of the first training
+      setSelectedTraining(null);
     } catch (error) {
       console.error("Error fetching postings:", error);
     }
