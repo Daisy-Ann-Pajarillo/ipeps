@@ -722,49 +722,101 @@ const PostedJob = ({ createJobOpen }) => {
           <Box sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>ABOUT</Typography>
             <Grid container spacing={2}>
-              <Grid item xs={2}>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">Prefix</Typography>
                 <Typography>{selectedApplicant?.personal_information?.prefix || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">First Name</Typography>
                 <Typography>{selectedApplicant?.personal_information?.first_name || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">Middle Name</Typography>
                 <Typography>{selectedApplicant?.personal_information?.middle_name || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">Last Name</Typography>
                 <Typography>{selectedApplicant?.personal_information?.last_name || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={3}>
-                <Typography color="text.secondary">Suffix</Typography>
-                <Typography>{selectedApplicant?.personal_information?.suffix || 'N/A'}</Typography>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Height</Typography>
+                <Typography>{selectedApplicant?.personal_information?.height || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Weight</Typography>
+                <Typography>{selectedApplicant?.personal_information?.weight || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">Sex</Typography>
                 <Typography>{selectedApplicant?.personal_information?.sex || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">Date of Birth</Typography>
                 <Typography>{selectedApplicant?.personal_information?.date_of_birth || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">Place of Birth</Typography>
                 <Typography>{selectedApplicant?.personal_information?.place_of_birth || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">Civil Status</Typography>
                 <Typography>{selectedApplicant?.personal_information?.civil_status || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">Phone Number</Typography>
                 <Typography>{selectedApplicant?.personal_information?.cellphone_number || 'N/A'}</Typography>
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={6}>
                 <Typography color="text.secondary">Religion</Typography>
                 <Typography>{selectedApplicant?.personal_information?.religion || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Temporary Country</Typography>
+                <Typography>{selectedApplicant?.personal_information?.temporary_country || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Temporary Province</Typography>
+                <Typography>{selectedApplicant?.personal_information?.temporary_province || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Temporary Municipality</Typography>
+                <Typography>{selectedApplicant?.personal_information?.temporary_municipality || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Temporary Zip Code</Typography>
+                <Typography>{selectedApplicant?.personal_information?.temporary_zip_code || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Temporary Barangay</Typography>
+                <Typography>{selectedApplicant?.personal_information?.temporary_barangay || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Temporary House No./Street Village</Typography>
+                <Typography>{selectedApplicant?.personal_information?.temporary_house_no_street_village || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Permanent Country</Typography>
+                <Typography>{selectedApplicant?.personal_information?.permanent_country || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Permanent Province</Typography>
+                <Typography>{selectedApplicant?.personal_information?.permanent_province || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Permanent Municipality</Typography>
+                <Typography>{selectedApplicant?.personal_information?.permanent_municipality || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Permanent Zip Code</Typography>
+                <Typography>{selectedApplicant?.personal_information?.permanent_zip_code || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Permanent Barangay</Typography>
+                <Typography>{selectedApplicant?.personal_information?.permanent_barangay || 'N/A'}</Typography>
+              </Grid>
+              <Grid item xs={6}>
+                <Typography color="text.secondary">Permanent House No./Street Village</Typography>
+                <Typography>{selectedApplicant?.personal_information?.permanent_house_no_street_village || 'N/A'}</Typography>
               </Grid>
             </Grid>
 
@@ -802,7 +854,7 @@ const PostedJob = ({ createJobOpen }) => {
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>EDUCATIONAL BACKGROUND</Typography>
             {selectedApplicant?.educational_background?.map((edu, index) => (
-              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+         //     <Paper key={index} sx={{ p: 2, mb: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">School Name</Typography>
@@ -829,13 +881,13 @@ const PostedJob = ({ createJobOpen }) => {
                     <Typography>{edu.date_to || 'N/A'}</Typography>
                   </Grid>
                 </Grid>
-              </Paper>
+         //     </Paper>
             ))}
 
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>TRAININGS</Typography>
             {selectedApplicant?.trainings?.map((training, index) => (
-              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+        //      <Paper key={index} sx={{ p: 2, mb: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">Training Title</Typography>
@@ -880,13 +932,13 @@ const PostedJob = ({ createJobOpen }) => {
                     </Typography>
                   </Grid>
                 </Grid>
-              </Paper>
+         //     </Paper>
             ))}
 
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PROFESSIONAL LICENSE</Typography>
             {selectedApplicant?.professional_licenses?.map((license, index) => (
-              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+            //  <Paper key={index} sx={{ p: 2, mb: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">License Name</Typography>
@@ -913,13 +965,13 @@ const PostedJob = ({ createJobOpen }) => {
                     <Typography>{license.rating || 'N/A'}</Typography>
                   </Grid>
                 </Grid>
-              </Paper>
+        //      </Paper>
             ))}
 
 
             <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>WORK EXPERIENCE</Typography>
             {selectedApplicant?.work_experiences?.map((exp, index) => (
-              <Paper key={index} sx={{ p: 2, mb: 2 }}>
+           //   <Paper key={index} sx={{ p: 2, mb: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={6}>
                     <Typography color="text.secondary">Company Name</Typography>
@@ -973,7 +1025,7 @@ const PostedJob = ({ createJobOpen }) => {
                     </Typography>
                   </Grid>
                 </Grid>
-              </Paper>
+          //    </Paper>
             ))}
 
 
