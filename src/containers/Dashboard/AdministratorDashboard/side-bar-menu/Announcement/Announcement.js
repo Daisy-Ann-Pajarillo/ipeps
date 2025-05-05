@@ -24,7 +24,7 @@ const Add_Announcement = async (announcement, authToken) => {
 // API: Get Announcements
 const Get_Announcement = async (authToken) => {
     try {
-        const response = await axios.get('/api/get-announcements', {
+        const response = await axios.get('/api/get-all-announcements', {
             auth: { username: authToken },
         });
 
