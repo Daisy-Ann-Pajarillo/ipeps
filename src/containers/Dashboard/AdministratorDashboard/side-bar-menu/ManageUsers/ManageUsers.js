@@ -475,80 +475,80 @@ const ManageUsers = () => {
                           ))}
                       </TableRow>
                     )))
-                : filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <TableRow
-                      key={user.user_id}
-                      hover
-                      className="hover:bg-blue-50/50 transition-colors duration-150"
-                    >
-                      <TableCell className="font-medium">{user.username}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <div
-                            className={`w-3 h-3 rounded-full mr-2 ${getUserTypeColor(user.user_type)}`}
-                          />
-                          <span className="text-gray-700">
-                            {user.user_type.charAt(0).toUpperCase() + user.user_type.slice(1)}
+                  : filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
+                      <TableRow
+                        key={user.user_id}
+                        hover
+                        className="hover:bg-blue-50/50 transition-colors duration-150"
+                      >
+                        <TableCell className="font-medium">{user.username}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div
+                              className={`w-3 h-3 rounded-full mr-2 ${getUserTypeColor(user.user_type)}`}
+                            />
+                            <span className="text-gray-700">
+                              {user.user_type.charAt(0).toUpperCase() + user.user_type.slice(1)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-600">{user.email}</TableCell>
+                        <TableCell>
+                          <span
+                            className="px-3 py-1 rounded-full text-xs font-medium border"
+                            style={getStatusStyles(user.status)}
+                          >
+                            {user.status}
                           </span>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={user.access_level >= 2 ? "Admin" : "User"}
+                            size="small"
+                            color={user.access_level >= 2 ? "secondary" : "default"}
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell className="text-gray-600">
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<Visibility />}
+                            onClick={() => handleViewUserDetails(user.user_id)}
+                            size="small"
+                            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                            sx={{
+                              borderRadius: "0.375rem",
+                              textTransform: "none",
+                              boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+                            }}
+                          >
+                            View
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center" className="py-8">
+                        <div className="flex flex-col items-center">
+                          <Box className="bg-gray-100 rounded-full p-3 mb-3">
+                            <FilterList className="text-gray-400" fontSize="large" />
+                          </Box>
+                          <Typography variant="h6" className="text-gray-600 font-medium">
+                            No users found
+                          </Typography>
+                          <Typography variant="body2" className="text-gray-500 mt-1">
+                            Try adjusting your search or filter to find what you're looking for.
+                          </Typography>
                         </div>
                       </TableCell>
-                      <TableCell className="text-gray-600">{user.email}</TableCell>
-                      <TableCell>
-                        <span
-                          className="px-3 py-1 rounded-full text-xs font-medium border"
-                          style={getStatusStyles(user.status)}
-                        >
-                          {user.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={user.access_level >= 2 ? "Admin" : "User"}
-                          size="small"
-                          color={user.access_level >= 2 ? "secondary" : "default"}
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell className="text-gray-600">
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          startIcon={<Visibility />}
-                          onClick={() => handleViewUserDetails(user.user_id)}
-                          size="small"
-                          className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
-                          sx={{
-                            borderRadius: "0.375rem",
-                            textTransform: "none",
-                            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-                          }}
-                        >
-                          View
-                        </Button>
-                      </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center" className="py-8">
-                      <div className="flex flex-col items-center">
-                        <Box className="bg-gray-100 rounded-full p-3 mb-3">
-                          <FilterList className="text-gray-400" fontSize="large" />
-                        </Box>
-                        <Typography variant="h6" className="text-gray-600 font-medium">
-                          No users found
-                        </Typography>
-                        <Typography variant="body2" className="text-gray-500 mt-1">
-                          Try adjusting your search or filter to find what you're looking for.
-                        </Typography>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
+                  )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -588,7 +588,7 @@ const ManageUsers = () => {
         <DialogTitle>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             User Information
-          <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 2 }} />
 
             <IconButton onClick={handleCloseDialog}>
               <CloseIcon />
@@ -913,7 +913,7 @@ const ManageUsers = () => {
                                 <Typography variant="subtitle2" color="text.secondary">
                                   School Name
                                 </Typography>
-                                <Typography variant="body1">  
+                                <Typography variant="body1">
                                   {edu.school_name || "N/A"}
                                 </Typography>
                               </Grid>

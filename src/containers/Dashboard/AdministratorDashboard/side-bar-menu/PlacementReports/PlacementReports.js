@@ -29,13 +29,12 @@ import * as actions from "../../../../../store/actions/index";
 function Placement_Reports() {
   const [reports, setReports] = useState([]);
   const [query, setQuery] = useState("");
-  const [companyName, setCompanyName] = useState("");
+  const [agencyCompany, setAgencyCompany] = useState(""); // Renamed from companyName
   const [jobPost, setJobPost] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
 
@@ -58,17 +57,16 @@ function Placement_Reports() {
             id: item.applicant_firstname + item.applicant_lastname, // fallback ID
             first_name: item.applicant_firstname || "",
             last_name: item.applicant_lastname || "",
-            position_hired: item.employer_fullname || "", // assuming this is the job role
-            company_hired: item.company_name || "",
+            position_hired: item.position_hired || "", // Use position_hired directly
+            agency_company: item.company_name || "", // Renamed to agency_company
             deployment_country: item.job_country || "",
-            deployment_region: item.deployment_region || "",
+            deployment_region: item.deployment_country || "",
             salary: item.salary ? `$${item.salary}` : "",
-            contract_period: item.contract_period || "",
-            agency: "",
-            source: "",
+            contract_period: item.contract_period || "N/A",
+            source: item.source || "",
             local_overseas: item.local_overseas || "",
             remarks: item.remarks || "",
-            date_added: new Date().toISOString() // fallback since it's not in API
+            date_added: new Date().toISOString() // Fallback since it's not in API
           }));
           setReports(mappedData);
         } else {
@@ -100,7 +98,7 @@ function Placement_Reports() {
     `${report.first_name} ${report.last_name}`
       .toLowerCase()
       .includes(query.toLowerCase())
-  ).filter(report => companyName ? report.company_hired === companyName : true)
+  ).filter(report => agencyCompany ? report.agency_company === agencyCompany : true)
     .filter(report => jobPost ? report.position_hired === jobPost : true);
 
   // Paginate
@@ -117,12 +115,11 @@ function Placement_Reports() {
       "First Name",
       "Last Name",
       "Position Hired",
-      "Company Hired",
+      "Agency/Company",
       "Deployment Country",
       "Deployment Region",
       "Salary",
       "Contract Period",
-      "Agency",
       "Source",
       "Local/Overseas",
       "Remarks",
@@ -132,18 +129,16 @@ function Placement_Reports() {
       report.first_name,
       report.last_name,
       report.position_hired,
-      report.company_hired,
+      report.agency_company,
       report.deployment_country,
       report.deployment_region,
       report.salary,
       report.contract_period,
-      report.agency,
       report.source,
       report.local_overseas,
       report.remarks,
       formatDate(report.date_added)
     ]);
-
     const csvContent = [csvHeaders, ...csvRows]
       .map(row => row.join(","))
       .join("\n");
@@ -218,8 +213,8 @@ function Placement_Reports() {
             className="w-full"
             componentData={[
               {
-                title: "Company Hired",
-                options: ["", ...new Set(reports.map((report) => report.company_hired))]
+                title: "Agency/Company",
+                options: ["", ...new Set(reports.map((report) => report.agency_company))]
               },
               {
                 title: "Position Hired",
@@ -227,7 +222,7 @@ function Placement_Reports() {
               }
             ]}
             onComponentChange={(index, value) => {
-              if (index === 0) setCompanyName(value);
+              if (index === 0) setAgencyCompany(value); // Renamed to agencyCompany
               if (index === 1) setJobPost(value);
             }}
           />
@@ -267,12 +262,11 @@ function Placement_Reports() {
                     <TableCell sx={{ fontWeight: '600' }}>First Name</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Last Name</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Position Hired</TableCell>
-                    <TableCell sx={{ fontWeight: '600' }}>Company Hired</TableCell>
+                    <TableCell sx={{ fontWeight: '600' }}>Agency/Company</TableCell> {/* Updated */}
                     <TableCell sx={{ fontWeight: '600' }}>Deployment Country</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Deployment Region</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Salary</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Contract Period</TableCell>
-                    <TableCell sx={{ fontWeight: '600' }}>Agency</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Source</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Local/Overseas</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Remarks</TableCell>
@@ -298,14 +292,13 @@ function Placement_Reports() {
                       <TableCell>
                         <Box display="flex" alignItems="center">
                           <BusinessIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-                          {report.company_hired}
+                          {report.agency_company} {/* Updated */}
                         </Box>
                       </TableCell>
                       <TableCell>{report.deployment_country}</TableCell>
                       <TableCell>{report.deployment_region}</TableCell>
                       <TableCell>{report.salary}</TableCell>
-                      <TableCell>{report.contract_period || "N/A"}</TableCell>
-                      <TableCell>{report.agency}</TableCell>
+                      <TableCell>{report.contract_period}</TableCell>
                       <TableCell>{report.source}</TableCell>
                       <TableCell>{report.local_overseas}</TableCell>
                       <TableCell>{report.remarks}</TableCell>

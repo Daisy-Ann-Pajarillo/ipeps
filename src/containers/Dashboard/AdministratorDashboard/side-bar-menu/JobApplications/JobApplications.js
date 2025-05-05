@@ -565,7 +565,7 @@ function JobApplications() {
         <DialogTitle>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             Review Application
-          <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: 2 }} />
 
             <IconButton onClick={handleCloseDialog}>
               <CloseIcon />
@@ -1016,7 +1016,7 @@ function JobApplications() {
                                 <Typography variant="subtitle2" color="text.secondary">
                                   School Name
                                 </Typography>
-                                <Typography variant="body1">  
+                                <Typography variant="body1">
                                   {edu.school_name || "N/A"}
                                 </Typography>
                               </Grid>

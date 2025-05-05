@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 import {
   FaRegCalendarAlt,
@@ -35,6 +36,7 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+ChartJS.register(ChartDataLabels);
 
 const JobSeeker = () => {
   // State for active section
@@ -74,7 +76,37 @@ const JobSeeker = () => {
 
     return dates;
   };
-
+  const colorPalette = {
+    job: [
+      { bg: 'rgba(75, 192, 192, 0.8)', border: 'rgba(75, 192, 192, 1)' },   // Teal
+      { bg: 'rgba(54, 162, 235, 0.8)', border: 'rgba(54, 162, 235, 1)' },   // Blue
+      { bg: 'rgba(153, 102, 255, 0.8)', border: 'rgba(153, 102, 255, 1)' }, // Purple
+    ],
+    sex: [
+      { bg: 'rgba(255, 99, 132, 0.8)', border: 'rgba(255, 99, 132, 1)' },   // Rose
+      { bg: 'rgba(255, 159, 64, 0.8)', border: 'rgba(255, 159, 64, 1)' },   // Orange
+    ],
+    municipality: [
+      { bg: 'rgba(255, 205, 86, 0.8)', border: 'rgba(255, 205, 86, 1)' },   // Yellow
+      { bg: 'rgba(100, 149, 237, 0.8)', border: 'rgba(100, 149, 237, 1)' }, // Cornflower Blue
+      { bg: 'rgba(30, 144, 255, 0.8)', border: 'rgba(30, 144, 255, 1)' },   // Dodger Blue
+    ],
+    education: [
+      { bg: 'rgba(144, 238, 144, 0.8)', border: 'rgba(144, 238, 144, 1)' }, // Light Green
+      { bg: 'rgba(60, 179, 113, 0.8)', border: 'rgba(60, 179, 113, 1)' },   // Medium Sea Green
+      { bg: 'rgba(46, 139, 87, 0.8)', border: 'rgba(46, 139, 87, 1)' },     // Sea Green
+    ],
+    age: [
+      { bg: 'rgba(255, 105, 180, 0.8)', border: 'rgba(255, 105, 180, 1)' }, // Hot Pink
+      { bg: 'rgba(218, 112, 214, 0.8)', border: 'rgba(218, 112, 214, 1)' }, // Orchid
+      { bg: 'rgba(199, 21, 133, 0.8)', border: 'rgba(199, 21, 133, 1)' },   // Medium Violet Red
+    ],
+    course: [
+      { bg: 'rgba(255, 165, 0, 0.8)', border: 'rgba(255, 165, 0, 1)' },     // Orange
+      { bg: 'rgba(230, 161, 68, 0.8)', border: 'rgba(230, 161, 68, 1)' },   // Gold
+      { bg: 'rgba(204, 85, 0, 0.8)', border: 'rgba(204, 85, 0, 1)' },       // Dark Orange
+    ]
+  };
   // Employment statistics data
   const employmentStats = {
     labor_force: 15000,
@@ -303,7 +335,25 @@ const JobSeeker = () => {
       title: {
         display: false,
       },
+      datalabels: {
+        anchor: 'end',
+        align: 'end',
+        color: '#000',
+        font: {
+          weight: 'bold'
+        },
+        formatter: (value) => value.toLocaleString()
+      }
     },
+    scales: {
+      x: {
+        ticks: {
+          autoSkip: false,
+          maxRotation: 45,
+          minRotation: 45
+        }
+      }
+    }
   };
 
   // Create job seekers by title chart data
