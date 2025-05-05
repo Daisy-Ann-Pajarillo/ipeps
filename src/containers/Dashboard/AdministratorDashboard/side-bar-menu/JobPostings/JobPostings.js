@@ -52,6 +52,7 @@ export default function JobBoard() {
       .then((response) => {
         const jobData = response.data.job_postings.data;
         setJobs(jobData);
+
         // Remove auto-selection of the first job
         setSelectedJob(null);
       })
@@ -105,7 +106,7 @@ export default function JobBoard() {
       posting_type: "job",
       posting_id: jobId,
       status: statusUpdate,
-      remarks: adminRemarks[jobId] || "", // Include remarks in the request
+      admin_remarks: adminRemarks[jobId] || "", // Include remarks in the request
     };
     console.log(jobPostingData);
     await axios
@@ -224,7 +225,7 @@ export default function JobBoard() {
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Admin Remarks</h3>
-                  <p className="mt-1 text-gray-900 dark:text-white">{adminRemarks[selectedJob.id] || "No remarks provided."}</p>
+                  <p className="mt-1 text-gray-900 dark:text-white">{selectedJob.admin_remarks || "No remarks provided."}</p>
                 </div>
               </div>
 
