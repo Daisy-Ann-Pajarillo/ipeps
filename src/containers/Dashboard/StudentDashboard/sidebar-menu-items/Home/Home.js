@@ -105,19 +105,7 @@ const Dashboard = () => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (auth.token) {
-      // Simulate fetching notifications
-      const dummyNotifications = [
-        { id: 1, message: "New job matched your skills!", read: false },
-        { id: 2, message: "Your training application was accepted.", read: true },
-        { id: 3, message: "A new scholarship is now available!", read: false },
-      ];
 
-      setNotifications(dummyNotifications);
-      setUnreadCount(dummyNotifications.filter((n) => !n.read).length);
-    }
-  }, [auth.token]);
 
 
   // Function to fetch job recommendations
@@ -194,12 +182,29 @@ const Dashboard = () => {
     }
   };
 
+  const fetchAnnouncements = async () => {
+    try {
+      const response = await axios.get("/api/get-announcements", {
+        auth: { username: auth.token },
+      });
+      console.log("Fetched announcements:", response.data.announcements);
+      setNotifications(response.data.announcements);
+      //setUnreadCount(response.data.announcements.filter((n) => !n.read).length);
+    } catch (error) {
+      console.error("Error fetching scholarships:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, scholarships: false }));
+    }
+  };
+
+
   // Fetch all recommendations when auth token is available
   useEffect(() => {
     if (auth.token) {
       fetchJobRecommendations();
       fetchTrainingRecommendations();
       fetchScholarshipRecommendations();
+      fetchAnnouncements();
     }
   }, [auth.token]);
 
@@ -474,6 +479,7 @@ const Dashboard = () => {
     </div>
   );
 
+
   // Get user type from auth token
   const userType = getUserType();
   console.log("user typeeeee", userType)
@@ -522,32 +528,85 @@ const Dashboard = () => {
               <NotificationsIcon fontSize="large" />
             </Badge>
           </IconButton>
-
-          {/* Notification Dropdown */}
           <Menu
             id="notification-menu"
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={() => setAnchorEl(null)}
+            PaperProps={{
+              style: {
+                maxHeight: 400,
+                width: '360px',
+                boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
+                borderRadius: '12px',
+              },
+            }}
             MenuListProps={{
               "aria-labelledby": "notification-button",
             }}
           >
-            {notifications.length > 0 ? (
-              notifications.map((notif) => (
-                <MenuItem key={notif.id} dense>
-                  <Typography
-                    variant="body2"
-                    style={{ opacity: notif.read ? 0.6 : 1 }}
-                  >
-                    {notif.message}
+            {notifications
+              .filter(
+                (notif) =>
+                  Array.isArray(notif.target_audience) &&
+                  (notif.target_audience.includes("JOBSEEKER") ||
+                    notif.target_audience.includes("STUDENT"))
+              )
+              .map((notif) => (
+                <MenuItem
+                  key={notif.id}
+                  dense
+                  sx={{
+                    py: 2,
+                    px: 2,
+                    borderBottom: '1px solid #eee',
+                    backgroundColor: notif.read ? 'transparent' : '#f9fafb',
+                    '&:hover': {
+                      backgroundColor: '#f3f4f6 !important',
+                    },
+                  }}
+                >
+                  <div className="w-full">
+                    <div className="flex justify-between items-center mb-1">
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight={notif.read ? 400 : 600}
+                        className={notif.read ? "text-gray-600" : "text-gray-800"}
+                      >
+                        {notif.title}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="textSecondary"
+                        className="text-xs"
+                      >
+                        {new Date(notif.created_at).toLocaleDateString()}
+                      </Typography>
+                    </div>
+                    <Typography
+                      variant="body2"
+                      color="textSecondary"
+                      className="text-sm"
+                    >
+                      {notif.details}
+                    </Typography>
+                  </div>
+                </MenuItem>
+              ))}
+            {notifications.filter(
+              (notif) =>
+                Array.isArray(notif.target_audience) &&
+                (notif.target_audience.includes("JOBSEEKER") ||
+                  notif.target_audience.includes("STUDENT"))
+            ).length === 0 && (
+                <MenuItem disabled>
+                  <Typography variant="body2" color="textSecondary" align="center" fullWidth>
+                    No notifications available
                   </Typography>
                 </MenuItem>
-              ))
-            ) : (
-              <MenuItem disabled>No notifications</MenuItem>
-            )}
+              )}
           </Menu>
+
         </div>
       </div>
 
