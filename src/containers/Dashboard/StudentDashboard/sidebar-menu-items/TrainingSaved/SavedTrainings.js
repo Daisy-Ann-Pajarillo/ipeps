@@ -328,9 +328,20 @@ const SavedTrainings = ({ isCollapsed }) => {
       </section>
 
       {/* Content Section */}
-      <div className="flex p-8 pt-14">
+      <div className="flex flex-col lg:flex-row p-8 pt-14">
+        {/* Training Details (top on mobile, right on desktop) */}
+        {selectedTraining && (
+          <div className="w-full lg:w-2/5 mb-8 lg:mb-0 lg:order-2">
+            <SavedTrainingsView
+              training={selectedTraining}
+              isEnrolled={enrolledTrainings[selectedTraining.training_id] || false}
+              onEnroll={() => handleEnroll(selectedTraining.training_id)}
+              onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
+            />
+          </div>
+        )}
         {/* Training List */}
-        <div className={`${selectedTraining ? "w-3/5" : "w-full"} pr-6`}>
+        <div className={`${selectedTraining ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
           <div className="flex justify-between items-center mb-6">
             <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
               {filteredTrainings.length} saved trainings
@@ -421,18 +432,6 @@ const SavedTrainings = ({ isCollapsed }) => {
             )}
           </div>
         </div>
-
-        {/* Training Details */}
-        {selectedTraining && (
-          <div className="w-2/5">
-            <SavedTrainingsView
-              training={selectedTraining}
-              isEnrolled={enrolledTrainings[selectedTraining.training_id] || false}
-              onEnroll={() => handleEnroll(selectedTraining.training_id)}
-              onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

@@ -218,9 +218,15 @@ const TrainingSearch = ({ isCollapsed }) => {
       </div>
 
       {/* Content Section */}
-      <div className="flex p-8 pt-24">
+      <div className="flex flex-col lg:flex-row p-8 pt-24">
+        {/* Training Details (top on mobile, right on desktop) */}
+        {selectedTraining && (
+          <div className="w-full lg:w-2/5 mb-8 lg:mb-0 lg:order-2">
+            <TrainingView training={selectedTraining} />
+          </div>
+        )}
         {/* Training List */}
-        <div className={`${selectedTraining ? "w-3/5" : "w-full"} pr-6`}>
+        <div className={`${selectedTraining ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
           <div className="flex justify-between items-center mb-6">
             <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
               {filteredTrainings.length} trainings found
@@ -263,7 +269,7 @@ const TrainingSearch = ({ isCollapsed }) => {
                     selectedTraining?.training_id === training.training_id
                       ? "border-purple-500 shadow-lg"
                       : "border-gray-200 dark:border-gray-700"
-                  } p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+                  } p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 w-full`}
                 >
                   <div className="flex gap-4">
                     <div className="w-16 h-16 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
@@ -300,13 +306,6 @@ const TrainingSearch = ({ isCollapsed }) => {
             )}
           </div>
         </div>
-
-        {/* Training Details */}
-        {selectedTraining && (
-          <div className="w-2/5">
-            <TrainingView training={selectedTraining} />
-          </div>
-        )}
       </div>
     </div>
   );

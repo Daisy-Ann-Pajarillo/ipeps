@@ -247,9 +247,24 @@ const SavedJobs = () => {
       </section>
 
       {/* Content Section */}
-      <div className="flex p-8 pt-14">
+      <div className="flex flex-col lg:flex-row p-8 pt-14">
+        {/* Job Details (top on mobile, right on desktop) */}
+        {selectedJob && (
+          <div className="w-full lg:w-2/5 mb-8 lg:mb-0 lg:order-2">
+            <SavedJobsView
+              job={selectedJob}
+              isApplied={appliedJobIds.includes(selectedJob.employer_jobpost_id)}
+              onApply={() => handleApplyJob(selectedJob.employer_jobpost_id)}
+              onRemoveSaved={() => handleRemoveFromSaved(selectedJob.employer_jobpost_id)}
+              onJobStatusChanged={() => {
+                loadSavedJobs();
+                loadAppliedJobs();
+              }}
+            />
+          </div>
+        )}
         {/* Job List */}
-        <div className={`${selectedJob ? "w-3/5" : "w-full"} pr-6`}>
+        <div className={`${selectedJob ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
           <div className="flex justify-between items-center mb-6">
             <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
               {sortedJobs.length} saved jobs
@@ -342,22 +357,6 @@ const SavedJobs = () => {
             )}
           </div>
         </div>
-
-        {/* Job Details */}
-        {selectedJob && (
-          <div className="w-2/5">
-            <SavedJobsView
-              job={selectedJob}
-              isApplied={appliedJobIds.includes(selectedJob.employer_jobpost_id)}
-              onApply={() => handleApplyJob(selectedJob.employer_jobpost_id)}
-              onRemoveSaved={() => handleRemoveFromSaved(selectedJob.employer_jobpost_id)}
-              onJobStatusChanged={() => {
-                loadSavedJobs();
-                loadAppliedJobs();
-              }}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

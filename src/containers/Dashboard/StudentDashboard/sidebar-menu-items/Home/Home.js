@@ -292,7 +292,7 @@ const Dashboard = () => {
 
   // Render Job Card
   const renderJobCard = (job) => (
-    <div className="min-w-72 w-[350px] flex flex-col justify-between snap-start bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-0 shadow-xl transition-all duration-300 hover:border-blue-500 hover:shadow-2xl hover:-translate-y-1">
+    <div className="w-full sm:w-[350px] min-w-0 flex flex-col justify-between snap-start bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-0 shadow-xl transition-all duration-300 hover:border-blue-500 hover:shadow-2xl hover:-translate-y-1">
       {/* Card Container */}
       <div className="p-6 flex flex-col h-full">
         <div className="max-h-[400px] overflow-auto flex-1">
@@ -387,7 +387,7 @@ const Dashboard = () => {
 
   // Render Training Card
   const renderTrainingCard = (training) => (
-    <div className="min-w-72 w-[350px] flex flex-col justify-between snap-start bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-0 shadow-xl transition-all duration-300 hover:border-purple-500 hover:shadow-2xl hover:-translate-y-1">
+    <div className="w-full sm:w-[350px] min-w-0 flex flex-col justify-between snap-start bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-0 shadow-xl transition-all duration-300 hover:border-purple-500 hover:shadow-2xl hover:-translate-y-1">
       <div className="p-6 flex flex-col h-full">
         <div className="max-h-[400px] overflow-auto flex-1">
           {/* Training Header */}
@@ -468,7 +468,7 @@ const Dashboard = () => {
 
   // Render Scholarship Card
   const renderScholarshipCard = (scholarship) => (
-    <div className="min-w-72 w-[350px] flex flex-col justify-between snap-start bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-0 shadow-xl transition-all duration-300 hover:border-teal-500 hover:shadow-2xl hover:-translate-y-1">
+    <div className="w-full sm:w-[350px] min-w-0 flex flex-col justify-between snap-start bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-0 shadow-xl transition-all duration-300 hover:border-teal-500 hover:shadow-2xl hover:-translate-y-1">
       <div className="p-6 flex flex-col h-full">
         <div className="max-h-[400px] overflow-auto flex-1">
           {/* Scholarship Header */}
@@ -645,7 +645,7 @@ const Dashboard = () => {
       </section>
 
       {/* Updated Notifications Header */}
-      <header className="fixed top-0 right-0 z-40 px-8 py-5 flex items-center justify-end w-full pointer-events-none">
+      <header className="fixed top-0 left-0 right-0 z-40 px-2 sm:px-8 py-3 sm:py-5 flex items-center justify-end w-full pointer-events-none">
         <div className="pointer-events-auto">
           <IconButton
             onClick={(e) => setAnchorEl(e.currentTarget)}
@@ -667,14 +667,14 @@ const Dashboard = () => {
           </IconButton>
         </div>
 
-        {/* Simplified Notifications Menu */}
+        {/* Responsive Notifications Menu */}
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={() => setAnchorEl(null)}
           PaperProps={{
-            className: "mt-2 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700",
-            style: { width: 360 }
+            className: "mt-2 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-w-xs",
+            style: { width: "100%", minWidth: 0, maxWidth: 320 }
           }}
         >
           <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
@@ -683,7 +683,7 @@ const Dashboard = () => {
             </Typography>
           </div>
 
-          <div className="max-h-[600px] overflow-y-auto">
+          <div className="max-h-[60vh] overflow-y-auto">
             {notifications.length > 0 ? (
               notifications.map((notif) => (
                 <MenuItem
@@ -728,7 +728,7 @@ const Dashboard = () => {
       {/* Simplified Notification Modal */}
       {openAnnouncement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-lg w-full mx-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-xs sm:max-w-lg mx-2 ml-20 sm:ml-16">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <Typography variant="subtitle1" className="font-semibold">
                 {openAnnouncement.title}
@@ -815,7 +815,7 @@ const Dashboard = () => {
               {/* Jobs Section */}
               {!loading.jobs && (
                 <div className="mb-12">
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
                     <div>
                       <Typography variant="h5" className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
                         <span className="text-2xl">Jobs</span>
@@ -826,7 +826,7 @@ const Dashboard = () => {
                       </Typography>
                     </div>
                     <Button
-                      className="text-blue-600 hover:text-blue-700"
+                      className="text-blue-600 hover:text-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
                       onClick={handleViewAllJobs}
                     >
                       View all jobs →
@@ -857,7 +857,7 @@ const Dashboard = () => {
               {/* Trainings Section */}
               {!loading.trainings && (
                 <div className="mb-12">
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
                     <div>
                       <Typography variant="h5" className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2">
                         <span className="text-2xl">Trainings</span>
@@ -868,7 +868,7 @@ const Dashboard = () => {
                       </Typography>
                     </div>
                     <Button
-                      className="text-purple-600 hover:text-purple-700"
+                      className="text-purple-600 hover:text-purple-700 w-full sm:w-auto mt-2 sm:mt-0"
                       onClick={handleViewAllTrainings}
                     >
                       View all trainings →
@@ -899,7 +899,7 @@ const Dashboard = () => {
               {/* Scholarships Section */}
               {!loading.scholarships && userType !== "JOBSEEKER" && (
                 <div className="mb-12">
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
                     <div>
                       <Typography variant="h5" className="font-semibold text-teal-700 dark:text-teal-300 flex items-center gap-2">
                         <span className="text-2xl">Scholarships</span>
@@ -910,7 +910,7 @@ const Dashboard = () => {
                       </Typography>
                     </div>
                     <Button
-                      className="text-teal-600 hover:text-teal-700"
+                      className="text-teal-600 hover:text-teal-700 w-full sm:w-auto mt-2 sm:mt-0"
                       onClick={handleViewAllScholarships}
                     >
                       View all scholarships →

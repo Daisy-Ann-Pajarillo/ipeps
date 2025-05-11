@@ -143,9 +143,9 @@ const JobView = ({ job }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden w-full">
       {/* Header Section */}
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="px-4 md:px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-start justify-between">
           <div className="flex gap-4">
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
@@ -181,7 +181,7 @@ const JobView = ({ job }) => {
       </div>
 
       {/* Content Section */}
-      <div className="p-6 overflow-y-auto h-[calc(100%-180px)]">
+      <div className="p-4 md:p-6 overflow-y-auto h-[calc(100%-180px)]">
         {/* Job Details Section */}
         <div className="space-y-4 mb-6">
           <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
@@ -243,7 +243,7 @@ const JobView = ({ job }) => {
       </div>
 
       {/* Footer Action */}
-      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      <div className="px-4 md:px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <Button
           variant="contained"
           fullWidth

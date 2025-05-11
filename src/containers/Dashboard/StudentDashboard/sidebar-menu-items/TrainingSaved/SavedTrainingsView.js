@@ -30,7 +30,7 @@ const SavedTrainingsView = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] w-full flex flex-col">
       {/* Colored Header Bar */}
       <div className="h-2 w-full bg-gradient-to-r from-purple-500 to-purple-300 rounded-t-xl" />
       {/* Header Section */}
@@ -66,7 +66,7 @@ const SavedTrainingsView = ({
       </div>
 
       {/* Content Section */}
-      <div className="p-6 overflow-y-auto h-[calc(100%-180px)]">
+      <div className="p-6 flex-1 overflow-y-auto">
         {/* Training Details Section */}
         <div className="space-y-4 mb-6">
           <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">

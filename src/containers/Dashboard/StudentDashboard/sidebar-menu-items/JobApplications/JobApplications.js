@@ -150,9 +150,18 @@ const JobApplications = ({ isCollapsed }) => {
       </div>
 
       {/* Content Section */}
-      <div className="flex p-8 pt-14">
+      <div className="flex flex-col lg:flex-row p-8 pt-14">
+        {/* Application Details (top on mobile, right on desktop) */}
+        {selectedApplication && (
+          <div className="w-full lg:w-2/5 mb-8 lg:mb-0 lg:order-2">
+            <JobApplicationView
+              application={selectedApplication}
+              onWithdraw={handleWithdrawal}
+            />
+          </div>
+        )}
         {/* Applications List */}
-        <div className={`${selectedApplication ? "w-3/5" : "w-full"} pr-6`}>
+        <div className={`${selectedApplication ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
           <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 mb-4">
             {appliedJobs.length} applications
           </Typography>
@@ -231,16 +240,6 @@ const JobApplications = ({ isCollapsed }) => {
             )}
           </div>
         </div>
-
-        {/* Application Details */}
-        {selectedApplication && (
-          <div className="w-2/5">
-            <JobApplicationView
-              application={selectedApplication}
-              onWithdraw={handleWithdrawal}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

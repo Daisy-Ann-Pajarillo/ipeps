@@ -39,7 +39,7 @@ const ScholarshipApplicationView = ({ application, onWithdraw }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden w-full flex flex-col">
       {/* Header Section */}
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-start justify-between">

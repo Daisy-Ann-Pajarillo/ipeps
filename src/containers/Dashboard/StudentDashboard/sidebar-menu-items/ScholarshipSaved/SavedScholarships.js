@@ -235,9 +235,20 @@ const SavedScholarships = () => {
       </section>
 
       {/* Content Section */}
-      <div className="flex p-8 pt-14">
+      <div className="flex flex-col lg:flex-row p-8 pt-14">
+        {/* Details Panel (top on mobile, right on desktop) */}
+        {selectedScholarship && (
+          <div className="w-full lg:w-2/5 mb-8 lg:mb-0 lg:order-2">
+            <SavedScholarshipsView
+              scholarship={selectedScholarship}
+              isApplied={appliedScholarshipIds[selectedScholarship.employer_scholarshippost_id]}
+              onApply={() => handleApplyScholarship(selectedScholarship.employer_scholarshippost_id)}
+              onRemoveSaved={() => handleRemoveFromSaved(selectedScholarship.employer_scholarshippost_id)}
+            />
+          </div>
+        )}
         {/* Scholarship List */}
-        <div className={`${selectedScholarship ? "w-3/5" : "w-full"} pr-6`}>
+        <div className={`${selectedScholarship ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
           <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 mb-4">
             {savedScholarships.length} saved scholarships
           </Typography>
@@ -305,18 +316,6 @@ const SavedScholarships = () => {
             )}
           </div>
         </div>
-
-        {/* Details Panel */}
-        {selectedScholarship && (
-          <div className="w-2/5">
-            <SavedScholarshipsView
-              scholarship={selectedScholarship}
-              isApplied={appliedScholarshipIds[selectedScholarship.employer_scholarshippost_id]}
-              onApply={() => handleApplyScholarship(selectedScholarship.employer_scholarshippost_id)}
-              onRemoveSaved={() => handleRemoveFromSaved(selectedScholarship.employer_scholarshippost_id)}
-            />
-          </div>
-        )}
       </div>
     </div>
   );

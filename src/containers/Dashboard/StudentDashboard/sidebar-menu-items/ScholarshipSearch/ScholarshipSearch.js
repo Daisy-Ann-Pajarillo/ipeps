@@ -266,9 +266,21 @@ const ScholarshipSearch = ({ isCollapsed }) => {
       </section>
 
       {/* Content Section */}
-      <div className="flex p-8 pt-14">
+      <div className="flex flex-col lg:flex-row p-8 pt-14">
+        {/* Scholarship Details (top on mobile, right on desktop) */}
+        {selectedScholarship && (
+          <div className="w-full lg:w-2/5 mb-8 lg:mb-0 lg:order-2">
+            <ScholarshipView
+              scholarship={selectedScholarship}
+              isSaved={savedScholarshipIds.includes(selectedScholarship.scholarship_id)}
+              isApplied={appliedScholarshipIds.includes(selectedScholarship.scholarship_id)}
+              onSave={() => handleSaveScholarship(selectedScholarship.scholarship_id)}
+              onApply={() => handleApplyScholarship(selectedScholarship.scholarship_id)}
+            />
+          </div>
+        )}
         {/* Scholarships List */}
-        <div className={`${selectedScholarship ? "w-3/5" : "w-full"} pr-6`}>
+        <div className={`${selectedScholarship ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
           <div className="flex justify-between items-center mb-6">
             <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
               {filteredScholarships.length} scholarships found
@@ -335,18 +347,6 @@ const ScholarshipSearch = ({ isCollapsed }) => {
             )}
           </div>
         </div>
-        {/* Scholarship Details */}
-        {selectedScholarship && (
-          <div className="w-2/5">
-            <ScholarshipView
-              scholarship={selectedScholarship}
-              isSaved={savedScholarshipIds.includes(selectedScholarship.scholarship_id)}
-              isApplied={appliedScholarshipIds.includes(selectedScholarship.scholarship_id)}
-              onSave={() => handleSaveScholarship(selectedScholarship.scholarship_id)}
-              onApply={() => handleApplyScholarship(selectedScholarship.scholarship_id)}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
