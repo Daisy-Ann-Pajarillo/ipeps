@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
+import { Typography, Button } from "@mui/material";
 
 const SavedScholarshipsView = ({
   scholarship = {},
@@ -155,80 +156,52 @@ const SavedScholarshipsView = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 h-full overflow-y-auto">
-      <ToastContainer
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden">
+      {/* Colored Header Bar */}
+      <div className="h-2 w-full bg-gradient-to-r from-teal-500 to-teal-300 rounded-t-xl" />
 
-      {/* Scholarship Logo */}
-      <div className="h-64 bg-gray-100 dark:bg-gray-700 flex justify-center items-center">
-        <img
-          src={scholarship.logo || "http://bij.ly/4ib59B1"}
-          alt={`Logo of ${scholarship.scholarship_title || "Scholarship"}`}
-          className="w-full h-full object-contain p-4"
-        />
-      </div>
+      {/* Header Section */}
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-start justify-between">
+          <div className="flex gap-4">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+              <img
+                src={scholarship.logo || "http://bij.ly/4ib59B1"}
+                alt={scholarship.scholarship_title}
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <div>
+              <Typography
+                variant="h6"
+                className="font-semibold text-gray-900 dark:text-white"
+              >
+                {scholarship.scholarship_title}
+              </Typography>
+              {scholarship.amount && (
+                <Typography
+                  variant="body2"
+                  className="text-blue-600 dark:text-blue-400"
+                >
+                  Amount: ₱{formatAmount(scholarship.amount)}
+                </Typography>
+              )}
+            </div>
+          </div>
 
-      <div className="p-6">
-        {/* Scholarship Title and Organization */}
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">
-          {scholarship.scholarship_title || "Scholarship Title"}
-        </h2>
-
-        {scholarship.amount && (
-          <h3 className="text-xl font-medium text-blue-600 dark:text-blue-400 mb-3">
-            Amount:{" "}
-            {typeof scholarship.amount === "number"
-              ? formatAmount(scholarship.amount)
-              : scholarship.amount}
-          </h3>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 mb-6">
-          <button
-            onClick={handleApply}
-            disabled={isLoading || isScholarshipApplied}
-            className={`flex-1 py-2 px-4 rounded-md font-semibold text-white transition ${
-              isScholarshipApplied
-                ? "bg-green-500 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600"
-            } disabled:bg-gray-400 disabled:cursor-not-allowed`}
-          >
-            {isLoading
-              ? "Loading..."
-              : isScholarshipApplied
-              ? "Already Applied"
-              : "Apply"}
-          </button>
-
-          <button
+          <Button
             onClick={handleUnsave}
             disabled={isLoading}
-            className="px-4 py-2 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+            className="min-w-[100px] bg-red-50 text-red-600 hover:bg-red-100"
+            startIcon={<BookmarkIcon />}
           >
-            {isLoading ? (
-              "..."
-            ) : (
-              <>
-                <BookmarkIcon className="w-5 h-5 text-blue-500" />
-                <span>Remove</span>
-              </>
-            )}
-          </button>
+            Remove
+          </Button>
         </div>
+      </div>
 
-        {/* Divider */}
-        <hr className="border-gray-300 dark:border-gray-600 mb-6" />
-
+      {/* Content Section */}
+      <div className="p-6 overflow-y-auto h-[calc(100%-180px)]">
         {/* Scholarship Description */}
         <div>
           <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -290,6 +263,23 @@ const SavedScholarshipsView = ({
             </p>
           </div>
         )}
+      </div>
+
+      {/* Footer Action - Only Apply Button */}
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={handleApply}
+          disabled={isLoading || isScholarshipApplied}
+          className={`h-12 rounded-xl font-semibold ${
+            isScholarshipApplied
+              ? "bg-green-500 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-600"
+          } disabled:bg-gray-400 disabled:cursor-not-allowed`}
+        >
+          {isLoading ? "Loading..." : isScholarshipApplied ? "Applied" : "Apply Now"}
+        </Button>
       </div>
     </div>
   );

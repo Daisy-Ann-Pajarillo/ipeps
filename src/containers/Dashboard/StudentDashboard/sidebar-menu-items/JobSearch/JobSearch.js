@@ -6,6 +6,29 @@ import JobView from "./JobView";
 import SearchData from "../../../components/layout/Search";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Typography } from "@mui/material"; // Changed from @material-tailwind/react to @mui/material
+import logoNav from '../../../../Home/images/logonav.png';
+
+const styles = `
+  @keyframes pulse-zoom {
+    0% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+  }
+
+  .loading-logo {
+    animation: pulse-zoom 1.5s ease-in-out infinite;
+  }
+`;
 
 const JobSearch = ({ isCollapsed }) => {
   const [jobs, setJobs] = useState([]);
@@ -169,124 +192,166 @@ const JobSearch = ({ isCollapsed }) => {
     return value.toLocaleString();
   };
 
+  // Add styles to the document
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
+    return () => styleSheet.remove();
+  }, []);
+
   return (
-    <div className="">
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#e0e7ef] to-[#f8fafc] dark:from-gray-900 dark:to-gray-800">
       <ToastContainer />
 
-      {/* Search */}
-      <SearchData
-        placeholder="Find a job..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full"
-        components={3}
-        componentData={[
-          {
-            title: "Experience Level",
-            options: ["", "Entry", "Mid-level", "Senior"],
-          },
-          {
-            title: "Job Type",
-            options: ["", "Full-time", "Part-time", "Contract", "Internship"],
-          },
-          {
-            title: "Sort By",
-            options: ["", "Most Recent", "Salary"],
-          },
-        ]}
-        onComponentChange={(index, value) => {
-          if (index === 0) setEntryLevel(value);
-          if (index === 1) setJobType(value);
-          if (index === 2) setSortBy(value);
-        }}
-      />
+      {/* Centered Header Section */}
+      <div className="w-full bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-800 dark:to-blue-600 px-8 py-12 shadow-lg flex flex-col items-center text-center">
+        <Typography variant="h3" className="text-white font-bold mb-3">
+          Find Your Next Opportunity
+        </Typography>
+        <Typography variant="h6" className="text-blue-100 mb-8">
+          Browse through job postings from top employers in Iloilo
+        </Typography>
 
-      <div className="flex mt-4">
+        {/* Modern Search & Filter Section */}
+        <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 -mb-20 border border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search Input */}
+            <div className="md:col-span-2">
+              <input
+                type="text"
+                placeholder="Search jobs..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200"
+              />
+            </div>
+
+            {/* Filters */}
+            <select
+              value={entryLevel}
+              onChange={(e) => setEntryLevel(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200"
+            >
+              <option value="">Experience Level</option>
+              <option value="Entry">Entry Level</option>
+              <option value="Mid-level">Mid Level</option>
+              <option value="Senior">Senior Level</option>
+            </select>
+
+            <select
+              value={jobType}
+              onChange={(e) => setJobType(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200"
+            >
+              <option value="">Job Type</option>
+              <option value="Full-time">Full Time</option>
+              <option value="Part-time">Part Time</option>
+              <option value="Contract">Contract</option>
+              <option value="Internship">Internship</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Content Section with adjusted padding for overlapping search box */}
+      <div className="flex p-8 pt-14">
         {/* Job List */}
-        <div
-          className={`${selectedJob ? "w-3/5" : "w-full"
-            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
-        >
-          <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-            Total: {filteredJobs.length} jobs found
+        <div className={`${selectedJob ? "w-3/5" : "w-full"} pr-6`}>
+          <div className="flex justify-between items-center mb-6">
+            <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
+              {filteredJobs.length} jobs found
+            </Typography>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm"
+            >
+              <option value="">Sort By</option>
+              <option value="Most Recent">Most Recent</option>
+              <option value="Salary">Salary</option>
+            </select>
           </div>
 
-          {isLoading ? (
-            <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500 dark:text-gray-400">
-                Loading jobs...
-              </p>
-            </div>
-          ) : filteredJobs.length === 0 ? (
-            <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500 dark:text-gray-400">
-                No jobs found matching your criteria
-              </p>
-            </div>
-          ) : (
-            filteredJobs.map((job) => (
-              <div
-                key={job.job_id}
-                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedJob?.job_id === job.job_id
-                  ? "bg-gray-200 dark:bg-gray-800"
-                  : "bg-white dark:bg-gray-900"
-                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
-                onClick={() => handleJobClick(job.job_id)}
-              >
-                <div className="flex gap-3">
-                  {/* Company Logo */}
-                  <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
-                    <img
-                      src={job.companyImage || "http://bij.ly/4ib59B1"}
-                      alt={job.job_title}
-                      className="w-full h-full object-contain p-2"
-                    />
-                  </div>
-
-                  {/* Job Info */}
-                  <div className="flex-1">
-                    <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {job.job_title}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {job.country} • {job.city_municipality}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {job.job_type} • {job.experience_level}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      💰 {formatSalary(job.estimated_salary_from)} - {formatSalary(job.estimated_salary_to)}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      🏢 {job.employer?.company_name ?? 'Unknown Company'}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      👤 Posted By: {job.employer?.full_name ?? 'N/A'}
-                    </div>
-                  </div>
-
-
-                  {/* Application Status Indicator */}
-                  {appliedJobIds.includes(job.job_id) && (
-                    <div className="flex items-start">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Applied
-                      </span>
-                    </div>
-                  )}
-                </div>
+          <div className="space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
+            {isLoading ? (
+              <div className="flex flex-col justify-center items-center h-40 gap-4">
+                <img 
+                  src={logoNav} 
+                  alt="IPEPS Logo" 
+                  className="w-24 h-24 loading-logo"
+                />
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                  Loading Jobs...
+                </Typography>
               </div>
-            ))
-          )}
+            ) : filteredJobs.length === 0 ? (
+              <div className="flex justify-center items-center h-40">
+                <p className="text-gray-500 dark:text-gray-400">No jobs found matching your criteria</p>
+              </div>
+            ) : (
+              filteredJobs.map((job) => (
+                <div
+                  key={job.job_id}
+                  onClick={() => handleJobClick(job.job_id)}
+                  className={`bg-white dark:bg-gray-900 rounded-xl border ${
+                    selectedJob?.job_id === job.job_id
+                      ? "border-blue-500 shadow-lg"
+                      : "border-gray-200 dark:border-gray-700"
+                  } p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+                >
+                  <div className="flex gap-3">
+                    {/* Company Logo */}
+                    <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                      <img
+                        src={job.companyImage || "http://bij.ly/4ib59B1"}
+                        alt={job.job_title}
+                        className="w-full h-full object-contain p-2"
+                      />
+                    </div>
+
+                    {/* Job Info */}
+                    <div className="flex-1">
+                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {job.job_title}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {job.country} • {job.city_municipality}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {job.job_type} • {job.experience_level}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        💰 {formatSalary(job.estimated_salary_from)} - {formatSalary(job.estimated_salary_to)}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        🏢 {job.employer?.company_name ?? 'Unknown Company'}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        👤 Posted By: {job.employer?.full_name ?? 'N/A'}
+                      </div>
+                    </div>
+
+
+                    {/* Application Status Indicator */}
+                    {appliedJobIds.includes(job.job_id) && (
+                      <div className="flex items-start">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Applied
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
-        {/* Job Details View */}
+        {/* Job Details */}
         {selectedJob && (
-          <div className="w-2/5 h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
-            <JobView
-              job={selectedJob}
-              isApplied={appliedJobIds.includes(selectedJob.job_id)}
-            />
+          <div className="w-2/5">
+            <JobView job={selectedJob} />
           </div>
         )}
       </div>

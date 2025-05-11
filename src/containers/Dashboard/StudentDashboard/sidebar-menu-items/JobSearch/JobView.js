@@ -7,6 +7,12 @@ import * as actions from "../../../../../store/actions/index";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "../../../../../axios";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import WorkIcon from "@mui/icons-material/Work";
+import SchoolIcon from "@mui/icons-material/School";
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import PaymentIcon from "@mui/icons-material/Payment";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 
 const JobView = ({ job }) => {
   const [isSaved, setIsSaved] = useState(false);
@@ -137,126 +143,122 @@ const JobView = ({ job }) => {
   };
 
   return (
-    <Box sx={{ height: "100%", position: "relative" }}>
-      <ToastContainer />
-      <Box sx={{ height: "100%", overflowY: "auto", p: 3 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            mb: 4,
-            height: "300px",
-            width: "100%",
-            overflow: "hidden",
-            backgroundColor: "#f5f5f5",
-            borderRadius: "8px",
-          }}
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden">
+      {/* Header Section */}
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-start justify-between">
+          <div className="flex gap-4">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+              <img
+                src={job.companyImage || "http://bij.ly/4ib59B1"}
+                alt={job.company || job.job_title}
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <div>
+              <Typography variant="h6" className="font-semibold text-gray-900 dark:text-white">
+                {job.job_title}
+              </Typography>
+              <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
+                {job.employer?.company_name}
+              </Typography>
+            </div>
+          </div>
+          
+          <Button
+            onClick={handleSave}
+            disabled={isLoading}
+            className={`min-w-[100px] ${
+              isSaved 
+                ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' 
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+            }`}
+            startIcon={isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+          >
+            {isSaved ? 'Saved' : 'Save'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="p-6 overflow-y-auto h-[calc(100%-180px)]">
+        {/* Job Details Section */}
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <LocationOnIcon fontSize="small" />
+            <span>{job.city_municipality}, {job.country}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <WorkIcon fontSize="small" />
+            <span>{job.job_type || "Not specified"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <SchoolIcon fontSize="small" />
+            <span>{job.experience_level || "Not specified"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <BusinessCenterIcon fontSize="small" />
+            <span>Vacancies: {job.no_of_vacancies || 0}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <PaymentIcon fontSize="small" />
+            <span>₱{job.estimated_salary_from?.toLocaleString()} - ₱{job.estimated_salary_to?.toLocaleString()}</span>
+          </div>
+          {job.expiration_date && (
+            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <CalendarTodayIcon fontSize="small" />
+              <span>Expires: {new Date(job.expiration_date).toLocaleDateString()}</span>
+            </div>
+          )}
+        </div>
+
+        <Divider className="my-6" />
+
+        {/* Job Description */}
+        <Typography variant="h6" className="font-semibold mb-3 text-gray-900 dark:text-white">
+          Job Description
+        </Typography>
+        <Typography variant="body2" className="text-gray-600 dark:text-gray-300 whitespace-pre-line mb-6">
+          {job.job_description}
+        </Typography>
+
+        {/* Required Skills Section */}
+        {job.other_skills && (
+          <>
+            <Typography variant="h6" className="font-semibold mb-3 text-gray-900 dark:text-white">
+              Required Skills
+            </Typography>
+            <div className="flex flex-wrap gap-2">
+              {job.other_skills.split(",").map((skill, index) => (
+                <span
+                  key={index}
+                  className="text-gray-600 dark:text-gray-300 whitespace-pre-line mb-6"                
+                  >
+                  {skill.trim()}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Footer Action */}
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={handleApply}
+          disabled={isLoading || isApplied}
+          className={`h-12 rounded-xl font-semibold ${
+            isApplied
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
         >
-          <img
-            src={job.companyImage || "http://bij.ly/4ib59B1"}
-            alt={job.company || job.job_title}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              padding: "16px",
-            }}
-          />
-        </Box>
-
-        <Typography variant="h4" gutterBottom>
-          {job?.job_title || "Job Title Not Available"}
-        </Typography>
-        <Typography variant="h5" color="primary" gutterBottom>
-          {job?.companyName || "Not Available"}
-        </Typography>
-        <Typography variant="h5" color="primary" gutterBottom>
-          {job?.country || "Country Not Available"}
-        </Typography>
-
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          <Typography variant="body1">📍 {job.city_municipality}</Typography>
-          <Typography variant="body1">💼 {job.job_type}</Typography>
-          <Typography variant="body1">
-            👥 Vacancies: {job.no_of_vacancies}
-          </Typography>
-          <Typography variant="body1">
-            💰 {job.estimated_salary_from} - {job.estimated_salary_to}
-          </Typography>
-        </Stack>
-
-        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-          <Box sx={{ flex: 1 }}>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleApply}
-              disabled={isLoading || isApplied}
-              sx={{
-                height: "36.5px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: isApplied ? "#218838" : "#007BFF",
-                color: "#ffffff",
-                pointerEvents: isApplied ? "none" : "auto", // This changes the cursor behavior
-                "&:disabled": {
-                  backgroundColor: isApplied ? "#218838" : "#cccccc",
-                  color: "#ffffff",
-                  opacity: 1,
-                  cursor: "not-allowed",
-                },
-                "&.Mui-disabled": {
-                  backgroundColor: isApplied ? "#218838" : "#cccccc",
-                  color: "#ffffff",
-                },
-                "&:hover": {
-                  backgroundColor: isApplied ? "#218838" : "#0069d9",
-                },
-              }}
-            >
-              {isLoading
-                ? "Loading..."
-                : isApplied
-                  ? "Already Applied"
-                  : "Apply"}
-            </Button>
-          </Box>
-          <Box sx={{ width: "120px" }}>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleSave}
-              disabled={isLoading}
-              sx={{
-                height: "36.5px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "white",
-                color: isSaved ? "#007BFF" : "#000000",
-                border: "1px solid #e0e0e0",
-                "&:disabled": {
-                  backgroundColor: "#f5f5f5",
-                  color: "#999999",
-                },
-              }}
-              startIcon={isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-            >
-              {isLoading ? "..." : isSaved ? "Saved" : "Save"}
-            </Button>
-          </Box>
-        </Stack>
-
-        <Divider sx={{ my: 3 }} />
-
-        <Typography variant="h6" gutterBottom>
-          Work Description
-        </Typography>
-        <Typography variant="body1">{job.job_description}</Typography>
-      </Box>
-    </Box>
+          {isLoading ? 'Loading...' : isApplied ? 'Applied' : 'Apply Now'}
+        </Button>
+      </div>
+    </div>
   );
 };
 

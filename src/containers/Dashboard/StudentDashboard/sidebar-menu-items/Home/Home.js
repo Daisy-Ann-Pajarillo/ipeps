@@ -648,9 +648,8 @@ const Dashboard = () => {
       <header className="fixed top-0 right-0 z-40 px-8 py-5 flex items-center justify-end w-full pointer-events-none">
         <div className="pointer-events-auto">
           <IconButton
-            color="inherit"
             onClick={(e) => setAnchorEl(e.currentTarget)}
-            className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full w-12 h-12 flex items-center justify-center transition-all duration-200"
+            className="bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full w-10 h-10 flex items-center justify-center shadow-md transition-all duration-200"
           >
             <Badge 
               badgeContent={unreadCount} 
@@ -663,116 +662,87 @@ const Dashboard = () => {
                 }
               }}
             >
-              <NotificationsIcon className="text-gray-700 dark:text-gray-200" />
+              <NotificationsIcon className="text-gray-600 dark:text-gray-300" fontSize="small" />
             </Badge>
           </IconButton>
         </div>
 
-        {/* Updated Notifications Menu */}
+        {/* Simplified Notifications Menu */}
         <Menu
-          id="notification-menu"
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={() => setAnchorEl(null)}
           PaperProps={{
-            style: {
-              maxHeight: '80vh',
-              width: '360px',
-              boxShadow: '0 2px 12px rgba(0,0,0,0.1)',
-              borderRadius: '12px',
-              padding: 0,
-              marginTop: '8px',
-              backgroundColor: '#ffffff',
-              border: '1px solid rgba(0,0,0,0.1)'
-            },
+            className: "mt-2 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700",
+            style: { width: 360 }
           }}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <div className="px-4 py-3 border-b border-gray-200">
-            <Typography variant="h6" className="font-bold text-gray-900">
+          <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+            <Typography variant="h6" className="font-semibold">
               Notifications
             </Typography>
           </div>
 
-          <div className="overflow-y-auto max-h-[600px]">
+          <div className="max-h-[600px] overflow-y-auto">
             {notifications.length > 0 ? (
-              notifications
-                .filter(notif => 
-                  Array.isArray(notif.target_audience) &&
-                  (notif.target_audience.includes("JOBSEEKER") ||
-                    notif.target_audience.includes("STUDENT"))
-                )
-                .map((notif) => (
-                  <MenuItem
-                    key={notif.id}
-                    onClick={() => {
-                      setOpenAnnouncement(notif);
-                      setAnchorEl(null);
-                    }}
-                    className={`px-4 py-3 hover:bg-gray-50 ${!notif.read ? 'bg-blue-50' : ''}`}
-                  >
-                    <div className="flex gap-3">
-                      <div className="rounded-full bg-blue-100 p-2 flex-shrink-0">
-                        <NotificationsIcon className="text-blue-600" fontSize="small" />
-                      </div>
-                      <div className="flex-1">
-                        <Typography
-                          variant="body1"
-                          className={`text-sm ${!notif.read ? 'font-semibold' : ''} text-gray-900`}
-                        >
-                          {truncateText(notif.title)}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          className="text-sm text-gray-500"
-                        >
-                          {truncateText(notif.details)}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          className="text-gray-400 mt-1 block"
-                        >
-                          {getRelativeTimeString(notif.created_at)}
-                        </Typography>
-                      </div>
+              notifications.map((notif) => (
+                <MenuItem
+                  key={notif.id}
+                  onClick={() => {
+                    setOpenAnnouncement(notif);
+                    setAnchorEl(null);
+                  }}
+                  className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                    !notif.read ? 'bg-blue-50 dark:bg-blue-900/30' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`rounded-full p-2 ${!notif.read ? 'bg-blue-100 dark:bg-blue-800' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                      <NotificationsIcon 
+                        className={!notif.read ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500'} 
+                        fontSize="small" 
+                      />
                     </div>
-                  </MenuItem>
-                ))
+                    <div>
+                      <Typography variant="body2" className="text-gray-900 dark:text-gray-100">
+                        {notif.title}
+                      </Typography>
+                      <Typography variant="caption" className="text-gray-500 dark:text-gray-400 block mt-0.5">
+                        {getRelativeTimeString(notif.created_at)}
+                      </Typography>
+                    </div>
+                  </div>
+                </MenuItem>
+              ))
             ) : (
-              <div className="py-8 text-center text-gray-500">
-                <Typography variant="body2">No notifications yet</Typography>
+              <div className="py-8 text-center">
+                <Typography variant="body2" className="text-gray-500">
+                  No new notifications
+                </Typography>
               </div>
             )}
           </div>
         </Menu>
       </header>
 
-      {/* Notification Detail Modal */}
+      {/* Simplified Notification Modal */}
       {openAnnouncement && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-lg w-full mx-4">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-              <Typography variant="h6" className="font-bold text-gray-900 dark:text-white">
-                Notification
+              <Typography variant="subtitle1" className="font-semibold">
+                {openAnnouncement.title}
               </Typography>
-              <IconButton
-                onClick={() => setOpenAnnouncement(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <span className="text-2xl">&times;</span>
+              <IconButton onClick={() => setOpenAnnouncement(null)} size="small">
+                <span className="text-xl text-gray-500">&times;</span>
               </IconButton>
             </div>
             <div className="p-6">
-              <Typography variant="h6" className="font-semibold text-gray-900 dark:text-white mb-2">
-                {openAnnouncement.title}
-              </Typography>
-              <Typography variant="body2" className="text-gray-600 dark:text-gray-300 mb-4">
+              <Typography variant="body2" className="text-gray-600 dark:text-gray-300">
                 {openAnnouncement.details}
               </Typography>
-              <Typography variant="caption" className="text-gray-400">
-                {new Date(openAnnouncement.created_at).toLocaleString()
-                }
+              <Typography variant="caption" className="text-gray-400 mt-4 block">
+                {new Date(openAnnouncement.created_at).toLocaleString()}
               </Typography>
             </div>
           </div>
@@ -780,7 +750,7 @@ const Dashboard = () => {
       )}
 
       {/* Main Content Section */}
-      <div className="w-full max-w-7xl flex flex-col gap-20 items-center pt-16 pb-20">
+      <div className="w-full max-w-7xl flex flex-col gap-10 items-center pt-10 pb-10">
         {/* Portal Info Section - Slideshow */}
         <section className="w-full flex flex-col md:flex-row items-center justify-between gap-10 bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-blue-100 dark:border-blue-900 p-12 mt-[-60px] z-10">
           <div className="flex-1 flex flex-col items-start justify-center">

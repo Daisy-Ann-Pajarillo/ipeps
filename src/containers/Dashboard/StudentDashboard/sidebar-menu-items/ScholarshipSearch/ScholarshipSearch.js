@@ -7,6 +7,8 @@ import SearchData from "../../../components/layout/Search";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { BookmarkBorder, Bookmark } from "@mui/icons-material";
+import { Typography } from "@mui/material";
+import logoNav from '../../../../Home/images/logonav.png';  // Updated path to match other components
 
 const ScholarshipSearch = ({ isCollapsed }) => {
   const [scholarships, setScholarships] = useState([]);
@@ -225,128 +227,123 @@ const ScholarshipSearch = ({ isCollapsed }) => {
   };
 
   return (
-    <div>
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#e0e7ef] to-[#f8fafc] dark:from-gray-900 dark:to-gray-800">
       <ToastContainer />
 
-      {/* Search */}
-      <SearchData
-        placeholder="Find a scholarship..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full"
-        components={3}
-        componentData={[
-          {
-            title: "Experience Level",
-            options: ["", "Undergraduate", "Graduate", "PhD"],
-          },
-          {
-            title: "Scholarship Type",
-            options: ["", "Full", "Partial", "Research Grant"],
-          },
-          {
-            title: "Sort By",
-            options: ["", "Most Recent", "Amount"],
-          },
-        ]}
-        onComponentChange={(index, value) => {
-          if (index === 0) setEntryLevel(value);
-          if (index === 1) setScholarshipType(value);
-          if (index === 2) setSortBy(value);
-        }}
-      />
+      {/* Hero Section - Updated gradient colors */}
+      <section className="w-full bg-gradient-to-r from-teal-800 via-teal-600 to-teal-400 dark:from-teal-900 dark:to-teal-700 px-8 py-12 shadow-lg flex flex-col items-center text-center">
+        <Typography variant="h3" className="text-white font-bold mb-3">
+          Explore Scholarships
+        </Typography>
+        <Typography variant="h6" className="text-teal-100 mb-8">
+          Find and apply for scholarships that match your profile
+        </Typography>
 
-      <div className="flex mt-4">
-        {/* Scholarship List */}
-        <div
-          className={`${selectedScholarship ? "w-3/5" : "w-full"
-            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700`}
-        >
-          <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-            Total: {filteredScholarships.length} scholarships found
+        {/* Search & Filter Section */}
+        <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 -mb-20 border border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <input
+                type="text"
+                placeholder="Search scholarships..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200"
+              />
+            </div>
+            <select
+              value={entryLevel}
+              onChange={(e) => setEntryLevel(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none transition-all duration-200"
+            >
+              <option value="">Experience Level</option>
+              <option value="Undergraduate">Undergraduate</option>
+              <option value="Graduate">Graduate</option>
+              <option value="PhD">PhD</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* Content Section */}
+      <div className="flex p-8 pt-14">
+        {/* Scholarships List */}
+        <div className={`${selectedScholarship ? "w-3/5" : "w-full"} pr-6`}>
+          <div className="flex justify-between items-center mb-6">
+            <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
+              {filteredScholarships.length} scholarships found
+            </Typography>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm"
+            >
+              <option value="">Sort By</option>
+              <option value="Most Recent">Most Recent</option>
+              <option value="Amount">Amount</option>
+            </select>
           </div>
 
-          {isLoading ? (
-            <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500 dark:text-gray-400">
-                Loading scholarships...
-              </p>
-            </div>
-          ) : filteredScholarships.length === 0 ? (
-            <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500 dark:text-gray-400">
-                No scholarships found matching your criteria
-              </p>
-            </div>
-          ) : (
-            filteredScholarships.map((scholarship) => (
-              <div
-                key={scholarship.scholarship_id}
-                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedScholarship?.scholarship_id ===
-                  scholarship.scholarship_id
-                  ? "bg-gray-200 dark:bg-gray-800"
-                  : "bg-white dark:bg-gray-900"
-                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
-                onClick={() =>
-                  handleScholarshipClick(scholarship.scholarship_id)
-                }
-              >
-                <div className="flex gap-3">
-                  {/* Logo */}
-                  <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
-                    <img
-                      src={scholarship.logo || "http://bij.ly/4ib59B1"}
-                      alt={scholarship.scholarship_title}
-                      className="w-full h-full object-contain p-2"
-                    />
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1">
-                    <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {scholarship.scholarship_title}
+          <div className="space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
+            {isLoading ? (
+              <div className="flex flex-col justify-center items-center h-40 gap-4">
+                <img src={logoNav} alt="IPEPS Logo" className="w-24 h-24 loading-logo" />
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                  Loading Scholarships...
+                </Typography>
+              </div>
+            ) : (
+              filteredScholarships.map((scholarship) => (
+                <div
+                  key={scholarship.scholarship_id}
+                  onClick={() => handleScholarshipClick(scholarship.scholarship_id)}
+                  className={`bg-white dark:bg-gray-900 rounded-xl border ${
+                    selectedScholarship?.scholarship_id === scholarship.scholarship_id
+                      ? "border-teal-500 shadow-lg"
+                      : "border-gray-200 dark:border-gray-700"
+                  } p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+                >
+                  <div className="flex gap-3">
+                    {/* Logo */}
+                    <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                      <img
+                        src={scholarship.logo || "http://bij.ly/4ib59B1"}
+                        alt={scholarship.scholarship_title}
+                        className="w-full h-full object-contain p-2"
+                      />
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {scholarship.scholarship_description}
+                    {/* Info */}
+                    <div className="flex-1">
+                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {scholarship.scholarship_title}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Posted by: {scholarship.employer.full_name || "N/A"}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {scholarship.employer.full_name || "N/A"}
-                    </div>
-                  </div>
-
-                  {/* Applied Status */}
-                  {appliedScholarshipIds.includes(
-                    scholarship.scholarship_id
-                  ) && (
+                    {/* Applied Status */}
+                    {appliedScholarshipIds.includes(scholarship.scholarship_id) && (
                       <div className="flex items-start">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           Applied
                         </span>
                       </div>
                     )}
+                  </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
-
-        {/* Scholarship Details View */}
+        {/* Scholarship Details */}
         {selectedScholarship && (
-          <div className="w-2/5 h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
+          <div className="w-2/5">
             <ScholarshipView
               scholarship={selectedScholarship}
-              isSaved={savedScholarshipIds.includes(
-                selectedScholarship.scholarship_id
-              )}
-              isApplied={appliedScholarshipIds.includes(
-                selectedScholarship.scholarship_id
-              )}
-              onSave={() =>
-                handleSaveScholarship(selectedScholarship.scholarship_id)
-              }
-              onApply={() =>
-                handleApplyScholarship(selectedScholarship.scholarship_id)
-              }
+              isSaved={savedScholarshipIds.includes(selectedScholarship.scholarship_id)}
+              isApplied={appliedScholarshipIds.includes(selectedScholarship.scholarship_id)}
+              onSave={() => handleSaveScholarship(selectedScholarship.scholarship_id)}
+              onApply={() => handleApplyScholarship(selectedScholarship.scholarship_id)}
             />
           </div>
         )}

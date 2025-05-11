@@ -1,14 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, Divider, Stack } from "@mui/material";
+import { Typography, Button, Divider } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import SchoolIcon from "@mui/icons-material/School";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import PaymentIcon from "@mui/icons-material/Payment";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import ComputerIcon from "@mui/icons-material/Computer";
 import * as actions from "../../../../../store/actions/index";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import axios from "../../../../../axios";
-import { tokens } from "../../../theme";
-import { useTheme } from "@mui/material";
+import logoNav from '../../../../Home/images/logonav.png';
+
+const styles = `
+  @keyframes pulse-zoom {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+  }
+  .loading-logo {
+    animation: pulse-zoom 1.5s ease-in-out infinite;
+  }
+`;
 
 const TrainingView = ({ training }) => {
   const [isSaved, setIsSaved] = useState();
@@ -18,8 +33,6 @@ const TrainingView = ({ training }) => {
 
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
 
   useEffect(() => {
     dispatch(actions.getAuthStorage());
@@ -125,149 +138,167 @@ const TrainingView = ({ training }) => {
     checkTrainingStatus();
   }, [training.training_id, auth.token]);
 
+  // Add styles to document
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
+    return () => styleSheet.remove();
+  }, []);
+
+  // Add loading state check at the beginning of render
+  if (isLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-full gap-4">
+        <img
+          src={logoNav}
+          alt="IPEPS Logo"
+          className="w-24 h-24 loading-logo"
+        />
+        <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+          Loading Training...
+        </Typography>
+      </div>
+    );
+  }
+
   return (
-    <Box sx={{ height: "100%", position: "relative" }}>
-      <Box sx={{ height: "100%", overflowY: "auto", p: 3 }}>
-        {/* Company Image with fixed size and center alignment */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            mb: 4,
-            height: "300px",
-            width: "100%",
-            overflow: "hidden",
-            backgroundColor: "#f5f5f5",
-            borderRadius: "8px",
-          }}
-        >
-          <img
-            src={
-              training.companyImage ||
-              training.providerImage ||
-              "default-company-image.png"
-            }
-            alt={training.provider || "Training Provider"}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              padding: "16px",
-            }}
-          />
-        </Box>
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden">
+      {/* Colored Header Bar */}
+      <div className="h-2 w-full bg-gradient-to-r from-purple-500 to-purple-300 rounded-t-xl" />
+      {/* Header Section */}
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-start justify-between">
+          <div className="flex gap-4">
+            <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-lg overflow-hidden">
+              <img
+                src={training.providerImage || "http://bij.ly/4ib59B1"}
+                alt={training.provider || training.training_title}
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <div>
+              <Typography
+                variant="h6"
+                className="font-semibold text-gray-900 dark:text-white"
+              >
+                {training.training_title}
+              </Typography>
+              <Typography
+                variant="body2"
+                className="text-gray-600 dark:text-gray-400"
+              >
+                {training.provider}
+              </Typography>
+            </div>
+          </div>
 
+          <Button
+            onClick={handleSave}
+            disabled={isLoading}
+            className={`min-w-[100px] ${
+              isSaved
+                ? "bg-purple-50 text-purple-600 hover:bg-purple-100"
+                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+            }`}
+            startIcon={isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+          >
+            {isSaved ? "Saved" : "Save"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="p-6 overflow-y-auto h-[calc(100%-180px)]">
         {/* Training Details */}
-        <Typography variant="h4" gutterBottom>
-          {training.training_title}
-        </Typography>
-        <Typography variant="h5" color="primary" gutterBottom>
-          {training.provider || ""}
-        </Typography>
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <LocationOnIcon fontSize="small" />
+            <span>
+              {training.city_municipality}, {training.country}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <ComputerIcon fontSize="small" />
+            <span>{training.training_type || "Not specified"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <SchoolIcon fontSize="small" />
+            <span>{training.experience_level || "Not specified"}</span>
+          </div>
 
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          {training.city_municipality && (
-            <Typography variant="body1">
-              📍 {training.city_municipality}
-            </Typography>
-          )}
-          {training.training_type && (
-            <Typography variant="body1">💼 {training.training_type}</Typography>
-          )}
-          {training.experience_level && (
-            <Typography variant="body1">
-              👤 Experience Level: {training.experience_level}
-            </Typography>
-          )}
           {training.expiration_date && (
-            <Typography variant="body1">
-              📅 Expires: {training.expiration_date}
-            </Typography>
+            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <CalendarTodayIcon fontSize="small" />
+              <span>
+                Expires:{" "}
+                {new Date(training.expiration_date).toLocaleDateString()}
+              </span>
+            </div>
           )}
-          {training.estimated_cost_from !== undefined && (
-            <Typography variant="body1">
-              💰 Cost: ${training.estimated_cost_from}
-              {training.estimated_cost_to
-                ? ` - $${training.estimated_cost_to}`
-                : ""}
-            </Typography>
-          )}
-        </Stack>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <AccessTimeIcon fontSize="small" />
+            <span>Duration: {training.duration || "Not specified"}</span>
+          </div>
+        </div>
 
-        {/* Action Buttons */}
-        <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-          <Box sx={{ flex: 1 }}>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleEnroll}
-              disabled={isLoading || isEnrolled}
-              sx={{
-                height: "36.5px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: isEnrolled ? "#218838" : "#007BFF",
-                color: "#ffffff",
-                pointerEvents: isEnrolled ? "none" : "auto",
-                "&:disabled": {
-                  backgroundColor: isEnrolled ? "#218838" : "#cccccc",
-                  color: "#ffffff",
-                  opacity: 1,
-                  cursor: "not-allowed",
-                },
-                "&.Mui-disabled": {
-                  backgroundColor: isEnrolled ? "#218838" : "#cccccc",
-                  color: "#ffffff",
-                },
-                "&:hover": {
-                  backgroundColor: isEnrolled ? "#218838" : "#0069d9",
-                },
-              }}
-            >
-              {isLoading
-                ? "Loading..."
-                : isEnrolled
-                ? "Already Enrolled"
-                : "Enroll Now"}
-            </Button>
-          </Box>
-          <Box sx={{ width: "120px" }}>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleSave}
-              disabled={isLoading}
-              sx={{
-                height: "36.5px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "white",
-                color: isSaved ? "#007BFF" : "#000000",
-                border: "1px solid #e0e0e0",
-                "&:disabled": {
-                  backgroundColor: "#f5f5f5",
-                  color: "#999999",
-                },
-              }}
-              startIcon={isSaved ? <BookmarkIcon /> : <BookmarkBorderIcon />}
-            >
-              {isLoading ? "..." : isSaved ? "Saved" : "Save"}
-            </Button>
-          </Box>
-        </Stack>
-
-        <Divider sx={{ my: 3 }} />
+        <Divider className="my-6" />
 
         {/* Training Description */}
-        <Typography variant="h6" gutterBottom>
+        <Typography
+          variant="h6"
+          className="font-semibold mb-3 text-gray-900 dark:text-white"
+        >
           Training Description
         </Typography>
-        <Typography variant="body1">{training.training_description}</Typography>
-      </Box>
-    </Box>
+        <Typography className="text-gray-600 dark:text-gray-300 whitespace-pre-line mb-6">
+          {training.training_description}
+        </Typography>
+
+        {/* Learning Outcomes/Skills Section */}
+        {training.learning_outcomes && (
+          <>
+            <Typography
+              variant="h6"
+              className="font-semibold mb-3 text-gray-900 dark:text-white"
+            >
+              Learning Outcomes
+            </Typography>
+            <div className="flex flex-wrap gap-2">
+              {training.learning_outcomes.split(",").map((outcome, index) => (
+                <span
+                  key={index}
+                  className="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-sm px-4 py-1.5 rounded-full"
+                >
+                  {outcome.trim()}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Footer Action */}
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={handleEnroll}
+          disabled={isLoading || isEnrolled}
+          className={`h-12 rounded-xl font-semibold ${
+            isEnrolled
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-purple-600 hover:bg-purple-700"
+          }`}
+        >
+          {isLoading
+            ? "Loading..."
+            : isEnrolled
+            ? "Enrolled"
+            : "Enroll Now"}
+        </Button>
+      </div>
+    </div>
   );
 };
 

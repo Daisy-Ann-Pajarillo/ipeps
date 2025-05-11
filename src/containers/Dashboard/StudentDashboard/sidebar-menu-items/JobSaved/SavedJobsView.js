@@ -6,6 +6,15 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
+import logoNav from '../../../../Home/images/logonav.png';
+import { Typography, Button, Divider } from "@mui/material"; // Changed from @material-tailwind/react to @mui/material
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import WorkIcon from "@mui/icons-material/Work";
+import SchoolIcon from "@mui/icons-material/School";
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import PaymentIcon from "@mui/icons-material/Payment";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+
 
 const SavedJobsView = ({
   job = {},
@@ -124,117 +133,134 @@ const SavedJobsView = ({
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-full gap-4">
+        <img
+          src={logoNav}
+          alt="IPEPS Logo"
+          className="w-24 h-24 loading-logo"
+        />
+        <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+          Loading Job Details...
+        </Typography>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white dark:bg-gray-800 h-full overflow-y-auto">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden">
       <ToastContainer />
 
-      {/* Company Image */}
-      <div className="h-64 bg-gray-100 dark:bg-gray-700 flex justify-center items-center">
-        <img
-          src={job.companyImage || "http://bij.ly/4ib59B1"}
-          alt={`Logo of ${job.company || "Company"}`}
-          className="w-full h-full object-contain p-4"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            padding: "16px",
-          }}
-        />
+      {/* Header Section */}
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-start justify-between">
+          <div className="flex gap-4">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+              <img
+                src={job.companyImage || "http://bij.ly/4ib59B1"}
+                alt={job.company || job.job_title}
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <div>
+              <Typography variant="h6" className="font-semibold text-gray-900 dark:text-white">
+                {job.job_title}
+              </Typography>
+              <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
+                {job.employer?.company_name}
+              </Typography>
+            </div>
+          </div>
+          
+          <Button
+            onClick={onRemoveSaved}
+            disabled={isLoading}
+            className="min-w-[100px] bg-red-50 text-red-600 hover:bg-red-100"
+            startIcon={<BookmarkIcon />}
+          >
+            Remove
+          </Button>
+        </div>
       </div>
 
-      <div className="p-6">
-        {/* Job Title and Company */}
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">
-          {job.job_title || "Job Title"}
-        </h2>
-        <h3 className="text-xl text-blue-600 dark:text-blue-400 mb-3">
-          {job.company || job.employer?.company_name || "Company"}
-        </h3>
-        <h4 className="text-lg text-gray-700 dark:text-gray-300 mb-3">
-          {job.country || "Country"}, {job.city_municipality || "City"}
-        </h4>
-
-        {/* Job Details */}
-        <div className="space-y-2 text-gray-700 dark:text-gray-300 mb-6">
-          <p>💼 {job.job_type || "Job Type"}</p>
-          <p>🧠 {job.experience_level || "Experience Level"}</p>
-          <p>👥 Vacancies: {job.no_of_vacancies || 0}</p>
-          <p>
-            💰 ${formatSalary(job.estimated_salary_from)} - $
-            {formatSalary(job.estimated_salary_to)}
-          </p>
+      {/* Content Section */}
+      <div className="p-6 overflow-y-auto h-[calc(100%-180px)]">
+        {/* Job Details Section */}
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <LocationOnIcon fontSize="small" />
+            <span>{job.city_municipality}, {job.country}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <WorkIcon fontSize="small" />
+            <span>{job.job_type || "Not specified"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <SchoolIcon fontSize="small" />
+            <span>{job.experience_level || "Not specified"}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <BusinessCenterIcon fontSize="small" />
+            <span>Vacancies: {job.no_of_vacancies || 0}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <PaymentIcon fontSize="small" />
+            <span>₱{job.estimated_salary_from?.toLocaleString()} - ₱{job.estimated_salary_to?.toLocaleString()}</span>
+          </div>
           {job.expiration_date && (
-            <p>
-              📅 Expires: {new Date(job.expiration_date).toLocaleDateString()}
-            </p>
+            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <CalendarTodayIcon fontSize="small" />
+              <span>Expires: {new Date(job.expiration_date).toLocaleDateString()}</span>
+            </div>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mb-6">
-          <button
-            onClick={handleApply}
-            disabled={isLoading || isJobApplied}
-            className={`flex-1 py-2 px-4 rounded-md font-semibold text-white transition ${isJobApplied
-              ? "bg-green-500 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-600"
-              } disabled:bg-gray-400 disabled:cursor-not-allowed`}
-          >
-            {isLoading
-              ? "Loading..."
-              : isJobApplied
-                ? "Already Applied"
-                : "Apply"}
-          </button>
+        <Divider className="my-6" />
 
-          <button
-            onClick={handleUnsave}
-            disabled={isLoading}
-            className="px-4 py-2 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
-          >
-            {isLoading ? (
-              "..."
-            ) : (
-              <>
-                <BookmarkIcon className="w-5 h-5 text-blue-500" />
-                <span>Remove</span>
-              </>
-            )}
-          </button>
-        </div>
+        {/* Job Description */}
+        <Typography variant="h6" className="font-semibold mb-3 text-gray-900 dark:text-white">
+          Job Description
+        </Typography>
+        <Typography variant="body2" className="text-gray-600 dark:text-gray-300 whitespace-pre-line mb-6">
+          {job.job_description}
+        </Typography>
 
-        {/* Divider */}
-        <hr className="border-gray-300 dark:border-gray-600 mb-6" />
-
-        {/* Work Description */}
-        <div>
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Work Description
-          </h4>
-          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-            {job.job_description || "No description available"}
-          </p>
-        </div>
-
-        {/* Skills Section (if available) */}
+        {/* Required Skills Section */}
         {job.other_skills && (
-          <div className="mt-6">
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <>
+            <Typography variant="h6" className="font-semibold mb-3 text-gray-900 dark:text-white">
               Required Skills
-            </h4>
+            </Typography>
             <div className="flex flex-wrap gap-2">
               {job.other_skills.split(",").map((skill, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
-                >
+                  className="text-gray-600 dark:text-gray-300 whitespace-pre-line mb-6"                
+                  >
                   {skill.trim()}
                 </span>
               ))}
             </div>
-          </div>
+          </>
         )}
+      </div>
+
+      {/* Footer Action */}
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={onApply}
+          disabled={isLoading || isApplied}
+          className={`h-12 rounded-xl font-semibold ${
+            isApplied
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        >
+          {isLoading ? 'Loading...' : isApplied ? 'Applied' : 'Apply Now'}
+        </Button>
       </div>
     </div>
   );

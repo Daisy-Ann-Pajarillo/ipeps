@@ -1,169 +1,119 @@
 import React from "react";
-import { Box, Typography, Button, Divider, Stack, Chip } from "@mui/material";
-import { useTheme } from "@mui/material";
-import { tokens } from "../../../theme";
+import { Typography, Button, Divider } from "@mui/material";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import SchoolIcon from "@mui/icons-material/School";
+import PaymentIcon from "@mui/icons-material/Payment";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import logoNav from '../../../../Home/images/logonav.png';
 
 const SavedTrainingsView = ({
-  training,
+  training = {},
   isEnrolled = false,
   onEnroll = () => {},
-  isLoading = false,
+  onRemoveSaved = () => {},
+  isLoading = false
 }) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-
-  const buttonStyles = {
-    common: {
-      height: "36.5px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    enroll: {
-      backgroundColor: isEnrolled ? "#218838" : "#007BFF",
-      color: "#ffffff",
-      pointerEvents: isEnrolled ? "none" : "auto",
-      "&:disabled": {
-        backgroundColor: isEnrolled ? "#218838" : "#cccccc",
-        color: "#ffffff",
-        opacity: 1,
-        cursor: "not-allowed",
-      },
-      "&.Mui-disabled": {
-        backgroundColor: isEnrolled ? "#218838" : "#cccccc",
-        color: "#ffffff",
-      },
-      "&:hover": {
-        backgroundColor: isEnrolled ? "#1E7E34" : "#0056b3",
-      },
-    },
-  };
-
-  // Format cost display with proper currency formatting
-  const formatCost = (from, to) => {
-    if (from === undefined || from === null) return "Cost not specified";
-
-    const formatter = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    });
-
-    if (to === undefined || to === null || from === to) {
-      return formatter.format(from);
-    }
-
-    return `${formatter.format(from)} - ${formatter.format(to)}`;
-  };
+  if (isLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-full gap-4">
+        <img
+          src={logoNav}
+          alt="IPEPS Logo"
+          className="w-24 h-24 loading-logo"
+        />
+        <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+          Loading Training Details...
+        </Typography>
+      </div>
+    );
+  }
 
   return (
-    <Box sx={{ height: "100%", position: "relative" }}>
-      <Box sx={{ height: "100%", overflowY: "auto", p: 3 }}>
-        {/* Company Image with fixed size and center alignment */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            mb: 4,
-            height: "300px",
-            width: "100%",
-            overflow: "hidden",
-            backgroundColor: "#f5f5f5",
-            borderRadius: "8px",
-          }}
-        >
-          <img
-            src={training.companyImage || "default-company-image.png"}
-            alt={training.provider || training.title}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              padding: "16px",
-            }}
-          />
-        </Box>
-
-        {/* Training Details */}
-        <Typography variant="h4" gutterBottom>
-          {training.title}
-        </Typography>
-
-        {training.provider && (
-          <Typography variant="h5" color="primary" gutterBottom>
-            {training.provider}
-          </Typography>
-        )}
-
-        {/* Status chip */}
-        {isEnrolled && (
-          <Box sx={{ mb: 2 }}>
-            <Chip
-              label="You are enrolled in this training"
-              color="success"
-              size="small"
-            />
-          </Box>
-        )}
-
-        <Stack spacing={1} sx={{ mb: 3 }}>
-          {training.city_municipality && (
-            <Typography variant="body1">
-              📍 {training.city_municipality}
-            </Typography>
-          )}
-          {training.training_type && (
-            <Typography variant="body1">💼 {training.training_type}</Typography>
-          )}
-          {training.experience_level && (
-            <Typography variant="body1">
-              👤 Experience Level: {training.experience_level}
-            </Typography>
-          )}
-          {training.expiration && (
-            <Typography variant="body1">
-              📅 Expires: {training.expiration}
-            </Typography>
-          )}
-          {(training.estimated_cost_from !== undefined ||
-            training.estimated_cost_to !== undefined) && (
-            <Typography variant="body1">
-              💰 Cost:{" "}
-              {formatCost(
-                training.estimated_cost_from,
-                training.estimated_cost_to
-              )}
-            </Typography>
-          )}
-        </Stack>
-
-        {/* Enroll Button */}
-        <Box sx={{ width: "100%", mb: 3 }}>
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden">
+      {/* Colored Header Bar */}
+      <div className="h-2 w-full bg-gradient-to-r from-purple-500 to-purple-300 rounded-t-xl" />
+      {/* Header Section */}
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-start justify-between">
+          <div className="flex gap-4">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+              <img
+                src={training.companyImage}
+                alt={training.provider}
+                className="w-full h-full object-contain p-2"
+              />
+            </div>
+            <div>
+              <Typography variant="h6" className="font-semibold text-gray-900 dark:text-white">
+                {training.title}
+              </Typography>
+              <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
+                {training.provider}
+              </Typography>
+            </div>
+          </div>
+          
           <Button
-            variant="contained"
-            fullWidth
-            onClick={onEnroll}
-            disabled={isLoading || isEnrolled}
-            sx={{ ...buttonStyles.common, ...buttonStyles.enroll }}
+            onClick={onRemoveSaved}
+            disabled={isLoading}
+            className="min-w-[100px] bg-red-50 text-red-600 hover:bg-red-100"
+            startIcon={<BookmarkIcon />}
           >
-            {isLoading
-              ? "Loading..."
-              : isEnrolled
-              ? "Already Enrolled"
-              : "Enroll Now"}
+            Remove
           </Button>
-        </Box>
+        </div>
+      </div>
 
-        <Divider sx={{ my: 3 }} />
+      {/* Content Section */}
+      <div className="p-6 overflow-y-auto h-[calc(100%-180px)]">
+        {/* Training Details Section */}
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <LocationOnIcon fontSize="small" />
+            <span>{training.city_municipality}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+            <SchoolIcon fontSize="small" />
+            <span>{training.experience_level || "Not specified"}</span>
+          </div>
 
-        <Typography variant="h6" gutterBottom>
+          {training.expiration && (
+            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+              <CalendarTodayIcon fontSize="small" />
+              <span>Expires: {new Date(training.expiration).toLocaleDateString()}</span>
+            </div>
+          )}
+        </div>
+
+        <Divider className="my-6" />
+
+        {/* Training Description */}
+        <Typography variant="h6" className="font-semibold mb-3 text-gray-900 dark:text-white">
           Training Description
         </Typography>
-        <Typography variant="body1" style={{ whiteSpace: "pre-line" }}>
+        <Typography variant="body2" className="text-gray-600 dark:text-gray-300 whitespace-pre-line mb-6">
           {training.description}
         </Typography>
-      </Box>
-    </Box>
+      </div>
+
+      {/* Footer Action */}
+      <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={onEnroll}
+          disabled={isLoading || isEnrolled}
+          className={`h-12 rounded-xl font-semibold ${
+            isEnrolled
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        >
+          {isLoading ? 'Loading...' : isEnrolled ? 'Enrolled' : 'Enroll Now'}
+        </Button>
+      </div>
+    </div>
   );
 };
 

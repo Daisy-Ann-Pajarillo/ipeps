@@ -6,6 +6,20 @@ import TrainingView from "./TrainingView";
 import SearchData from "../../../components/layout/Search";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Typography } from "@mui/material"; // Changed from @material-ui/core to @mui/material
+import logoNav from '../../../../Home/images/logonav.png';
+
+// Add loading animation styles
+const styles = `
+  @keyframes pulse-zoom {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+  }
+  .loading-logo {
+    animation: pulse-zoom 1.5s ease-in-out infinite;
+  }
+`;
 
 const TrainingSearch = ({ isCollapsed }) => {
   const [trainings, setTrainings] = useState([]);
@@ -146,120 +160,150 @@ const TrainingSearch = ({ isCollapsed }) => {
     return value.toLocaleString();
   };
 
+  // Add styles to document
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
+    return () => styleSheet.remove();
+  }, []);
+
   return (
-    <div className="">
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#e0e7ef] to-[#f8fafc] dark:from-gray-900 dark:to-gray-800">
       <ToastContainer />
 
-      {/* Search */}
-      <SearchData
-        placeholder="Find a training..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full"
-        components={3}
-        componentData={[
-          {
-            title: "Experience Level",
-            options: ["", "Beginner", "Intermediate", "Advanced"],
-          },
-          {
-            title: "Training Type",
-            options: ["", "Online", "In-Person", "Hybrid"],
-          },
-          {
-            title: "Sort By",
-            options: ["", "Most Recent", "Cost"],
-          },
-        ]}
-        onComponentChange={(index, value) => {
-          if (index === 0) setEntryLevel(value);
-          if (index === 1) setTrainingType(value);
-          if (index === 2) setSortBy(value);
-        }}
-      />
+      {/* Centered Header Section */}
+      <div className="w-full bg-gradient-to-r from-purple-600 to-purple-400 dark:from-purple-800 dark:to-purple-600 px-8 py-12 shadow-lg flex flex-col items-center text-center">
+        <Typography variant="h3" className="text-white font-bold mb-3">
+          Explore Training Programs
+        </Typography>
+        <Typography variant="h6" className="text-purple-100 mb-8">
+          Enhance your skills with our curated training opportunities
+        </Typography>
 
-      <div className="flex mt-4">
+        {/* Modern Search & Filter Section */}
+        <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 -mb-20 border border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2">
+              <input
+                type="text"
+                placeholder="Search trainings..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none transition-all duration-200"
+              />
+            </div>
+            <select
+              value={entryLevel}
+              onChange={(e) => setEntryLevel(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none transition-all duration-200"
+            >
+              <option value="">Experience Level</option>
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+            <select
+              value={trainingType}
+              onChange={(e) => setTrainingType(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none transition-all duration-200"
+            >
+              <option value="">Training Type</option>
+              <option value="Online">Online</option>
+              <option value="In-Person">In-Person</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="flex p-8 pt-24">
         {/* Training List */}
-        <div
-          className={`${selectedTraining ? "w-3/5" : "w-full"
-            } overflow-y-auto h-[90vh] p-3 border-r border-gray-300 dark:border-gray-700 `}
-        >
-          <div className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-            Total: {filteredTrainings.length} trainings found
+        <div className={`${selectedTraining ? "w-3/5" : "w-full"} pr-6`}>
+          <div className="flex justify-between items-center mb-6">
+            <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
+              {filteredTrainings.length} trainings found
+            </Typography>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm"
+            >
+              <option value="">Sort By</option>
+              <option value="Most Recent">Most Recent</option>
+              <option value="Cost">Cost</option>
+            </select>
           </div>
 
-          {isLoading ? (
-            <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500 dark:text-gray-400">
-                Loading trainings...
-              </p>
-            </div>
-          ) : filteredTrainings.length === 0 ? (
-            <div className="flex justify-center items-center h-40">
-              <p className="text-gray-500 dark:text-gray-400">
-                No trainings found matching your criteria
-              </p>
-            </div>
-          ) : (
-            filteredTrainings.map((training) => (
-              <div
-                key={training.training_id}
-                className={`mb-2 cursor-pointer rounded-lg p-4 transition duration-200 ${selectedTraining?.training_id === training.training_id
-                  ? "bg-gray-200 dark:bg-gray-800"
-                  : "bg-white dark:bg-gray-900"
-                  } hover:bg-primary-400 dark:hover:bg-primary-600`}
-                onClick={() => handleTrainingClick(training.training_id)}
-              >
-                <div className="flex gap-3">
-                  {/* Provider Logo */}
-                  <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
-                    <img
-                      src={training.providerImage || "http://bij.ly/4ib59B1"}
-                      alt={training.training_title}
-                      className="w-full h-full object-contain p-2"
-                    />
-                  </div>
-
-                  {/* Training Info */}
-                  <div className="flex-1">
-                    <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {training.training_title}
+          <div className="space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
+            {isLoading ? (
+              <div className="flex flex-col justify-center items-center h-40 gap-4">
+                <img
+                  src={logoNav}
+                  alt="IPEPS Logo"
+                  className="w-24 h-24 loading-logo"
+                />
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                  Loading Trainings...
+                </Typography>
+              </div>
+            ) : filteredTrainings.length === 0 ? (
+              <div className="flex justify-center items-center h-40">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No trainings found matching your criteria
+                </p>
+              </div>
+            ) : (
+              filteredTrainings.map((training) => (
+                <div
+                  key={training.training_id}
+                  onClick={() => handleTrainingClick(training.training_id)}
+                  className={`bg-white dark:bg-gray-900 rounded-xl border ${
+                    selectedTraining?.training_id === training.training_id
+                      ? "border-purple-500 shadow-lg"
+                      : "border-gray-200 dark:border-gray-700"
+                  } p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+                >
+                  <div className="flex gap-4">
+                    <div className="w-16 h-16 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                      <img
+                        src={training.providerImage || "http://bij.ly/4ib59B1"}
+                        alt={training.training_title}
+                        className="w-full h-full object-contain p-2"
+                      />
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {training.provider || ""}
-                    </div>
-                    {training.country && training.city_municipality && (
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {training.country} • {training.city_municipality}
+                    <div className="flex-1">
+                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {training.training_title}
                       </div>
-                    )}
-                    {training.training_type && (
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {training.training_type} •{" "}
-                        {training.experience_level || "Any Level"}
+                        {training.provider || ""}
                       </div>
-                    )}
-                    {(training.estimated_cost_from !== undefined ||
-                      training.estimated_cost_to !== undefined) && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          💰 {formatCost(training.estimated_cost_from)} -
-                          {formatCost(training.estimated_cost_to)}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                          {training.training_type || "Not specified"}
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          {training.experience_level || "Any Level"}
+                        </span>
+                      </div>
+                      {training.employer?.full_name && (
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                          Posted by: {training.employer.full_name}
                         </div>
                       )}
-                    {/* Posted By Employer */}
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {"Posted By: " + (training.employer?.full_name || 'N/A')}
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
 
-        {/* Training Details View */}
+        {/* Training Details */}
         {selectedTraining && (
-          <div className="w-2/5 h-[90vh] overflow-y-auto bg-white dark:bg-gray-900">
+          <div className="w-2/5">
             <TrainingView training={selectedTraining} />
           </div>
         )}

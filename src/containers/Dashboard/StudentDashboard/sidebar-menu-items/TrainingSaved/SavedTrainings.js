@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
-  useTheme,
   Button,
+  useTheme,  // Add this import
 } from "@mui/material";
 import { tokens } from "../../../theme";
 import SavedTrainingsView from "./SavedTrainingsView";
@@ -13,9 +13,21 @@ import SearchData from "../../../components/layout/Search";
 import axios from "../../../../../axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import logoNav from '../../../../Home/images/logonav.png';
 
-import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../../../store/actions/index";
+
+// Add loading animation styles
+const styles = `
+  @keyframes pulse-zoom {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+  }
+  .loading-logo {
+    animation: pulse-zoom 1.5s ease-in-out infinite;
+  }
+`;
 
 const SavedTrainings = ({ isCollapsed }) => {
   const theme = useTheme();
@@ -26,6 +38,10 @@ const SavedTrainings = ({ isCollapsed }) => {
   const [enrolledTrainings, setEnrolledTrainings] = useState({});
   const [savedTrainings, setSavedTrainings] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState("");
+  const [filteredTrainings, setFilteredTrainings] = useState([]); // Add this state
+  const navigate = useNavigate();
 
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
@@ -238,10 +254,6 @@ const SavedTrainings = ({ isCollapsed }) => {
     setSelectedTraining(selected);
   };
 
-  const [query, setQuery] = useState("");
-  const [sortBy, setSortBy] = useState("");
-  const [filteredTrainings, setFilteredTrainings] = useState(savedTrainings);
-
   // useEffect to filter and sort trainings dynamically
   useEffect(() => {
     let updatedTrainings = [
@@ -265,7 +277,6 @@ const SavedTrainings = ({ isCollapsed }) => {
         (a.provider || "").localeCompare(b.provider || "")
       );
     } else if (sortBy === "Most Recent") {
-      // Sort by expiration date if available, otherwise keep original order
       updatedTrainings.sort((a, b) => {
         if (!a.expiration && !b.expiration) return 0;
         if (!a.expiration) return 1;
@@ -274,171 +285,156 @@ const SavedTrainings = ({ isCollapsed }) => {
       });
     }
 
-    // Update filtered trainings
     setFilteredTrainings(updatedTrainings);
-  }, [query, sortBy, savedTrainings]); // Dependencies
+  }, [query, sortBy, savedTrainings]);
 
   return (
-    <Box>
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#e0e7ef] to-[#f8fafc] dark:from-gray-900 dark:to-gray-800">
       <ToastContainer />
-      <SearchData
-        placeholder="Find a training..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="w-full"
-        components={1}
-        componentData={[
-          { title: "Sort By", options: ["", "Most Recent", "Company Name"] },
-        ]}
-        onComponentChange={(index, value) => {
-          if (index === 0) setSortBy(value);
-        }}
-      />
-      <Box
-        sx={{
-          display: "flex",
-          position: "fixed",
-          top: headerHeight,
-          left: isCollapsed ? "80px" : "250px",
-          right: 0,
-          bottom: 0,
-          transition: "left 0.3s",
-        }}
-      >
-        {/* Training Listings Panel */}
-        <Box
-          sx={{
-            width: "60%",
-            height: "100%",
-            overflowY: "auto",
-            p: 3,
-            borderRight: "1px solid rgba(0, 0, 0, 0.12)",
-          }}
-        >
-          <Typography variant="subtitle1" mb={2}>
-            Saved Trainings: {filteredTrainings.length}
-          </Typography>
 
-          {isLoading && savedTrainings.length === 0 ? (
-            <Typography variant="body1" align="center" sx={{ mt: 4 }}>
-              Loading saved trainings...
+      {/* Hero Section */}
+      
+      <section className="w-full bg-gradient-to-r from-purple-600 to-purple-400 dark:from-purple-800 dark:to-purple-600 px-8 py-12 shadow-lg flex flex-col items-center text-center">
+        <Typography variant="h3" className="text-white font-bold mb-3">
+          My Saved Trainings
+        </Typography>
+        <Typography variant="h6" className="text-purple-100 mb-8">
+          Review and manage your bookmarked training opportunities
+        </Typography>
+
+        {/* Search & Filter Section */}
+        <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 -mb-20 border border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <input
+                type="text"
+                placeholder="Search saved trainings..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none transition-all duration-200"
+              />
+            </div>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none transition-all duration-200"
+            >
+              <option value="">Sort By</option>
+              <option value="Most Recent">Most Recent</option>
+              <option value="Company Name">Company Name</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* Content Section */}
+      <div className="flex p-8 pt-14">
+        {/* Training List */}
+        <div className={`${selectedTraining ? "w-3/5" : "w-full"} pr-6`}>
+          <div className="flex justify-between items-center mb-6">
+            <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
+              {filteredTrainings.length} saved trainings
             </Typography>
-          ) : filteredTrainings.length === 0 ? (
-            <Typography variant="body1" align="center" sx={{ mt: 4 }}>
-              {query
-                ? "No trainings match your search"
-                : "You haven't saved any trainings yet"}
-            </Typography>
-          ) : (
-            filteredTrainings.map((training) => (
-              <Card
-                key={training.id}
-                sx={{
-                  mb: 2,
-                  cursor: "pointer",
-                  backgroundColor:
-                    selectedTraining?.id === training.id ? "#f5f5f5" : "white",
-                  "&:hover": { backgroundColor: "#f8f9fa" },
-                }}
-                onClick={() => handleTrainingClick(training.id)}
-              >
-                <CardContent>
-                  <Box
-                    sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}
-                  >
-                    <Button
-                      size="small"
-                      color="error"
+          </div>
+
+          <div className="space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
+            {isLoading ? (
+              <div className="flex flex-col justify-center items-center h-40 gap-4">
+                <img
+                  src={logoNav}
+                  alt="IPEPS Logo"
+                  className="w-24 h-24 loading-logo"
+                />
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                  Loading Saved Trainings...
+                </Typography>
+              </div>
+            ) : filteredTrainings.length === 0 ? (
+              <div className="flex flex-col justify-center items-center h-40 gap-4">
+                <Typography variant="body1" className="text-gray-500 dark:text-gray-400">
+                  No saved trainings found
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/dashboard/training-search')}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  Browse Trainings
+                </Button>
+              </div>
+            ) : (
+              filteredTrainings.map((training) => (
+                <div
+                  key={training.id}
+                  onClick={() => handleTrainingClick(training.id)}
+                  className={`bg-white dark:bg-gray-900 rounded-xl border ${
+                    selectedTraining?.id === training.id
+                      ? "border-purple-500 shadow-lg"
+                      : "border-gray-200 dark:border-gray-700"
+                  } p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+                >
+                  <div className="flex gap-3">
+                    {/* Provider Logo */}
+                    <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                      <img
+                        src={training.companyImage}
+                        alt={training.title}
+                        className="w-full h-full object-contain p-2"
+                      />
+                    </div>
+                    {/* Training Info */}
+                    <div className="flex-1">
+                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {training.title}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {training.city_municipality}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {training.training_type} • {training.experience_level}
+                      </div>
+  
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Provider: {training.provider}
+                      </div>
+                    </div>
+                    {/* Remove Button */}
+                    <button
+                      className="text-red-500 hover:text-red-700 self-start"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRemoveFromSaved(training);
                       }}
-                      disabled={isLoading}
                     >
-                      Remove
-                    </Button>
-                  </Box>
-                  <Box
-                    sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}
-                  >
-                    <Box
-                      sx={{
-                        width: 80,
-                        height: 80,
-                        flexShrink: 0,
-                        backgroundColor: "#f5f5f5",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <img
-                        src={training.companyImage}
-                        alt={training.provider || training.title}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                          padding: "8px",
-                        }}
-                      />
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="h5" component="div" gutterBottom>
-                        {training.title}
-                      </Typography>
-                      <Typography color="text.secondary" noWrap>
-                        {training.provider || ""}
-                      </Typography>
-                      <Typography
-                        color="text.secondary"
-                        sx={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                        }}
-                      >
-                        {training.description}
-                      </Typography>
-                    </Box>
+                      ✕
+                    </button>
+                  </div>
+                  {enrolledTrainings[training.training_id] && (
+                    <div className="mt-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Enrolled
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
-                    {/* Application Status Indicator - Match design from TrainingSearch */}
-                    {enrolledTrainings[training.training_id] && (
-                      <div className="flex items-start">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Enrolled
-                        </span>
-                      </div>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </Box>
-        {/* Training View Panel */}
-        <Box
-          sx={{
-            width: "40%",
-            height: "100%",
-            overflowY: "auto",
-            backgroundColor: "white",
-          }}
-        >
-          {selectedTraining && (
+        {/* Training Details */}
+        {selectedTraining && (
+          <div className="w-2/5">
             <SavedTrainingsView
               training={selectedTraining}
-              isEnrolled={
-                enrolledTrainings[selectedTraining.training_id] || false
-              }
+              isEnrolled={enrolledTrainings[selectedTraining.training_id] || false}
               onEnroll={() => handleEnroll(selectedTraining.training_id)}
-              isLoading={isLoading}
+              onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
             />
-          )}
-        </Box>
-      </Box>
-    </Box>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -6,11 +6,12 @@ import JobseekerMenuItems from "./JobseekerMenuItems";
 import EmployerMenuItems from "./EmployerMenuItems";
 import AdministratorMenuItems from "./AdminMenuItems";
 import AcademeMenuItems from "./AcademeMenuItems";
-import { ExpandMore, ExpandLess, Menu, ChevronLeft, DarkMode, LightMode } from "@mui/icons-material";
+import { ExpandMore, ExpandLess, Menu, ChevronLeft } from "@mui/icons-material";
 import ToggleDarkMode from "../../../../reusable/components/toggleDarkMode";
 import * as actions from '../../../../store/actions/auth';
 import axios from "../../../../axios";
 import { useSelector, useDispatch } from "react-redux";
+import logoNav from '../../../Home/images/logonav.png';
 
 
 const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) => (
@@ -38,36 +39,29 @@ const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) =
 );
 
 
-const SidebarItem = ({ title, to, icon, selected, setSelected, isCollapsed }) => {
-    const dispatch = useDispatch();
+const SidebarItem = ({ title, to, icon, isCollapsed }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
 
-    const handleClick = () => {
-        setSelected(title);
-        if (title === "Logout") {
-            dispatch(actions.logout());
-        }
-    };
-
-    return (
-        <Link
-            to={to}
-            className={`flex items-center w-full px-3 py-2 cursor-pointer no-underline rounded-md
-                ${selected === title
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"}
-                transition-all duration-300 ease-in-out
-                ${isCollapsed ? "justify-center gap-0" : ""}
-            `}
-            onClick={handleClick}
-        >
-            {icon && (
-                <span className={isCollapsed ? "" : "mr-2"}>
-                    {icon}
-                </span>
-            )}
-            {!isCollapsed && <span className="text-md">{title}</span>}
-        </Link>
-    );
+  return (
+    <Link
+      to={to}
+      className={`flex items-center w-full px-3 py-2 cursor-pointer no-underline rounded-md
+        ${isActive
+          ? "bg-blue-600 text-white"
+          : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"}
+        transition-all duration-300 ease-in-out
+        ${isCollapsed ? "justify-center gap-0" : ""}
+      `}
+    >
+      {icon && (
+        <span className={isCollapsed ? "" : "mr-2"}>
+          {icon}
+        </span>
+      )}
+      {!isCollapsed && <span className="text-md">{title}</span>}
+    </Link>
+  );
 };
 
 const SideBar = ({ isCollapsed, setIsCollapsed }) => {
@@ -118,7 +112,17 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
         setOpenSections(Object.fromEntries(menuItems.map(({ key }) => [key, true])));
     }, [menuItems]);
 
-    console.log(profileData)
+    // Set initial selected based on current path
+    useEffect(() => {
+        const currentPath = location.pathname;
+        const currentItem = menuItems.flatMap(group => group.items)
+          .find(item => item.to === currentPath);
+        if (currentItem) {
+          setSelected(currentItem.title);
+        }
+      }, [location.pathname, menuItems]);
+
+
     // Sidebar width in px (must match the w-[280px] or w-20)
     const sidebarWidth = isCollapsed ? 40 : 40;
 
@@ -131,12 +135,22 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
                 transition-all duration-300 ease-in-out
             `}
         >
+            {/* Logo and Title */}
+            <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-200 dark:border-gray-800">
+                <img src={logoNav} alt="IPEPS Logo" className="h-8 w-8" />
+                {!isCollapsed && (
+                    <span className="font-bold text-xl text-gray-900 dark:text-white">
+                        IPEPS
+                    </span>
+                )}
+            </div>
+
             {/* Sidebar Toggle Button */}
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className={`
                     absolute
-                    top-6
+                    top-20
                     flex items-center justify-center
                     w-10 h-10 rounded-full
                     bg-blue-600 text-white
@@ -172,7 +186,7 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
                 </div>
             )}
 
-            <div className={`flex flex-col ${isCollapsed ? "gap-5 mt-20 mr-2" : "mt-8"} px-2`}>
+            <div className={`flex flex-col ${isCollapsed ? "gap-5 mt-20 mr-2" : "mt-5"}`}>
                 {menuItems.map(({ title, key, items }) => (
                     <SidebarGroupItems
                         key={key}
@@ -187,8 +201,6 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
                                 title={title}
                                 to={to}
                                 icon={icon}
-                                selected={selected}
-                                setSelected={setSelected}
                                 isCollapsed={isCollapsed}
                             />
                         ))}
