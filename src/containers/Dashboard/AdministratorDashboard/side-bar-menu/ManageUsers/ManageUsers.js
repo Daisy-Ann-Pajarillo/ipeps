@@ -51,6 +51,8 @@ const ManageUsers = () => {
   const [excelUploading, setExcelUploading] = useState(false);
   const [openDetailDialog, setOpenDetailDialog] = useState(false);
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 10;
 
   const handleOpenModal = (userId) => {
     setSelectedUserId(userId);
@@ -343,6 +345,29 @@ const ManageUsers = () => {
     setSelectedUserDetails(null);
   };
 
+  const handleNextPage = () => {
+    if (currentPage < Math.ceil(filteredUsers.length / usersPerPage)) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
+
+  const handlePageClick = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * usersPerPage,
+    currentPage * usersPerPage
+  );
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -475,8 +500,8 @@ const ManageUsers = () => {
                           ))}
                       </TableRow>
                     )))
-                  : filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
+                  : paginatedUsers.length > 0 ? (
+                    paginatedUsers.map((user) => (
                       <TableRow
                         key={user.user_id}
                         hover
@@ -553,14 +578,64 @@ const ManageUsers = () => {
             </Table>
           </TableContainer>
 
-          {/* Pagination could be added here */}
-          {filteredUsers.length > 0 && (
-            <div className="py-3 px-4 flex justify-between items-center border-t border-gray-200">
-              <Typography variant="body2" className="text-gray-500">
-                Showing {filteredUsers.length} of {users.length} users
+                {filteredUsers.length > 0 && (
+                <Box
+                  sx={{
+                  py: 3,
+                  px: 4,
+                  borderTop: "1px solid #e0e0e0",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 2,
+                  }}
+                >
+                  {/* Back and Next Buttons */}
+                  <Box sx={{ display: "flex", justifyContent: "center", gap: 2, width: "100%", maxWidth: "300px" }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    disabled={currentPage === 1}
+                    onClick={handlePreviousPage}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    disabled={currentPage === totalPages}
+                    onClick={handleNextPage}
+                  >
+                    Next
+                  </Button>
+                  </Box>
+
+                  {/* Page Info */}
+              <Typography variant="body2" color="text.secondary">
+                Showing page {currentPage} of {totalPages} ({filteredUsers.length} total users)
               </Typography>
-              {/* Pagination controls would go here */}
-            </div>
+
+              {/* Page Numbers */}
+              <Grid container spacing={1} justifyContent="center" alignItems="center">
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <Grid item key={index + 1}>
+                    <Button
+                      variant={currentPage === index + 1 ? "contained" : "outlined"}
+                      size="small"
+                      onClick={() => handlePageClick(index + 1)}
+                      sx={{
+                        minWidth: "36px",
+                        padding: "4px 8px",
+                        fontSize: "0.875rem",
+                        textTransform: "none",
+                      }}
+                    >
+                      {index + 1}
+                    </Button>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
           )}
         </div>
       </div>

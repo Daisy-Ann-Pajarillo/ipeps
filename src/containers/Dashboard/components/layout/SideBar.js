@@ -56,11 +56,15 @@ const SidebarItem = ({ title, to, icon, selected, setSelected, isCollapsed }) =>
                     ? "bg-blue-600 text-white"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"}
                 transition-all duration-300 ease-in-out
-                ${isCollapsed ? "justify-center" : ""}
+                ${isCollapsed ? "justify-center gap-0" : ""}
             `}
             onClick={handleClick}
         >
-            {icon && <span className={`${!isCollapsed && "mr-2"}`}>{icon}</span>}
+            {icon && (
+                <span className={isCollapsed ? "" : "mr-2"}>
+                    {icon}
+                </span>
+            )}
             {!isCollapsed && <span className="text-md">{title}</span>}
         </Link>
     );
@@ -115,6 +119,9 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
     }, [menuItems]);
 
     console.log(profileData)
+    // Sidebar width in px (must match the w-[280px] or w-20)
+    const sidebarWidth = isCollapsed ? 40 : 40;
+
     return (
         <div
             className={`
@@ -128,18 +135,24 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
             <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className={`
-                    absolute top-4 left-0 transform translate-x-1/2
+                    absolute
+                    top-6
                     flex items-center justify-center
-                    w-8 h-8 rounded-full
+                    w-10 h-10 rounded-full
                     bg-blue-600 text-white
                     shadow-lg cursor-pointer
                     hover:bg-blue-700
                     transition-all duration-300 ease-in-out
-                    z-10
                 `}
+                style={{
+                    left: sidebarWidth - 20, // 20px from the right edge of the sidebar
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    zIndex: 2147483647,
+                }}
             >
-                {isCollapsed ? <Menu className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+                {isCollapsed ? <Menu className="w-6 h-6" /> : <ChevronLeft className="w-6 h-6" />}
             </button>
+            
 
             {!isCollapsed && (
                 <div className="mb-6 text-center pt-6 relative">
@@ -159,7 +172,7 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
                 </div>
             )}
 
-            <div className={`flex flex-col ${isCollapsed ? "gap-10 mt-16" : "mt-8"} px-2`}>
+            <div className={`flex flex-col ${isCollapsed ? "gap-5 mt-20 mr-2" : "mt-8"} px-2`}>
                 {menuItems.map(({ title, key, items }) => (
                     <SidebarGroupItems
                         key={key}
