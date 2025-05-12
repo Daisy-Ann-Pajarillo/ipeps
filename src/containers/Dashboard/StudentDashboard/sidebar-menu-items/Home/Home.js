@@ -170,7 +170,7 @@ const Dashboard = () => {
   }, [dispatch]);
 
 
-
+//change here to 
 
   // Function to fetch job recommendations
   const fetchJobRecommendations = async () => {
@@ -180,14 +180,18 @@ const Dashboard = () => {
       const response = await axios.get("/api/recommend/job-posting", {
         auth: { username: auth.token },
       });
-      console.log("Fetched job data:", response.data);
-      const recommendations = response.data.recommendations.map((item) => ({
-        ...item.job_posting,
-        match_score: item.match_score,
-        novelty_factors: item.novelty_factors,
-      }));
+      // Defensive: Try multiple possible keys
+      let recommendations = [];
+      if (Array.isArray(response.data.recommendations)) {
+        recommendations = response.data.recommendations.map((item) =>
+          item.job_posting ? { ...item.job_posting, match_score: item.match_score, novelty_factors: item.novelty_factors } : item
+        );
+      } else if (Array.isArray(response.data.job_postings)) {
+        recommendations = response.data.job_postings;
+      }
       setRecommendedJobs(recommendations.slice(0, 10));
     } catch (error) {
+      setRecommendedJobs([]);
       console.error("Error fetching jobs:", error);
     } finally {
       setLoading((prev) => ({ ...prev, jobs: false }));
@@ -202,14 +206,17 @@ const Dashboard = () => {
       const response = await axios.get("/api/recommend/training-posting", {
         auth: { username: auth.token },
       });
-      console.log("Fetched training data:", response.data);
-      const recommendations = response.data.recommendations.map((item) => ({
-        ...item.training_posting,
-        match_score: item.match_score,
-        novelty_factors: item.novelty_factors,
-      }));
+      let recommendations = [];
+      if (Array.isArray(response.data.recommendations)) {
+        recommendations = response.data.recommendations.map((item) =>
+          item.training_posting ? { ...item.training_posting, match_score: item.match_score, novelty_factors: item.novelty_factors } : item
+        );
+      } else if (Array.isArray(response.data.training_postings)) {
+        recommendations = response.data.training_postings;
+      }
       setRecommendedTrainings(recommendations.slice(0, 10));
     } catch (error) {
+      setRecommendedTrainings([]);
       console.error("Error fetching trainings:", error);
     } finally {
       setLoading((prev) => ({ ...prev, trainings: false }));
@@ -219,32 +226,36 @@ const Dashboard = () => {
   // Function to fetch scholarship recommendations - only for students
   const fetchScholarshipRecommendations = async () => {
     if (!auth.token) return;
-
-    // Skip scholarship fetch for jobseekers
     const user_type = getUserType();
     if (user_type === 'jobseeker') {
       setLoading((prev) => ({ ...prev, scholarships: false }));
+      setRecommendedScholarships([]);
       return;
     }
-
     setLoading((prev) => ({ ...prev, scholarships: true }));
     try {
       const response = await axios.get("/api/recommend/scholarship-posting", {
         auth: { username: auth.token },
       });
-      console.log("Fetched scholarship data:", response.data);
-      const recommendations = response.data.recommendations.map((item) => ({
-        ...item.scholarship_posting,
-        match_score: item.match_score,
-        novelty_factors: item.novelty_factors,
-      }));
+      let recommendations = [];
+      if (Array.isArray(response.data.recommendations)) {
+        recommendations = response.data.recommendations.map((item) =>
+          item.scholarship_posting ? { ...item.scholarship_posting, match_score: item.match_score, novelty_factors: item.novelty_factors } : item
+        );
+      } else if (Array.isArray(response.data.scholarship_postings)) {
+        recommendations = response.data.scholarship_postings;
+      }
       setRecommendedScholarships(recommendations.slice(0, 10));
     } catch (error) {
+      setRecommendedScholarships([]);
       console.error("Error fetching scholarships:", error);
     } finally {
       setLoading((prev) => ({ ...prev, scholarships: false }));
     }
   };
+
+
+  // PANG FETCH ANNOUNCEMENTS
 
   const fetchAnnouncements = async () => {
     try {
@@ -261,6 +272,7 @@ const Dashboard = () => {
     }
   };
 
+  
 
   // Fetch all recommendations when auth token is available
   useEffect(() => {
