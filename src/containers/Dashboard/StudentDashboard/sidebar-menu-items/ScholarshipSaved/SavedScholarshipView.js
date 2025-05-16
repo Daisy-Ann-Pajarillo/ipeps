@@ -156,25 +156,22 @@ const SavedScholarshipsView = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl h-[calc(100vh-280px)] overflow-hidden w-full flex flex-col">
-      {/* Colored Header Bar */}
-      <div className="h-2 w-full bg-gradient-to-r from-teal-500 to-teal-300 rounded-t-xl" />
-
-      {/* Header Section */}
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-start justify-between">
-          <div className="flex gap-4">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-280px)] overflow-hidden w-full">
+      {/* Header Section - Unified */}
+      <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+          <div className="flex gap-2 sm:gap-3">
+            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-teal-100 dark:bg-teal-900 rounded-md sm:rounded-lg overflow-hidden">
               <img
                 src={scholarship.logo || "http://bij.ly/4ib59B1"}
                 alt={scholarship.scholarship_title}
-                className="w-full h-full object-contain p-2"
+                className="w-full h-full object-contain p-1 sm:p-2"
               />
             </div>
             <div>
               <Typography
                 variant="h6"
-                className="font-semibold text-gray-900 dark:text-white"
+                className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base"
               >
                 {scholarship.scholarship_title}
               </Typography>
@@ -183,16 +180,21 @@ const SavedScholarshipsView = ({
                   variant="body2"
                   className="text-blue-600 dark:text-blue-400"
                 >
-                  Amount: ₱{formatAmount(scholarship.amount)}
+                  Amount: ₱{scholarship.amount?.toLocaleString()}
                 </Typography>
               )}
+              <Typography
+                variant="body2"
+                className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm"
+              >
+                {scholarship.employer?.full_name}
+              </Typography>
             </div>
           </div>
-
           <Button
-            onClick={handleUnsave}
+            onClick={onRemoveSaved}
             disabled={isLoading}
-            className="min-w-[100px] bg-red-50 text-red-600 hover:bg-red-100"
+            className="min-w-[70px] sm:min-w-[90px] text-xs sm:text-sm bg-red-50 text-red-600 hover:bg-red-100"
             startIcon={<BookmarkIcon />}
           >
             Remove
@@ -201,50 +203,48 @@ const SavedScholarshipsView = ({
       </div>
 
       {/* Content Section */}
-      <div className="p-6 overflow-y-auto h-[calc(100%-180px)]">
+      <div className="p-3 sm:p-4 md:p-6 overflow-y-auto h-[calc(100%-180px)]">
         {/* Scholarship Description */}
-        <div>
-          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-            Scholarship Description
-          </h4>
-          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-            {scholarship.scholarship_description || "No description available"}
-          </p>
-        </div>
+        <Typography variant="h6" className="font-semibold mb-2 sm:mb-3 text-gray-900 dark:text-white text-base sm:text-lg">
+          Scholarship Description
+        </Typography>
+        <Typography variant="body2" className="text-gray-600 dark:text-gray-300 whitespace-pre-line mb-4 sm:mb-6 text-xs sm:text-base">
+          {scholarship.scholarship_description || "No description available"}
+        </Typography>
 
         {/* Scholarship Details */}
         {(scholarship.scholarship_type || scholarship.deadline) && (
-          <div className="mt-6">
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="mb-4 sm:mb-6">
+            <Typography variant="h6" className="font-semibold mb-2 sm:mb-3 text-gray-900 dark:text-white text-base sm:text-lg">
               Scholarship Details
-            </h4>
+            </Typography>
             <div className="space-y-2">
               {scholarship.scholarship_type && (
-                <p className="text-gray-700 dark:text-gray-300">
+                <div className="text-gray-700 dark:text-gray-300 text-xs sm:text-base">
                   <span className="font-medium">Type:</span>{" "}
                   {scholarship.scholarship_type}
-                </p>
+                </div>
               )}
               {scholarship.deadline && (
-                <p className="text-gray-700 dark:text-gray-300">
+                <div className="text-gray-700 dark:text-gray-300 text-xs sm:text-base">
                   <span className="font-medium">Deadline:</span>{" "}
                   {new Date(scholarship.deadline).toLocaleDateString()}
-                </p>
+                </div>
               )}
-              {applicationStatus && (
-                <p className="text-gray-700 dark:text-gray-300">
+              {scholarship.application_status && (
+                <div className="text-gray-700 dark:text-gray-300 text-xs sm:text-base">
                   <span className="font-medium">Application Status:</span>{" "}
                   <span
                     className={
-                      applicationStatus === "approved"
+                      scholarship.application_status === "approved"
                         ? "text-green-600 dark:text-green-400"
                         : "text-yellow-600 dark:text-yellow-400"
                     }
                   >
-                    {applicationStatus.charAt(0).toUpperCase() +
-                      applicationStatus.slice(1)}
+                    {scholarship.application_status.charAt(0).toUpperCase() +
+                      scholarship.application_status.slice(1)}
                   </span>
-                </p>
+                </div>
               )}
             </div>
           </div>
@@ -252,33 +252,33 @@ const SavedScholarshipsView = ({
 
         {/* Location Information */}
         {(scholarship.country || scholarship.city_municipality) && (
-          <div className="mt-6">
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="mb-4 sm:mb-6">
+            <Typography variant="h6" className="font-semibold mb-2 sm:mb-3 text-gray-900 dark:text-white text-base sm:text-lg">
               Location
-            </h4>
-            <p className="text-gray-700 dark:text-gray-300">
+            </Typography>
+            <div className="text-gray-700 dark:text-gray-300 text-xs sm:text-base">
               {[scholarship.city_municipality, scholarship.country]
                 .filter(Boolean)
                 .join(", ")}
-            </p>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Footer Action - Only Apply Button */}
-      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      {/* Footer Action */}
+      <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <Button
           variant="contained"
           fullWidth
-          onClick={handleApply}
-          disabled={isLoading || isScholarshipApplied}
-          className={`h-12 rounded-xl font-semibold ${
-            isScholarshipApplied
+          onClick={onApply}
+          disabled={isLoading || isApplied}
+          className={`h-10 sm:h-12 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base ${
+            isApplied
               ? "bg-green-500 cursor-not-allowed"
-              : "bg-blue-500 hover:bg-blue-600"
+              : "bg-teal-600 hover:bg-teal-700"
           } disabled:bg-gray-400 disabled:cursor-not-allowed`}
         >
-          {isLoading ? "Loading..." : isScholarshipApplied ? "Applied" : "Apply Now"}
+          {isLoading ? "Loading..." : isApplied ? "Applied" : "Apply Now"}
         </Button>
       </div>
     </div>

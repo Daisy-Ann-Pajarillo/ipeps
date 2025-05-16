@@ -129,31 +129,33 @@ const JobApplications = ({ isCollapsed }) => {
       <ToastContainer />
 
       {/* Header Section */}
-      <div className="w-full bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-800 dark:to-blue-600 px-8 py-12 shadow-lg flex flex-col items-center text-center">
-        <Typography variant="h3" className="text-white font-bold mb-3">
+      <div className="w-full bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-800 dark:to-blue-600 px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 shadow-lg flex flex-col items-center text-center">
+        {/* To adjust header and search bar size for mobile, change px-4/py-6 and text sizes below */}
+        <Typography variant="h4" className="text-white font-bold mb-2 text-lg sm:text-2xl md:text-3xl">
           My Applications
         </Typography>
-        <Typography variant="h6" className="text-blue-100 mb-8">
+        <Typography variant="subtitle1" className="text-blue-100 mb-4 text-xs sm:text-base md:text-lg">
           Track and manage your job applications
         </Typography>
 
-        {/* Search Section */}
-        <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 -mb-20 border border-gray-200 dark:border-gray-700">
+        {/* Search Section - Smaller */}
+        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-3 sm:p-4 md:p-6 -mb-12 sm:-mb-16 md:-mb-20 border border-gray-200 dark:border-gray-700">
           <input
             type="text"
             placeholder="Search applications..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200"
+            className="w-full px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
           />
         </div>
       </div>
 
       {/* Content Section */}
-      <div className="flex flex-col lg:flex-row p-8 pt-14">
+      <div className="flex flex-col lg:flex-row p-2 sm:p-4 md:p-8 pt-8 sm:pt-12 md:pt-14 gap-6 md:gap-8">
+        {/* MOBILE: To adjust mobile layout, change p-2/sm:p-4 and gap-6 as needed */}
         {/* Application Details (top on mobile, right on desktop) */}
         {selectedApplication && (
-          <div className="w-full lg:w-2/5 mb-8 lg:mb-0 lg:order-2">
+          <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
             <JobApplicationView
               application={selectedApplication}
               onWithdraw={handleWithdrawal}
@@ -162,19 +164,19 @@ const JobApplications = ({ isCollapsed }) => {
         )}
         {/* Applications List */}
         <div className={`${selectedApplication ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
-          <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 mb-4">
+          <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 mb-2 sm:mb-4 text-sm sm:text-base">
             {appliedJobs.length} applications
           </Typography>
 
-          <div className="space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
+          <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
             {isLoading ? (
-              <div className="flex flex-col justify-center items-center h-40 gap-4">
+              <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
                 <img
                   src={logoNav}
                   alt="IPEPS Logo"
-                  className="w-24 h-24 loading-logo"
+                  className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
                 />
-                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-sm sm:text-base">
                   Loading Applications...
                 </Typography>
               </div>
@@ -188,37 +190,35 @@ const JobApplications = ({ isCollapsed }) => {
                   <div
                     key={job.job_posting_id}
                     onClick={() => setSelectedApplication(job)}
-                    className={`bg-white dark:bg-gray-900 rounded-xl border ${
+                    className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
                       selectedApplication?.job_posting_id === job.job_posting_id
                         ? "border-blue-500 shadow-lg"
                         : "border-gray-200 dark:border-gray-700"
-                    } p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+                    } p-3 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
                   >
-                    <div className="flex gap-4">
-                      <div className="w-16 h-16 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                    <div className="flex gap-2 sm:gap-4">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-md sm:rounded-lg overflow-hidden flex items-center justify-center">
                         <img
                           src={job.companyImage || "http://bij.ly/4ib59B1"}
                           alt={job.job_title}
-                          className="w-full h-full object-contain p-2"
+                          className="w-full h-full object-contain p-1 sm:p-2"
                         />
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{job.job_title}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{job.company_name}</p>
-                        
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{job.job_title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">{job.company_name}</p>
                         {/* Skills Tags */}
-                        <div className="flex flex-wrap gap-2 mb-3">
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
                           {job.required_skills?.split(',').slice(0, 3).map((skill, index) => (
                             <span
                               key={index}
-                              className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-3 py-1 rounded-full"
+                              className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full"
                             >
                               {skill.trim()}
                             </span>
                           ))}
                         </div>
-
-                        <div className="flex flex-wrap gap-2 text-sm">
+                        <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm">
                           <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
                             📍 {job.city_municipality}
                           </span>

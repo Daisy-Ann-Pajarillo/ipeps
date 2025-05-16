@@ -205,17 +205,18 @@ const JobSearch = ({ isCollapsed }) => {
       <ToastContainer />
 
       {/* Centered Header Section */}
-      <div className="w-full bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-800 dark:to-blue-600 px-8 py-12 shadow-lg flex flex-col items-center text-center">
-        <Typography variant="h3" className="text-white font-bold mb-3">
+      <div className="w-full bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-800 dark:to-blue-600 px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 shadow-lg flex flex-col items-center text-center">
+        {/* To adjust header and search bar size for mobile, change px-4/py-6 and text sizes below */}
+        <Typography variant="h4" className="text-white font-bold mb-2 text-lg sm:text-2xl md:text-3xl">
           Find Your Next Opportunity
         </Typography>
-        <Typography variant="h6" className="text-blue-100 mb-8">
+        <Typography variant="subtitle1" className="text-blue-100 mb-4 text-xs sm:text-base md:text-lg">
           Browse through job postings from top employers in Iloilo
         </Typography>
 
-        {/* Modern Search & Filter Section */}
-        <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 -mb-20 border border-gray-200 dark:border-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Modern Search & Filter Section - Smaller */}
+        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-3 sm:p-4 md:p-6 -mb-12 sm:-mb-16 md:-mb-20 border border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 sm:gap-4">
             {/* Search Input */}
             <div className="md:col-span-2">
               <input
@@ -223,7 +224,7 @@ const JobSearch = ({ isCollapsed }) => {
                 placeholder="Search jobs..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200"
+                className="w-full px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
               />
             </div>
 
@@ -231,7 +232,7 @@ const JobSearch = ({ isCollapsed }) => {
             <select
               value={entryLevel}
               onChange={(e) => setEntryLevel(e.target.value)}
-              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200"
+              className="px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
             >
               <option value="">Experience Level</option>
               <option value="Entry">Entry Level</option>
@@ -242,7 +243,7 @@ const JobSearch = ({ isCollapsed }) => {
             <select
               value={jobType}
               onChange={(e) => setJobType(e.target.value)}
-              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200"
+              className="px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
             >
               <option value="">Job Type</option>
               <option value="Full-time">Full Time</option>
@@ -255,23 +256,24 @@ const JobSearch = ({ isCollapsed }) => {
       </div>
 
       {/* Content Section with responsive layout */}
-      <div className="flex flex-col lg:flex-row p-8 pt-14">
+      <div className="flex flex-col lg:flex-row p-2 sm:p-4 md:p-8 pt-8 sm:pt-12 md:pt-14 gap-6 md:gap-8">
+        {/* MOBILE: To adjust mobile layout, change p-2/sm:p-4 and gap-6 as needed */}
         {/* Job Details (top on mobile, right on desktop) */}
         {selectedJob && (
-          <div className="w-full lg:w-2/5 mb-8 lg:mb-0 lg:order-2">
+          <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
             <JobView job={selectedJob} />
           </div>
         )}
         {/* Job List */}
-        <div className={`${selectedJob ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
-          <div className="flex justify-between items-center mb-6">
-            <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
+        <div className={`${selectedJob ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}> 
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-2">
+            <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               {filteredJobs.length} jobs found
             </Typography>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm"
+              className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-xs sm:text-sm"
             >
               <option value="">Sort By</option>
               <option value="Most Recent">Most Recent</option>
@@ -279,70 +281,69 @@ const JobSearch = ({ isCollapsed }) => {
             </select>
           </div>
 
-          <div className="space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
+          <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
             {isLoading ? (
-              <div className="flex flex-col justify-center items-center h-40 gap-4">
+              <div className="flex flex-col justify-center items-center h-40 gap-2 sm:gap-4">
                 <img 
                   src={logoNav} 
                   alt="IPEPS Logo" 
-                  className="w-24 h-24 loading-logo"
+                  className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
                 />
-                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-sm sm:text-base">
                   Loading Jobs...
                 </Typography>
               </div>
             ) : filteredJobs.length === 0 ? (
-              <div className="flex justify-center items-center h-40">
-                <p className="text-gray-500 dark:text-gray-400">No jobs found matching your criteria</p>
+              <div className="flex justify-center items-center h-32 sm:h-40">
+                <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">No jobs found matching your criteria</p>
               </div>
             ) : (
               filteredJobs.map((job) => (
                 <div
                   key={job.job_id}
                   onClick={() => handleJobClick(job.job_id)}
-                  className={`bg-white dark:bg-gray-900 rounded-xl border ${
+                  className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
                     selectedJob?.job_id === job.job_id
                       ? "border-blue-500 shadow-lg"
                       : "border-gray-200 dark:border-gray-700"
-                  } p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+                  } p-3 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
                 >
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     {/* Company Logo */}
-                    <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                    <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-md sm:rounded-lg overflow-hidden flex items-center justify-center">
                       <img
                         src={job.companyImage || "http://bij.ly/4ib59B1"}
                         alt={job.job_title}
-                        className="w-full h-full object-contain p-2"
+                        className="w-full h-full object-contain p-1 sm:p-2"
                       />
                     </div>
 
                     {/* Job Info */}
                     <div className="flex-1">
-                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {job.job_title}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         {job.country} • {job.city_municipality}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         {job.job_type} • {job.experience_level}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         💰 {formatSalary(job.estimated_salary_from)} - {formatSalary(job.estimated_salary_to)}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         🏢 {job.employer?.company_name ?? 'Unknown Company'}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         👤 Posted By: {job.employer?.full_name ?? 'N/A'}
                       </div>
                     </div>
 
-
                     {/* Application Status Indicator */}
                     {appliedJobIds.includes(job.job_id) && (
                       <div className="flex items-start">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-green-100 text-green-800">
                           Applied
                         </span>
                       </div>

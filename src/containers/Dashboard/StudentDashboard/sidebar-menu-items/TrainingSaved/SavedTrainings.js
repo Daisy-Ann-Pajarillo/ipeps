@@ -292,32 +292,31 @@ const SavedTrainings = ({ isCollapsed }) => {
     <div className="min-h-screen w-full bg-gradient-to-br from-[#e0e7ef] to-[#f8fafc] dark:from-gray-900 dark:to-gray-800">
       <ToastContainer />
 
-      {/* Hero Section */}
-      
-      <section className="w-full bg-gradient-to-r from-purple-600 to-purple-400 dark:from-purple-800 dark:to-purple-600 px-8 py-12 shadow-lg flex flex-col items-center text-center">
-        <Typography variant="h3" className="text-white font-bold mb-3">
+      {/* Centered Header Section */}
+      <div className="w-full bg-gradient-to-r from-purple-600 to-purple-400 dark:from-purple-800 dark:to-purple-600 px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 shadow-lg flex flex-col items-center text-center">
+        <Typography variant="h4" className="text-white font-bold mb-2 text-lg sm:text-2xl md:text-3xl">
           My Saved Trainings
         </Typography>
-        <Typography variant="h6" className="text-purple-100 mb-8">
+        <Typography variant="subtitle1" className="text-purple-100 mb-4 text-xs sm:text-base md:text-lg">
           Review and manage your bookmarked training opportunities
         </Typography>
 
-        {/* Search & Filter Section */}
-        <div className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 -mb-20 border border-gray-200 dark:border-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Search & Filter Section - Unified */}
+        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-3 sm:p-4 md:p-6 -mb-12 sm:-mb-16 md:-mb-20 border border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4">
             <div className="md:col-span-2">
               <input
                 type="text"
                 placeholder="Search saved trainings..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none transition-all duration-200"
+                className="w-full px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
               />
             </div>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none transition-all duration-200"
+              className="px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
             >
               <option value="">Sort By</option>
               <option value="Most Recent">Most Recent</option>
@@ -325,44 +324,45 @@ const SavedTrainings = ({ isCollapsed }) => {
             </select>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Content Section */}
-      <div className="flex flex-col lg:flex-row p-8 pt-14">
+      {/* Content Section with responsive layout */}
+      <div className="flex flex-col lg:flex-row p-2 sm:p-4 md:p-8 pt-8 sm:pt-12 md:pt-14 gap-6 md:gap-8">
         {/* Training Details (top on mobile, right on desktop) */}
         {selectedTraining && (
-          <div className="w-full lg:w-2/5 mb-8 lg:mb-0 lg:order-2">
+          <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
             <SavedTrainingsView
               training={selectedTraining}
               isEnrolled={enrolledTrainings[selectedTraining.training_id] || false}
               onEnroll={() => handleEnroll(selectedTraining.training_id)}
               onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
+              isLoading={isLoading}
             />
           </div>
         )}
         {/* Training List */}
         <div className={`${selectedTraining ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
-          <div className="flex justify-between items-center mb-6">
-            <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-2">
+            <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               {filteredTrainings.length} saved trainings
             </Typography>
           </div>
 
-          <div className="space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
+          <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
             {isLoading ? (
-              <div className="flex flex-col justify-center items-center h-40 gap-4">
+              <div className="flex flex-col justify-center items-center h-40 gap-2 sm:gap-4">
                 <img
                   src={logoNav}
                   alt="IPEPS Logo"
-                  className="w-24 h-24 loading-logo"
+                  className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
                 />
-                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-sm sm:text-base">
                   Loading Saved Trainings...
                 </Typography>
               </div>
             ) : filteredTrainings.length === 0 ? (
-              <div className="flex flex-col justify-center items-center h-40 gap-4">
-                <Typography variant="body1" className="text-gray-500 dark:text-gray-400">
+              <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2">
+                <Typography variant="body1" className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
                   No saved trainings found
                 </Typography>
                 <Button
@@ -378,34 +378,33 @@ const SavedTrainings = ({ isCollapsed }) => {
                 <div
                   key={training.id}
                   onClick={() => handleTrainingClick(training.id)}
-                  className={`bg-white dark:bg-gray-900 rounded-xl border ${
+                  className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
                     selectedTraining?.id === training.id
                       ? "border-purple-500 shadow-lg"
                       : "border-gray-200 dark:border-gray-700"
-                  } p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
+                  } p-3 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 w-full`}
                 >
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     {/* Provider Logo */}
-                    <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                    <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-md sm:rounded-lg overflow-hidden flex items-center justify-center">
                       <img
                         src={training.companyImage}
                         alt={training.title}
-                        className="w-full h-full object-contain p-2"
+                        className="w-full h-full object-contain p-1 sm:p-2"
                       />
                     </div>
                     {/* Training Info */}
                     <div className="flex-1">
-                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {training.title}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         {training.city_municipality}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                         {training.training_type} • {training.experience_level}
                       </div>
-  
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                         Provider: {training.provider}
                       </div>
                     </div>

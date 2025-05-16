@@ -609,21 +609,21 @@ const Dashboard = () => {
         <div className="max-w-6xl w-full flex flex-col items-center text-center z-10">
           <Typography
             variant="h2"
-            className="font-extrabold text-5xl md:text-7xl text-white mb-6 drop-shadow-lg tracking-tight"
-          >
+            className="font-extrabold text-xl sm:text-3xl md:text-5xl lg:text-7xl text-white mb-4 sm:mb-6 drop-shadow-lg tracking-tight"
+            >
             Iloilo Province Employment Portal Services
-          </Typography>
-          <Typography
+            </Typography>
+            <Typography
             variant="h5"
-            className="text-2xl md:text-3xl text-blue-100 mb-10 font-medium"
-          >
+            className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-blue-100 mb-6 sm:mb-10 font-medium"
+            >
             Discover, Connect, and Grow your career in Iloilo.
-          </Typography>
-          <div className="flex flex-wrap gap-6 mt-4 justify-center">
+            </Typography>
+            <div className="flex flex-wrap gap-4 sm:gap-6 mt-2 sm:mt-4 justify-center">
             <Button
               variant="contained"
               color="primary"
-              className="bg-white text-blue-700 font-bold px-10 py-4 rounded-2xl shadow hover:bg-blue-50 transition text-xl"
+              className="bg-white text-blue-700 font-bold px-6 sm:px-10 py-2 sm:py-4 rounded-xl sm:rounded-2xl shadow hover:bg-blue-50 transition text-base sm:text-xl"
               onClick={scrollToRecommendations}
             >
               Explore Opportunities
@@ -631,19 +631,19 @@ const Dashboard = () => {
             <Button
               variant="outlined"
               color="inherit"
-              className="border-white text-white font-bold px-10 py-4 rounded-2xl hover:bg-blue-700 hover:text-white transition text-xl flex items-center gap-2"
+              className="border-white text-white font-bold px-6 sm:px-10 py-2 sm:py-4 rounded-xl sm:rounded-2xl hover:bg-blue-700 hover:text-white transition text-base sm:text-xl flex items-center gap-2"
               style={{ borderWidth: 2 }}
               component="a"
               href="https://www.facebook.com/peso.ilo"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <FacebookIcon fontSize="large" />
+              <FacebookIcon className="text-2xl sm:text-3xl" />
               <span className="hidden md:inline">Facebook</span>
             </Button>
+            </div>
           </div>
-        </div>
-        {/* Decorative shapes */}
+          {/* Decorative shapes */}
         <div className="absolute top-0 left-0 w-72 h-72 bg-blue-300 opacity-30 rounded-full -z-1 blur-2xl" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-800 opacity-20 rounded-full -z-1 blur-2xl" />
         <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-blue-200 opacity-10 rounded-full -z-1 blur-3xl" style={{ transform: "translate(-50%, -50%)" }} />
@@ -762,131 +762,162 @@ const Dashboard = () => {
       )}
 
       {/* Main Content Section */}
-      <div className="w-full max-w-7xl flex flex-col gap-10 items-center pt-10 pb-10">
-        {/* Portal Info Section - Slideshow */}
-        <section className="w-full flex flex-col md:flex-row items-center justify-between gap-10 bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-blue-100 dark:border-blue-900 p-12 mt-[-60px] z-10">
-          <div className="flex-1 flex flex-col items-start justify-center">
-            <Typography variant="h4" className="font-bold text-3xl text-blue-700 mb-4">
-              Why Use the Iloilo Province Employment Portal?
-            </Typography>
-            <div className="w-full flex flex-col items-start">
-              <div className="flex items-center gap-3 mb-6">
-                <button
-                  className="rounded-full bg-blue-100 text-blue-700 px-3 py-1 text-lg font-bold shadow hover:bg-blue-200 transition"
-                  onClick={() => setSlideIdx((slideIdx - 1 + slideCount) % slideCount)}
-                  aria-label="Previous"
-                >
-                  <ChevronLeftIcon />
-                </button>
-                <span className="text-lg md:text-xl font-semibold text-blue-800 dark:text-blue-200">
-                  {portalSlides[slideIdx].title}
-                </span>
-                <button
-                  className="rounded-full bg-blue-100 text-blue-700 px-3 py-1 text-lg font-bold shadow hover:bg-blue-200 transition"
-                  onClick={() => setSlideIdx((slideIdx + 1) % slideCount)}
-                  aria-label="Next"
-                >
-                  <ChevronRightIcon />
-                </button>
-              </div>
-              <div className="flex gap-2 mt-2">
-                {portalSlides.map((_, idx) => (
-                  <span
-                    key={idx}
-                    className={`inline-block w-3 h-3 rounded-full transition-all duration-300 ${slideIdx === idx ? "bg-blue-600" : "bg-blue-200"}`}
-                  />
-                ))}
-              </div>
+        {/* MOBILE: Adjust padding and margins for smaller screens */}
+        <div className="w-full max-w-7xl flex flex-col gap-6 md:gap-10 items-center px-4 md:px-6 pt-6 md:pt-10 pb-6 md:pb-10">
+          {/* Portal Info Section - Slideshow */}
+          {/* MOBILE: Responsive layout and padding adjustments */}
+          <section className="w-full flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 
+            bg-white dark:bg-gray-900 rounded-2xl md:rounded-3xl shadow-xl md:shadow-2xl 
+            border border-blue-100 dark:border-blue-900 
+            p-6 md:p-12 mt-[-30px] md:mt-[-60px] z-10">
+            
+            {/* MOBILE: Text content adjustments */}
+            <div className="flex-1 flex flex-col items-start justify-center w-full">
+          <Typography 
+            variant="h4" 
+            className="font-bold text-xl md:text-2xl text-blue-700 mb-3 md:mb-4"
+          >
+            Why Use the Iloilo Province Employment Portal Services?
+          </Typography>
+          
+          {/* MOBILE: Carousel navigation and title adjustments */}
+          <div className="w-full flex flex-col items-start">
+            <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 w-full">
+              {/* MOBILE: Adjust button sizes */}
+              <button
+            className="rounded-full bg-blue-100 text-blue-700 p-1 md:px-3 md:py-1 text-base md:text-lg font-bold shadow hover:bg-blue-200 transition"
+            onClick={() => setSlideIdx((slideIdx - 1 + slideCount) % slideCount)}
+            aria-label="Previous"
+              >
+            <ChevronLeftIcon fontSize="small" />
+              </button>
+              
+              {/* MOBILE: Responsive text size and line height */}
+              <span className="text-base md:text-xl font-semibold text-blue-800 dark:text-blue-200 text-center flex-1">
+            {portalSlides[slideIdx].title}
+              </span>
+              
+              <button
+            className="rounded-full bg-blue-100 text-blue-700 p-1 md:px-3 md:py-1 text-base md:text-lg font-bold shadow hover:bg-blue-200 transition"
+            onClick={() => setSlideIdx((slideIdx + 1) % slideCount)}
+            aria-label="Next"
+              >
+            <ChevronRightIcon fontSize="small" />
+              </button>
+            </div>
+            
+            {/* MOBILE: Adjust dot indicator spacing */}
+            <div className="flex gap-1.5 md:gap-2 mt-2 justify-center w-full">
+              {portalSlides.map((_, idx) => (
+            <span
+              key={idx}
+              className={`inline-block w-2 md:w-3 h-2 md:h-3 rounded-full transition-all duration-300 
+                ${slideIdx === idx ? "bg-blue-600" : "bg-blue-200"}`}
+            />
+              ))}
             </div>
           </div>
-          <div className="flex-1 flex justify-center items-center">
-            <img
-              src={portalSlides[slideIdx].image}
-              alt={portalSlides[slideIdx].title}
-              className="rounded-2xl shadow-xl w-[420px] h-72 object-cover border-4 border-blue-200 transition-all duration-500"
-              style={{ minWidth: 280, minHeight: 180 }}
-            />
-          </div>
-        </section>
+            </div>
 
-        {/* Recommendations Container */}
-        <section id="recommendations-section" className="w-full max-w-7xl">
-          <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+            {/* MOBILE: Image container adjustments */}
+            <div className="flex-1 flex justify-center items-center w-full mt-4 md:mt-0">
+          {/* MOBILE: Responsive image sizing */}
+          <img
+            src={portalSlides[slideIdx].image}
+            alt={portalSlides[slideIdx].title}
+            className="rounded-xl md:rounded-2xl shadow-lg md:shadow-xl 
+              w-full md:w-[420px] h-48 md:h-72 object-cover 
+              border-2 md:border-4 border-blue-200 transition-all duration-500"
+            style={{ 
+              maxWidth: '100%',
+              minHeight: 160 // Adjusted minimum height for mobile
+            }}
+          />
+            </div>
+          </section>
+
+          {/* Recommendations Container */}
+        <section
+          id="recommendations-section"
+          className="w-full max-w-[100rem] px-2 sm:px-4 md:px-8 lg:px-12"
+          /* MOBILE: To adjust mobile width, change the px-2 (padding-x) and max-w-[100rem] as needed */
+        >
+          <div className="bg-white dark:bg-gray-900 rounded-2xl md:rounded-3xl shadow-lg md:shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-800 dark:to-blue-600 px-8 py-6">
-              <Typography variant="h4" className="text-white font-bold mb-2">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-800 dark:to-blue-600 px-4 md:px-10 py-4 md:py-6">
+              <Typography variant="h4" className="text-white font-bold mb-1 md:mb-2 text-lg sm:text-xl md:text-2xl lg:text-3xl">
                 Recommended For You
               </Typography>
-              <Typography variant="subtitle1" className="text-blue-100">
+              <Typography variant="subtitle1" className="text-blue-100 text-xs sm:text-sm md:text-base">
                 Based on your profile and preferences, here are your personalized recommendations
               </Typography>
             </div>
 
             {/* Content */}
-            <div className="p-8">
+            <div className="p-2 sm:p-4 md:p-8">
               {/* Jobs Section */}
               {!loading.jobs && (
-                <div className="mb-12">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+                <div className="mb-8 md:mb-12">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 gap-2">
                     <div>
-                      <Typography variant="h5" className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
-                        <span className="text-2xl">Jobs</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">({recommendedJobs.length} recommendations)</span>
+                      <Typography variant="h5" className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2 text-lg md:text-2xl">
+                        <span className="text-base md:text-2xl">Jobs</span>
+                        <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400">({recommendedJobs.length} recommendations)</span>
                       </Typography>
-                      <Typography variant="body2" className="text-gray-600 dark:text-gray-400 mt-1">
+                      <Typography variant="body2" className="text-gray-600 dark:text-gray-400 mt-1 text-xs md:text-base">
                         Opportunities matching your skills and experience
                       </Typography>
                     </div>
                     <Button
-                      className="text-blue-600 hover:text-blue-700 w-full sm:w-auto mt-2 sm:mt-0"
+                      className="text-blue-600 hover:text-blue-700 w-full sm:w-auto mt-2 sm:mt-0 text-xs md:text-base"
                       onClick={handleViewAllJobs}
                     >
                       View all jobs →
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {recommendedJobs.length > 0 ? (
                       recommendedJobs.map((job, index) => (
-                      <div key={job.job_id || index} className="flex">
-                        {renderJobCard(job)}
-                      </div>
+                        <div key={job.job_id || index} className="flex">
+                          {renderJobCard(job)}
+                        </div>
                       ))
                     ) : (
                       <div className="flex">
-                      {renderJobCard({
-                        job_id: "placeholder1", 
-                        job_title: "No jobs available",
-                        employer: { company_name: "Please try again later" },
-                      })}
+                        {renderJobCard({
+                          job_id: "placeholder1",
+                          job_title: "No jobs available",
+                          employer: { company_name: "Please try again later" },
+                        })}
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              <Divider className="my-8" />
+              <Divider className="my-6 md:my-8" />
 
               {/* Trainings Section */}
               {!loading.trainings && (
-                <div className="mb-12">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+                <div className="mb-8 md:mb-12">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 gap-2">
                     <div>
-                      <Typography variant="h5" className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2">
-                        <span className="text-2xl">Trainings</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">({recommendedTrainings.length} recommendations)</span>
+                      <Typography variant="h5" className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2 text-lg md:text-2xl">
+                        <span className="text-base md:text-2xl">Trainings</span>
+                        <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400">({recommendedTrainings.length} recommendations)</span>
                       </Typography>
-                      <Typography variant="body2" className="text-gray-600 dark:text-gray-400 mt-1">
+                      <Typography variant="body2" className="text-gray-600 dark:text-gray-400 mt-1 text-xs md:text-base">
                         Programs to enhance your professional skills
                       </Typography>
                     </div>
                     <Button
-                      className="text-purple-600 hover:text-purple-700 w-full sm:w-auto mt-2 sm:mt-0"
+                      className="text-purple-600 hover:text-purple-700 w-full sm:w-auto mt-2 sm:mt-0 text-xs md:text-base"
                       onClick={handleViewAllTrainings}
                     >
                       View all trainings →
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {recommendedTrainings.length > 0 ? (
                       recommendedTrainings.map((training, index) => (
                         <div key={training.id || index} className="flex">
@@ -906,29 +937,29 @@ const Dashboard = () => {
                 </div>
               )}
 
-              <Divider className="my-8" />
+              <Divider className="my-6 md:my-8" />
 
               {/* Scholarships Section */}
               {!loading.scholarships && userType !== "JOBSEEKER" && (
-                <div className="mb-12">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+                <div className="mb-8 md:mb-12">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 md:mb-6 gap-2">
                     <div>
-                      <Typography variant="h5" className="font-semibold text-teal-700 dark:text-teal-300 flex items-center gap-2">
-                        <span className="text-2xl">Scholarships</span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">({recommendedScholarships.length} recommendations)</span>
+                      <Typography variant="h5" className="font-semibold text-teal-700 dark:text-teal-300 flex items-center gap-2 text-lg md:text-2xl">
+                        <span className="text-base md:text-2xl">Scholarships</span>
+                        <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400">({recommendedScholarships.length} recommendations)</span>
                       </Typography>
-                      <Typography variant="body2" className="text-gray-600 dark:text-gray-400 mt-1">
+                      <Typography variant="body2" className="text-gray-600 dark:text-gray-400 mt-1 text-xs md:text-base">
                         Financial aid opportunities suited to your profile
                       </Typography>
                     </div>
                     <Button
-                      className="text-teal-600 hover:text-teal-700 w-full sm:w-auto mt-2 sm:mt-0"
+                      className="text-teal-600 hover:text-teal-700 w-full sm:w-auto mt-2 sm:mt-0 text-xs md:text-base"
                       onClick={handleViewAllScholarships}
                     >
                       View all scholarships →
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {recommendedScholarships.length > 0 ? (
                       recommendedScholarships.map((scholarship, index) => (
                         <div key={scholarship.id || index} className="flex">
