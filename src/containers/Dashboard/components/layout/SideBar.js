@@ -136,7 +136,7 @@ const SideBar = ({ isCollapsed, setIsCollapsed }) => {
             `}
         >
             {/* Logo and Title */}
-            <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-200 dark:border-gray-800">
                 <img src={logoNav} alt="IPEPS Logo" className="h-8 w-8" />
                 {!isCollapsed && (
                     <span className="font-bold text-xl text-gray-900 dark:text-white">
