@@ -148,10 +148,10 @@ export const auth = (username, password) => {
             console.log("user type: ", statusResponse.data.user_type);
 
             statusResponse.data.user_type === "ADMIN"
-              ? (window.location.href = "/admin")
+              ? (window.location.href = "/dashboard")
               : (window.location.href = statusResponse.data.has_personal_info
-                ? "/dashboard"
-                : "/user-application-form");
+                  ? "/dashboard"
+                  : "/user-application-form");
           });
       })
       .catch((error) => {
