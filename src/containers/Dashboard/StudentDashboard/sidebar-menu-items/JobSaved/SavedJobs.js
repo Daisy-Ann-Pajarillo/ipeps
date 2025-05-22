@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom"; // Add this import
 import * as actions from "../../../../../store/actions/index";
 import axios from "../../../../../axios";
 import SavedJobsView from "./SavedJobsView";
-import SearchData from "../../../components/layout/Search";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Typography, Button } from "@mui/material"; // Changed from @material-tailwind/react to @mui/material
@@ -208,72 +207,54 @@ const SavedJobs = () => {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#e0e7ef] to-[#f8fafc] dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen w-full">
       <ToastContainer />
 
-      {/* Hero Section */}
-      <section className="w-full bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-800 dark:to-blue-600 px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 shadow-lg flex flex-col items-center text-center">
-        {/* To adjust header and search bar size for mobile, change px-4/py-6 and text sizes below */}
-        <Typography variant="h4" className="text-white font-bold mb-2 text-lg sm:text-2xl md:text-3xl">
-          My Saved Jobs
-        </Typography>
-        <Typography variant="subtitle1" className="text-blue-100 mb-4 text-xs sm:text-base md:text-lg">
-          Review and manage your bookmarked opportunities
-        </Typography>
-
-        {/* Search & Filter Section - Smaller */}
-        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-3 sm:p-4 md:p-6 -mb-12 sm:-mb-16 md:-mb-20 border border-gray-200 dark:border-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4">
-            <div className="md:col-span-2">
-              <input
-                type="text"
-                placeholder="Search saved jobs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
-              />
-            </div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
-            >
-              <option value="">Sort By</option>
-              <option value="Most Recent">Most Recent</option>
-              <option value="Salary">Salary</option>
-              <option value="Company Name">Company Name</option>
-            </select>
-          </div>
+      {/* Modern Thin Header - Matching JobView.js */}
+      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <img src={logoNav} alt="Iloilo Province Logo" className="h-12 w-12 rounded-full border border-gray-300 dark:border-gray-700 bg-white" />
+          <span className="font-bold text-blue-800 dark:text-blue-200 text-base sm:text-lg tracking-tight whitespace-nowrap">PESO | Saved Jobs</span>
         </div>
-      </section>
+      </header>
 
-      {/* Content Section */}
-      <div className="flex flex-col lg:flex-row p-2 sm:p-4 md:p-8 pt-8 sm:pt-12 md:pt-14 gap-6 md:gap-8">
-        {/* MOBILE: To adjust mobile layout, change p-2/sm:p-4 and gap-6 as needed */}
-        {/* Job Details (top on mobile, right on desktop) */}
-        {selectedJob && (
-          <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
-            <SavedJobsView
-              job={selectedJob}
-              isApplied={appliedJobIds.includes(selectedJob.employer_jobpost_id)}
-              onApply={() => handleApplyJob(selectedJob.employer_jobpost_id)}
-              onRemoveSaved={() => handleRemoveFromSaved(selectedJob.employer_jobpost_id)}
-              onJobStatusChanged={() => {
-                loadSavedJobs();
-                loadAppliedJobs();
-              }}
-            />
-          </div>
-        )}
-        {/* Job List */}
-        <div className={`${selectedJob ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
-          <div className="flex justify-between items-center mb-4 sm:mb-6">
+      {/* Unified Filter/Search Row - Matching JobView.js */}
+      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mt-4 px-2">
+        <div className="flex flex-row items-center bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-none h-10 w-full max-w-xl">
+          <span className="pl-3 pr-1 text-gray-400 dark:text-gray-500 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            placeholder="Search saved jobs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 h-full px-0"
+          />
+        </div>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 shadow-sm w-full sm:w-auto"
+        >
+          <option value="">Sort By</option>
+          <option value="Most Recent">Recent</option>
+          <option value="Salary">Salary</option>
+        </select>
+      </div>
+
+      {/* Main Content: Job List & Job View - Matching JobView.js layout */}
+      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 md:py-4 w-full max-w-[1800px] mx-auto">
+        {/* Job List Section */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex justify-between items-center mb-2 px-1">
             <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               {sortedJobs.length} saved jobs
             </Typography>
           </div>
-
-          <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
+          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedJob ? '260px' : '0' }}>
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
                 <img
@@ -359,6 +340,13 @@ const SavedJobs = () => {
             )}
           </div>
         </div>
+
+        {/* Job Details Section - Matching JobView.js */}
+        {selectedJob && (
+          <div className="w-full lg:w-[520px] xl:w-[600px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
+            <SavedJobsView job={selectedJob} />
+          </div>
+        )}
       </div>
     </div>
   );

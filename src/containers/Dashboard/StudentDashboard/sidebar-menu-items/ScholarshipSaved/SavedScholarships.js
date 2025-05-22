@@ -196,46 +196,45 @@ const SavedScholarships = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-[#e0e7ef] to-[#f8fafc] dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen w-full">
       <ToastContainer />
 
-      {/* Centered Header Section */}
-      <div className="w-full bg-gradient-to-r from-teal-600 to-teal-400 dark:from-teal-800 dark:to-teal-600 px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-10 shadow-lg flex flex-col items-center text-center">
-        <Typography variant="h4" className="text-white font-bold mb-2 text-lg sm:text-2xl md:text-3xl">
-          My Saved Scholarships
-        </Typography>
-        <Typography variant="subtitle1" className="text-teal-100 mb-4 text-xs sm:text-base md:text-lg">
-          Review and manage your bookmarked scholarship opportunities
-        </Typography>
-
-        {/* Search & Filter Section - Unified */}
-        <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl p-3 sm:p-4 md:p-6 -mb-12 sm:-mb-16 md:-mb-20 border border-gray-200 dark:border-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4">
-            <div className="md:col-span-2">
-              <input
-                type="text"
-                placeholder="Search saved scholarships..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
-              />
-            </div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-2 sm:px-3 py-2 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 focus:border-transparent outline-none text-xs sm:text-sm transition-all duration-200"
-            >
-              <option value="">Sort By</option>
-              <option value="Most Recent">Most Recent</option>
-              <option value="Amount">Amount</option>
-              <option value="Deadline">Deadline</option>
-            </select>
-          </div>
+      {/* Modern Thin Header */}
+      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <img src={logoNav} alt="Iloilo Province Logo" className="h-12 w-12 rounded-full border border-gray-300 dark:border-gray-700 bg-white" />
+          <span className="font-bold text-blue-800 dark:text-blue-200 text-base sm:text-lg tracking-tight whitespace-nowrap">PESO | Saved Scholarships</span>
         </div>
+      </header>
+
+      {/* Unified Search Bar - Matching JobView.js */}
+      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mt-4 px-2">
+        <div className="flex flex-row items-center bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-none h-10 w-full max-w-xl">
+          <span className="pl-3 pr-1 text-gray-400 dark:text-gray-500 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" /></svg>
+          </span>
+          <input
+            type="text"
+            placeholder="Search saved scholarships..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 h-full px-0"
+          />
+        </div>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 shadow-sm w-full sm:w-auto"
+        >
+          <option value="">Sort By</option>
+          <option value="Most Recent">Recent</option>
+          <option value="Amount">Amount</option>
+          <option value="Deadline">Deadline</option>
+        </select>
       </div>
 
-      {/* Content Section with responsive layout */}
-      <div className="flex flex-col lg:flex-row p-2 sm:p-4 md:p-8 pt-8 sm:pt-12 md:pt-14 gap-6 md:gap-8">
+      {/* Main Content Layout */}
+      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 md:py-4 w-full max-w-[1800px] mx-auto">
         {/* Details Panel (top on mobile, right on desktop) */}
         {selectedScholarship && (
           <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
