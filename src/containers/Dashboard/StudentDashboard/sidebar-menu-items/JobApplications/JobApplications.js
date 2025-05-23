@@ -147,17 +147,20 @@ const JobApplications = ({ isCollapsed }) => {
           <span className="text-lg font-semibold text-gray-900 dark:text-white">{appliedJobs.length}</span>
           <span className="text-sm text-gray-500 dark:text-gray-400">Active Applications</span>
         </div>
-      </header>      {/* Unified Filter/Search Row */}
+      </header>
+
+      {/* Unified Filter/Search Row */}
       <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e]">
         <div className="flex flex-row items-center bg-gray-100 dark:bg-gray-800/50 border border-gray-200/20 dark:border-gray-700/50 rounded-full shadow-none h-10 w-full max-w-xl">
           <span className="pl-3 pr-1 text-gray-400 dark:text-gray-300 flex items-center">
-            <SearchIcon className="h-5 w-5" />
+            <SearchIcon />
           </span>
           <input
             type="text"
             placeholder="Search applications..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}          className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-300 h-full px-0"
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-300 h-full px-0"
           />
         </div>
       </div>

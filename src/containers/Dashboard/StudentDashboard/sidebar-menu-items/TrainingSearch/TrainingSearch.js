@@ -243,14 +243,12 @@ const TrainingSearch = ({ isCollapsed }) => {
       {/* Main Content Layout */}
       <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 md:py-4 w-full max-w-[1800px] mx-auto">
         {/* Training Details (top on mobile, right on desktop) */}
-        {selectedTraining && (
-          <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
+        {selectedTraining && (          <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
             <TrainingView training={selectedTraining} />
           </div>
         )}
-        {/* Training List */}
-        <div className={`${selectedTraining ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-2">
+        {/* Training List */}        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex justify-between items-center mb-2 px-1">
               {/*
             <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               {filteredTrainings.length} trainings found
