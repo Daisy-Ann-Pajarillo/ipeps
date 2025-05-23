@@ -99,20 +99,20 @@ const TrainingApplications = ({ isCollapsed }) => {
     <div className="min-h-screen w-full">
       <ToastContainer />
 
-      {/* Modern Thin Header */}      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
-        <div className="flex items-center gap-2">
-          <div className="bg-indigo-50 dark:bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-800">
-            <DocumentScannerIcon className="h-7 w-7 text-indigo-600 dark:text-indigo-300" />
+      {/* Modern Thin Header */}
+      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-900">
+            <DocumentScannerIcon className="h-6 w-6 text-indigo-700 dark:text-indigo-300" />
           </div>
           <div>
-            <div className="flex gap-1.5 items-center">
-              <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Training Applications</h1>
-              <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                {appliedTrainings.length}
-              </span>
-            </div>
+            <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Training Applications</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">Track your training enrollment status</p>
           </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">{appliedTrainings.length}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Active Applications</span>
         </div>
       </header>
 

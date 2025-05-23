@@ -223,31 +223,20 @@ const JobSearch = ({ isCollapsed }) => {
 */}
   return (
     <div className="min-h-screen w-full">
-      <ToastContainer />
-
-      {/* Modern Header with Icons and Stats */}
-      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm sticky top-0 z-20">
-        <div className="max-w-[1800px] mx-auto">
-          {/* Main Header Row */}
-          <div className="flex items-center justify-between px-4 py-2">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/50">
-                <TravelExploreOutlinedIcon className="text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Job Search</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Find your next opportunity</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 text-sm">
-                <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">
-                  {filteredJobs.length} jobs available
-                </span>
-              </div>
-           {/*   <img src={pesoLogo} alt="PESO Logo" className="h-10 w-10 rounded-full border border-gray-200 dark:border-gray-700" />*/}
-            </div>
+      <ToastContainer />      {/* Modern Thin Header */}      
+      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
+            <TravelExploreOutlinedIcon className="h-6 w-6 text-blue-700 dark:text-blue-300" />
           </div>
+          <div>
+            <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Job Search</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Find your next opportunity</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">{filteredJobs.length}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Available Jobs</span>
         </div>
       </header>
 

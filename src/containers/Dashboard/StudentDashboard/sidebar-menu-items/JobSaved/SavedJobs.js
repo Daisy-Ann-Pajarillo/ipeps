@@ -9,6 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Typography, Button } from "@mui/material"; // Changed from @material-tailwind/react to @mui/material
 import logoNav from '../../../../Home/images/logonav.png';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
+import SearchIcon from '@mui/icons-material/Search';
 
 // Add loading animation styles
 const styles = `
@@ -208,40 +209,31 @@ const SavedJobs = () => {
   }, []);
 
   return (      
-  <div className="min-h-screen w-full">
+    <div className="min-h-screen w-full">
       <ToastContainer />
 
-      {/* Modern Header with Icons and Stats */}<header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm sticky top-0 z-20">
-        <div className="max-w-[1800px] mx-auto">
-          <div className="flex items-center justify-between px-4 py-2">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/50">
-                <BookmarkIcon className="text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Saved Jobs</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Your bookmarked opportunities</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 text-sm">
-             
-                 <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">
-                  {sortedJobs.length} saved jobs
-                </span>
-              
-              </div>
-            </div>
+      {/* Modern Thin Header */}      
+      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
+            <BookmarkIcon className="h-6 w-6 text-blue-700 dark:text-blue-300" />
           </div>
+          <div>
+            <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Saved Jobs</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Track your bookmarked jobs</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">{filteredJobs.length}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Saved Jobs</span>
         </div>
       </header>
 
-      {/* Unified Filter/Search Row - Matching JobView.js */}      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e]">
+      {/* Unified Filter/Search Row */}      
+      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e]">
         <div className="flex flex-row items-center bg-gray-100 dark:bg-gray-800/50 border border-gray-200/20 dark:border-gray-700/50 rounded-full shadow-none h-10 w-full max-w-xl">
           <span className="pl-3 pr-1 text-gray-400 dark:text-gray-300 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
-            </svg>
+            <SearchIcon />
           </span>
           <input
             type="text"
