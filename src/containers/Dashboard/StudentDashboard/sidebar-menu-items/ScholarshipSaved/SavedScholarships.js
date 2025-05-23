@@ -7,6 +7,7 @@ import {
   Button,
   useTheme,
 } from "@mui/material";
+import { BookmarkBorder } from "@mui/icons-material";
 import * as actions from "../../../../../store/actions/index";
 import axios from "../../../../../axios";
 import SavedScholarshipsView from "./SavedScholarshipView"; // Fix typo in import name
@@ -212,16 +213,20 @@ const SavedScholarships = () => {
 
   return (
     <div className="min-h-screen w-full">
-      <ToastContainer />
-
-      {/* Modern Thin Header */}
+      <ToastContainer />      {/* Modern Thin Header */}
       <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
-        <div className="flex items-center gap-2">
-          <img src={logoNav} alt="Iloilo Province Logo" className="h-12 w-12 rounded-full border border-gray-300 dark:border-gray-700 bg-white" />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-teal-100 dark:bg-teal-900">
+            <BookmarkBorder className="h-6 w-6 text-teal-700 dark:text-teal-300" />
+          </div>
           <div>
             <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Saved Scholarships</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{savedScholarships.length} scholarships saved</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Track your bookmarked opportunities</p>
           </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">{savedScholarships.length}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Saved Items</span>
         </div>
       </header>
 

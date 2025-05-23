@@ -110,16 +110,22 @@ const ScholarshipApplications = ({ isCollapsed }) => {
 
   return (
     <div className="min-h-screen w-full">
-      <ToastContainer />
-
-      {/* Modern Thin Header */}
+      <ToastContainer />      {/* Modern Thin Header */}
       <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
-        <div className="flex items-center gap-2">
-          <img src={logoNav} alt="Iloilo Province Logo" className="h-12 w-12 rounded-full border border-gray-300 dark:border-gray-700 bg-white" />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-teal-100 dark:bg-teal-900">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-teal-700 dark:text-teal-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
           <div>
             <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Scholarship Applications</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{appliedScholarships.length} applications</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Track your scholarship submissions</p>
           </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">{appliedScholarships.length}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Active Applications</span>
         </div>
       </header>
 
