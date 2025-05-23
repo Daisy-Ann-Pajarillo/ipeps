@@ -114,25 +114,30 @@ const ScholarshipApplications = ({ isCollapsed }) => {
 
       {/* Modern Thin Header */}
       <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2">
           <img src={logoNav} alt="Iloilo Province Logo" className="h-12 w-12 rounded-full border border-gray-300 dark:border-gray-700 bg-white" />
-          <span className="font-bold text-blue-800 dark:text-blue-200 text-base sm:text-lg tracking-tight whitespace-nowrap">PESO | My Scholarship Applications</span>
+          <div>
+            <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Scholarship Applications</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{appliedScholarships.length} applications</p>
+          </div>
         </div>
       </header>
 
-      {/* Unified Search Bar - Matching JobView.js */}
-      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mt-4 px-2">
-        <div className="flex flex-row items-center bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full shadow-none h-10 w-full max-w-xl">
-          <span className="pl-3 pr-1 text-gray-400 dark:text-gray-500 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" /></svg>
-          </span>
-          <input
-            type="text"
-            placeholder="Search applications..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 h-full px-0"
-          />
+      {/* Unified Filter/Search Row */}
+      <div className="w-full bg-[#1a237e] dark:bg-[#0d1544] shadow-lg sm:shadow-xl py-4 px-2 sm:px-4">
+        <div className="max-w-[1800px] mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+          <div className="flex flex-row items-center bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 rounded-full shadow-none h-10 w-full max-w-xl">
+            <span className="pl-3 pr-1 text-gray-400 dark:text-gray-500 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" /></svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Search applications..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 h-full px-0"
+            />
+          </div>
         </div>
       </div>
 
@@ -143,74 +148,95 @@ const ScholarshipApplications = ({ isCollapsed }) => {
           <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
             <ScholarshipApplicationView
               application={selectedApplication}
-              onWithdraw={handleWithdrawal}
+              onWithdraw={(id) => handleWithdrawal(id)}
             />
           </div>
         )}
+
         {/* Applications List */}
         <div className={`${selectedApplication ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
-          <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 mb-4 text-sm sm:text-base">
-            {appliedScholarships.length} applications
-          </Typography>
-
           <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-40 gap-2 sm:gap-4">
-                <img src={logoNav} alt="IPEPS Logo" className="w-16 h-16 sm:w-24 sm:h-24 loading-logo" />
+                <img
+                  src={logoNav}
+                  alt="IPEPS Logo"
+                  className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
+                />
                 <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-sm sm:text-base">
                   Loading Applications...
                 </Typography>
               </div>
+            ) : appliedScholarships.length === 0 ? (
+              <div className="flex justify-center items-center h-32 sm:h-40">
+                <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+                  No applications found
+                </p>
+              </div>
             ) : (
-              appliedScholarships
-                .filter(scholarship =>
-                  scholarship.scholarship_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  scholarship.company_name.toLowerCase().includes(searchQuery.toLowerCase())
-                )
-                .map(scholarship => (
-                  <div
-                    key={scholarship.scholarship_posting_id}
-                    onClick={() => setSelectedApplication(scholarship)}
-                    className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
-                      selectedApplication?.scholarship_posting_id === scholarship.scholarship_posting_id
-                        ? "border-teal-500 shadow-lg"
-                        : "border-gray-200 dark:border-gray-700"
-                    } p-3 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 w-full`}
-                  >
-                    <div className="flex gap-2 sm:gap-3">
-                      <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-md sm:rounded-lg overflow-hidden flex items-center justify-center">
-                        <img
-                          src={scholarship.companyImage || "http://bij.ly/4ib59B1"}
-                          alt={scholarship.scholarship_title}
-                          className="w-full h-full object-contain p-1 sm:p-2"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
-                          {scholarship.scholarship_title}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                          {scholarship.company_name}
-                        </p>
-                        <div className="flex flex-wrap gap-2 mt-2 text-xs sm:text-sm">
-                          <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
-                            Status: {scholarship.status}
-                          </span>
-                          <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
-                            Slots: {scholarship.occupied_slots}/{scholarship.slots}
-                          </span>
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg ${
-                            canWithdraw(scholarship.scholarship_posting_id)
-                              ? 'bg-red-100 text-red-600'
-                              : 'bg-green-100 text-green-600'
+              appliedScholarships.filter(scholarship =>
+                scholarship.scholarship_title?.toLowerCase().includes(searchQuery.toLowerCase())
+              ).map(scholarship => (
+                <div
+                  key={scholarship.scholarship_posting_id}
+                  onClick={() => setSelectedApplication(scholarship)}
+                  className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
+                    selectedApplication?.scholarship_posting_id === scholarship.scholarship_posting_id
+                      ? "border-teal-500 shadow-lg"
+                      : "border-gray-200 dark:border-gray-700"
+                  } p-3 sm:p-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 w-full`}
+                >
+                  <div className="flex gap-3 sm:gap-4">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                      <img
+                        src={scholarship.companyImage || "http://bij.ly/4ib59B1"}
+                        alt={scholarship.scholarship_title}
+                        className="w-full h-full object-contain p-2"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <div>
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
+                            {scholarship.scholarship_title}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+                            {scholarship.company_name}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            scholarship.status === 'approved'
+                              ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                              : scholarship.status === 'pending'
+                              ? 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                              : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300'
                           }`}>
-                            {getTimeRemaining(scholarship.scholarship_posting_id)}
+                            {scholarship.status.charAt(0).toUpperCase() + scholarship.status.slice(1)}
                           </span>
                         </div>
                       </div>
+                      
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+                          {scholarship.scholarship_type || "Not specified"}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                          {scholarship.city_municipality}, {scholarship.country}
+                        </span>
+                      </div>
+                      
+                      {canWithdraw(scholarship.scholarship_posting_id) && (
+                        <div className="mt-2">
+                          <span className="text-xs text-blue-600 dark:text-blue-400">
+                            {getTimeRemaining(scholarship.scholarship_posting_id)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ))
+                </div>
+              ))
             )}
           </div>
         </div>
