@@ -174,20 +174,23 @@ const TrainingSearch = ({ isCollapsed }) => {
     <div className="min-h-screen w-full">
       <ToastContainer />
 
-      {/* Modern Thin Header */}
-      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
-              <div>
-                <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Training Search</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Find your next opportunity</p>
-              </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 text-sm">
-                <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400">
-                  {filteredTrainings.length} trainings available
-                </span>
-              </div>
-              </div>
-              
+      {/* Modern Thin Header */}      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-purple-100 dark:bg-purple-900">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-purple-700 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path d="M12 14l9-5-9-5-9 5 9 5z" />
+              <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Training Programs</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Find and enroll in training opportunities</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">{filteredTrainings.length}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Available Programs</span>
+        </div>
       </header>
 
       {/* Unified Filter/Search Row */}
