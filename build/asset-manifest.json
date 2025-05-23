@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/static/css/main.ee790eb5.css",
+    "main.js": "/static/js/main.5085c46b.js",
+    "static/js/488.22357f90.chunk.js": "/static/js/488.22357f90.chunk.js",
+    "static/media/banner-bg.png": "/static/media/banner-bg.be261007cc3e664d47b2.png",
+    "static/media/pesoLogo.png": "/static/media/pesoLogo.717603c865f17f77f38b.png",
+    "index.html": "/index.html",
+    "main.ee790eb5.css.map": "/static/css/main.ee790eb5.css.map",
+    "main.5085c46b.js.map": "/static/js/main.5085c46b.js.map",
+    "488.22357f90.chunk.js.map": "/static/js/488.22357f90.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ee790eb5.css",
+    "static/js/main.5085c46b.js"
+  ]
+}
