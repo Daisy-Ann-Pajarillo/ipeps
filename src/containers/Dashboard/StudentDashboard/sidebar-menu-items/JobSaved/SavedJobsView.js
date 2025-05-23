@@ -148,26 +148,23 @@ const SavedJobsView = ({
     );
   }
 
-  return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-280px)] overflow-hidden w-full">
+  return (    <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-160px)] overflow-hidden w-full">
       {/* MOBILE: To adjust mobile layout, change rounded-lg, shadow-lg, and paddings below as needed */}
       {/* Header Section - Smaller for all screens */}
       <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700">
         {/* To adjust header size, change px-2/py-2 for mobile here */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-          <div className="flex gap-2 sm:gap-3">
-            <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gray-100 dark:bg-gray-800 rounded-md sm:rounded-lg overflow-hidden">
+          <div className="flex gap-2 sm:gap-3">            <div className="w-10 h-10 sm:w-20 sm:h-20 bg-gray-100 dark:bg-gray-800 rounded-md sm:rounded-lg overflow-hidden">
               <img
                 src={job.companyImage || "http://bij.ly/4ib59B1"}
                 alt={job.company || job.job_title}
                 className="w-full h-full object-contain p-1 sm:p-2"
               />
-            </div>
-            <div>
-              <Typography variant="h6" className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">
+            </div>            <div className="flex flex-col justify-center min-h-[80px]">
+              <Typography variant="h5" className="font-bold text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-2">
                 {job.job_title}
               </Typography>
-              <Typography variant="body2" className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+              <Typography variant="body1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base mt-1">
                 {job.employer?.company_name}
               </Typography>
             </div>
@@ -183,8 +180,7 @@ const SavedJobsView = ({
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="p-3 sm:p-4 md:p-6 overflow-y-auto h-[calc(100%-180px)]">
+      {/* Content Section */}      <div className="p-3 sm:p-4 md:p-6 overflow-y-auto h-[calc(100%-180px)]">
         {/* Job Details Section */}
         <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
@@ -246,7 +242,7 @@ const SavedJobsView = ({
       </div>
 
       {/* Footer Action */}
-      <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <Button
           variant="contained"
           fullWidth

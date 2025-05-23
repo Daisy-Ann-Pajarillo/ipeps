@@ -12,6 +12,7 @@ import * as actions from '../../../../store/actions/auth';
 import axios from "../../../../axios";
 import { useSelector, useDispatch } from "react-redux";
 import logoNav from '../../../Home/images/logonav.png';
+import pesoLogo from '../../../Home/images/pesoLogo.png';
 
 
 const SidebarGroupItems = ({ title, children, isCollapsed, isOpen, onToggle }) => (
