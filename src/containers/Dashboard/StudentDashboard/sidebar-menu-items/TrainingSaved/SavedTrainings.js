@@ -270,22 +270,17 @@ const SavedTrainings = () => {
           (t.title && t.title.toLowerCase().includes(query.toLowerCase())) ||
           (t.description &&
             t.description.toLowerCase().includes(query.toLowerCase())) ||
-          (t.provider && t.provider.toLowerCase().includes(query.toLowerCase()))
+          (t.city_municipality && t.city_municipality.toLowerCase().includes(query.toLowerCase()))
       );
-    }
-
-    // Sorting logic
-    if (sortBy === "Company Name") {
-      updatedTrainings.sort((a, b) =>
-        (a.provider || "").localeCompare(b.provider || "")
+    }    // Sort options
+    if (sortBy === "Most Recent") {
+      updatedTrainings.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
       );
-    } else if (sortBy === "Most Recent") {
-      updatedTrainings.sort((a, b) => {
-        if (!a.expiration && !b.expiration) return 0;
-        if (!a.expiration) return 1;
-        if (!b.expiration) return -1;
-        return new Date(b.expiration) - new Date(a.expiration);
-      });
+    } else if (sortBy === "Cost") {
+      updatedTrainings.sort(
+        (a, b) => (b.estimated_cost_from || 0) - (a.estimated_cost_from || 0)
+      );
     }
 
     setFilteredTrainings(updatedTrainings);
@@ -296,9 +291,8 @@ const SavedTrainings = () => {
       <ToastContainer />
 
       {/* Modern Thin Header */}      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-teal-100 dark:bg-teal-900">
-            <BookmarkIcon className="h-6 w-6 text-teal-700 dark:text-teal-300" />
+        <div className="flex items-center gap-4">          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
+            <BookmarkIcon className="h-6 w-6 text-blue-700 dark:text-blue-300" />
           </div>
           <div>
             <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Saved Trainings</h1>
@@ -330,31 +324,16 @@ const SavedTrainings = () => {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none transition-all duration-200 shadow-sm w-full sm:w-auto"
-          >
-            <option value="">Sort by</option>
-            <option value="Most Recent">Most Recent</option>
-            <option value="Type">Type</option>
+          >            <option value="">Sort</option>
+            <option value="Most Recent">Recent</option>
+            <option value="Cost">Cost</option>
           </select>
         </div>
-      </div>
-
+      </div>            
       {/* Main Content Layout */}
-      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 md:py-4 w-full max-w-[1800px] mx-auto">
-        {/* Training Details (top on mobile, right on desktop) */}
-        {selectedTraining && (
-          <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
-            <SavedTrainingsView
-              training={selectedTraining}
-              onEnroll={() => handleEnroll(selectedTraining.training_id)}
-              onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
-              isEnrolled={enrolledTrainings[selectedTraining.training_id]}
-              isLoading={isLoading}
-            />
-          </div>
-        )}
-
-        {/* Training List */}
-        <div className={`${selectedTraining ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
+        {/* Training List - Left Side */}
+        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
           <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-40 gap-2 sm:gap-4">
@@ -368,10 +347,22 @@ const SavedTrainings = () => {
                 </Typography>
               </div>
             ) : filteredTrainings.length === 0 ? (
-              <div className="flex justify-center items-center h-32 sm:h-40">
-                <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+              <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
+                <Typography variant="body1" className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
                   No saved trainings found
-                </p>
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/dashboard/training-search')}
+                  style={{
+                    backgroundColor: '#14b8a6',
+                    color: 'white',
+                    textTransform: 'none',
+                    marginTop: '8px',
+                  }}
+                >
+                  Browse Trainings
+                </Button>
               </div>
             ) : (
               filteredTrainings.map((training) => (
@@ -380,7 +371,7 @@ const SavedTrainings = () => {
                   onClick={() => handleTrainingClick(training.training_id)}
                   className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
                     selectedTraining?.training_id === training.training_id
-                      ? "border-purple-500 shadow-lg"
+                      ? "border-blue-500 shadow-lg"
                       : "border-gray-200 dark:border-gray-700"
                   } p-3 sm:p-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 w-full`}
                 >
@@ -394,14 +385,18 @@ const SavedTrainings = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2">
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
-                            {training.training_title}
+                            {training.title || training.training_title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                            {training.provider || ""}
-                          </p>
                         </div>
+                        {enrolledTrainings[training.training_id] && (
+                          <div>
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                              Enrolled
+                            </span>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex flex-wrap gap-2 mt-2">
@@ -415,14 +410,6 @@ const SavedTrainings = () => {
                           {training.city_municipality}, {training.country}
                         </span>
                       </div>
-                      
-                      {enrolledTrainings[training.training_id] && (
-                        <div className="mt-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                            Enrolled
-                          </span>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -430,6 +417,19 @@ const SavedTrainings = () => {
             )}
           </div>
         </div>
+
+        {/* Training Details - Right Side */}
+        {selectedTraining && (
+          <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8 order-first lg:order-none">
+            <SavedTrainingsView
+              training={selectedTraining}
+              onEnroll={() => handleEnroll(selectedTraining.training_id)}
+              onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
+              isEnrolled={enrolledTrainings[selectedTraining.training_id]}
+              isLoading={isLoading}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

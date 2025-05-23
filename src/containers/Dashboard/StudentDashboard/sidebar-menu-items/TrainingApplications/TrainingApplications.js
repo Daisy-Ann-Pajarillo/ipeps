@@ -35,7 +35,6 @@ const TrainingApplications = ({ isCollapsed }) => {
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
-
   useEffect(() => {
     const loadAppliedTrainings = async () => {
       try {
@@ -102,8 +101,8 @@ const TrainingApplications = ({ isCollapsed }) => {
       {/* Modern Thin Header */}
       <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
         <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-indigo-100 dark:bg-indigo-900">
-            <DocumentScannerIcon className="h-6 w-6 text-indigo-700 dark:text-indigo-300" />
+          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
+            <DocumentScannerIcon className="h-6 w-6 text-blue-700 dark:text-blue-300" />
           </div>
           <div>
             <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Training Applications</h1>
@@ -135,10 +134,10 @@ const TrainingApplications = ({ isCollapsed }) => {
       </div>
 
       {/* Main Content Layout */}
-      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 md:py-4 w-full max-w-[1800px] mx-auto">
-        {/* Training Details (top on mobile, right on desktop) */}
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 md:py-4 w-full max-w-[1800px] mx-auto">
+        {/* Training Details */}
         {selectedApplication && (
-          <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
+          <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8 order-first lg:order-none">
             <TrainingApplicationView
               training={selectedApplication}
               onWithdraw={() => handleWithdrawal(selectedApplication.training_id)}
@@ -148,7 +147,7 @@ const TrainingApplications = ({ isCollapsed }) => {
         )}
 
         {/* Training Applications List */}
-        <div className={`${selectedApplication ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
+        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
           <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-40 gap-2 sm:gap-4">
@@ -163,8 +162,7 @@ const TrainingApplications = ({ isCollapsed }) => {
               </div>
             ) : appliedTrainings
                 .filter(training =>
-                  (training?.training_title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-                  (training?.employer?.full_name?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+                  (training?.training_title?.toLowerCase() || '').includes(searchQuery.toLowerCase())
                 )
                 .map(training => (
                   <div
@@ -172,46 +170,50 @@ const TrainingApplications = ({ isCollapsed }) => {
                     onClick={() => setSelectedApplication(training)}
                     className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
                       selectedApplication?.training_id === training.training_id
-                        ? "border-purple-500 shadow-lg"
+                        ? "border-blue-500 shadow-lg"
                         : "border-gray-200 dark:border-gray-700"
                     } p-3 sm:p-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 w-full`}
                   >
-                    <div className="flex gap-3 sm:gap-4">
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
-                        <img
-                          src={training.companyImage || "http://bij.ly/4ib59B1"}
-                          alt={training.training_title}
-                          className="w-full h-full object-contain p-2"
-                        />
+                  <div className="flex gap-3 sm:gap-4">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                      <img
+                        src={training.providerImage || "http://bij.ly/4ib59B1"}
+                        alt={training.training_title}
+                        className="w-full h-full object-contain p-2"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
+                            {training.training_title}
+                          </h3>
+                        </div>
+                        <div className="flex items-center">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            canWithdraw(training.training_id)
+                              ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                              : "bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                          }`}>
+                            {canWithdraw(training.training_id) ? "Can withdraw" : "Confirmed"}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <div>
-                            <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
-                              {training.training_title}
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                              {training.employer?.full_name || ""}
-                            </p>
-                          </div>
-                          <div className="flex-shrink-0">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                              {canWithdraw(training.training_id) ? "Can withdraw" : "Confirmed"}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                            {training.training_type || "Not specified"}
-                          </span>
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                            {training.city_municipality}, {training.country}
-                          </span>
-                        </div>
+
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                          {training.training_type || "Not specified"}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                          {training.experience_level || "Any Level"}
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                          {training.city_municipality}, {training.country}
+                        </span>
                       </div>
                     </div>
                   </div>
+                </div>
                 ))
             }
           </div>

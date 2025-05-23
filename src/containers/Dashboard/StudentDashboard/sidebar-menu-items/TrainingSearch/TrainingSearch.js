@@ -32,7 +32,6 @@ const TrainingSearch = ({ isCollapsed }) => {
   const [sortBy, setSortBy] = useState("");
   const [filteredTrainings, setFilteredTrainings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [employerName, setEmployerName] = useState(""); // Store employer full name
 
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
@@ -60,13 +59,6 @@ const TrainingSearch = ({ isCollapsed }) => {
             }));
 
             setTrainings(formattedTrainings);
-
-            // Extract employer full name from first item or default
-            const fullName = formattedTrainings.length > 0
-              ? formattedTrainings[0].employer?.full_name || "Unknown Provider"
-              : "Unknown Provider";
-
-            setEmployerName(fullName);
 
             // Auto-select first training
             if (formattedTrainings.length > 0 && !selectedTraining) {
@@ -99,12 +91,10 @@ const TrainingSearch = ({ isCollapsed }) => {
         (t) =>
           t.training_title.toLowerCase().includes(query.toLowerCase()) ||
           t.training_description.toLowerCase().includes(query.toLowerCase()) ||
-          (t.provider &&
-            t.provider.toLowerCase().includes(query.toLowerCase())) ||
-          (t.country &&
-            t.country.toLowerCase().includes(query.toLowerCase())) ||
           (t.city_municipality &&
-            t.city_municipality.toLowerCase().includes(query.toLowerCase()))
+            t.city_municipality.toLowerCase().includes(query.toLowerCase())) ||
+          (t.country &&
+            t.country.toLowerCase().includes(query.toLowerCase()))
       );
     }
 
@@ -151,17 +141,18 @@ const TrainingSearch = ({ isCollapsed }) => {
     }
   }, [query, entryLevel, trainingType, sortBy, trainings, selectedTraining]);
 
+  
   const handleTrainingClick = (trainingId) => {
     const training = trainings.find((t) => t.training_id === trainingId);
     setSelectedTraining(training);
   };
-
+{/* 
   // Format cost for display
   const formatCost = (value) => {
     if (!value && value !== 0) return "N/A";
     return value.toLocaleString();
   };
-
+*/}
   // Add styles to document
   useEffect(() => {
     const styleSheet = document.createElement("style");
@@ -202,7 +193,7 @@ const TrainingSearch = ({ isCollapsed }) => {
             </span>
             <input
               type="text"
-              placeholder="Search trainings, providers, locations..."
+              placeholder="Search trainings, locations..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 h-full px-0"
@@ -232,24 +223,16 @@ const TrainingSearch = ({ isCollapsed }) => {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-transparent outline-none transition-all duration-200 shadow-sm w-full sm:w-auto"
-          >
-            <option value="">Sort</option>
+          >            <option value="">Sort</option>
             <option value="Most Recent">Recent</option>
             <option value="Cost">Cost</option>
           </select>
-        </div>
-      </div>
-
-      {/* Main Content Layout */}
-      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 md:py-4 w-full max-w-[1800px] mx-auto">
-        {/* Training Details (top on mobile, right on desktop) */}
-        {selectedTraining && (          <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
-            <TrainingView training={selectedTraining} />
-          </div>
-        )}
-        {/* Training List */}        <div className="flex-1 flex flex-col min-w-0">
+        </div>      </div>      {/* Main Content Layout */}
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
+        {/* Training List - Left Side */}
+        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
           <div className="flex justify-between items-center mb-2 px-1">
-              {/*
+          {/*
             <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               {filteredTrainings.length} trainings found
             </Typography>
@@ -274,7 +257,8 @@ const TrainingSearch = ({ isCollapsed }) => {
                   No trainings found matching your criteria
                 </p>
               </div>
-            ) : (              filteredTrainings.map((training) => (
+            ) : (              
+              filteredTrainings.map((training) => (
                 <div
                   key={training.training_id}
                   onClick={() => handleTrainingClick(training.training_id)}
@@ -291,16 +275,12 @@ const TrainingSearch = ({ isCollapsed }) => {
                         alt={training.training_title}
                         className="w-full h-full object-contain p-2"
                       />
-                    </div>
-                    <div className="flex-1 min-w-0">
+                    </div>                    <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2">
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
                             {training.training_title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                            {training.provider || ""}
-                          </p>
                         </div>
                       </div>
                       
@@ -315,20 +295,20 @@ const TrainingSearch = ({ isCollapsed }) => {
                           {training.city_municipality}, {training.country}
                         </span>
                       </div>
-                      
-                      {training.employer?.full_name && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
-                          <span className="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0"></span>
-                          {training.employer.full_name}
-                        </div>
-                      )}
                     </div>
                   </div>
-                </div>
-              ))
+                </div>             
+                ))
             )}
           </div>
         </div>
+        
+        {/* Training Details - Right Side */}
+        {selectedTraining && (
+          <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8 order-first lg:order-none">
+            <TrainingView training={selectedTraining} />
+          </div>
+        )}
       </div>
     </div>
   );

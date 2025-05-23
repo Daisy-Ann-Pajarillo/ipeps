@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {
-  Box,
-  Typography, // Changed from custom Typography component to MUI Typography
-  Button,
-  useTheme,
-} from "@mui/material";
+import { Typography } from "@mui/material";
 import { BookmarkBorder } from "@mui/icons-material";
 import * as actions from "../../../../../store/actions/index";
 import axios from "../../../../../axios";
-import SavedScholarshipsView from "./SavedScholarshipView"; // Fix typo in import name
-import SearchData from "../../../components/layout/Search";
+import SavedScholarshipsView from "./SavedScholarshipView";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import logoNav from '../../../../Home/images/logonav.png'; // Fix logo path
+import logoNav from '../../../../Home/images/logonav.png';
 
 const SavedScholarships = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,12 +21,10 @@ const SavedScholarships = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
 
-  // Load authentication state
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
 
-  // Load applied scholarships
   const loadAppliedScholarships = async () => {
     try {
       if (auth.token) {
@@ -56,7 +48,6 @@ const SavedScholarships = () => {
     }
   };
 
-  // Load saved scholarships
   const loadSavedScholarships = async () => {
     try {
       setIsLoading(true);
@@ -81,9 +72,9 @@ const SavedScholarships = () => {
             city_municipality: item.city_municipality,
             created_at: item.created_at,
             logo: item.logo_url || "http://bij.ly/4ib59B1",
-            employer: {
-              full_name: item.employer?.full_name || "Unknown Provider",
-            },
+            company_name: item.employer?.full_name || "Unknown Provider",
+            reward_type: item.reward_type,
+            requirements: item.requirements,
           }));
 
           setSavedScholarships(scholarships);
@@ -115,9 +106,7 @@ const SavedScholarships = () => {
 
   // Filter scholarships
   const filteredScholarships = savedScholarships.filter((s) =>
-    s.scholarship_title
-      ?.toLowerCase()
-      .includes(searchQuery.toLowerCase())
+    s.scholarship_title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Sort scholarships
@@ -132,7 +121,6 @@ const SavedScholarships = () => {
     return 0;
   });
 
-  // Handle Apply
   const handleApplyScholarship = async (scholarshipId) => {
     try {
       const checkResponse = await axios.post(
@@ -169,7 +157,6 @@ const SavedScholarships = () => {
     }
   };
 
-  // Remove from saved
   const handleRemoveFromSaved = async (scholarshipId) => {
     try {
       await axios.post(
@@ -213,7 +200,8 @@ const SavedScholarships = () => {
 
   return (
     <div className="min-h-screen w-full">
-      <ToastContainer />      {/* Modern Thin Header */}
+      <ToastContainer />
+      {/* Modern Thin Header */}
       <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
         <div className="flex items-center gap-4">
           <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-teal-100 dark:bg-teal-900">
@@ -259,22 +247,9 @@ const SavedScholarships = () => {
       </div>
 
       {/* Main Content Layout */}
-      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 md:py-4 w-full max-w-[1800px] mx-auto">
-        {/* Scholarship Details (top on mobile, right on desktop) */}
-        {selectedScholarship && (
-          <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
-            <SavedScholarshipsView
-              scholarship={selectedScholarship}
-              isApplied={appliedScholarshipIds[selectedScholarship.employer_scholarshippost_id]}
-              onApply={() => handleApplyScholarship(selectedScholarship.employer_scholarshippost_id)}
-              onRemoveSaved={() => handleRemoveFromSaved(selectedScholarship.employer_scholarshippost_id)}
-              onScholarshipStatusChanged={(status) => handleScholarshipStatusChange(selectedScholarship.employer_scholarshippost_id, status)}
-            />
-          </div>
-        )}
-
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
         {/* Scholarship List */}
-        <div className={`${selectedScholarship ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
+        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
           <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-40 gap-2 sm:gap-4">
@@ -307,18 +282,18 @@ const SavedScholarships = () => {
                   <div className="flex gap-3 sm:gap-4">
                     <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
                       <img
-                        src={scholarship.companyImage || "http://bij.ly/4ib59B1"}
+                        src={scholarship.logo || "http://bij.ly/4ib59B1"}
                         alt={scholarship.scholarship_title}
                         className="w-full h-full object-contain p-2"
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0">                      
                       <div className="flex justify-between items-start gap-2">
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
                             {scholarship.scholarship_title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 truncate">
                             {scholarship.company_name}
                           </p>
                         </div>
@@ -350,6 +325,19 @@ const SavedScholarships = () => {
             )}
           </div>
         </div>
+
+        {/* Scholarship Details */}
+        {selectedScholarship && (
+          <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8 order-first lg:order-none">
+            <SavedScholarshipsView
+              scholarship={selectedScholarship}
+              isApplied={appliedScholarshipIds[selectedScholarship.employer_scholarshippost_id]}
+              onApply={() => handleApplyScholarship(selectedScholarship.employer_scholarshippost_id)}
+              onRemoveSaved={() => handleRemoveFromSaved(selectedScholarship.employer_scholarshippost_id)}
+              onScholarshipStatusChanged={(status) => handleScholarshipStatusChange(selectedScholarship.employer_scholarshippost_id, status)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

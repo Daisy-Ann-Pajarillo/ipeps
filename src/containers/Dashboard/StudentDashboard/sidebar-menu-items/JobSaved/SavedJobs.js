@@ -351,7 +351,9 @@ const SavedJobs = () => {
               ))
             )}
           </div>
-        </div>        {/* Job Details Section - Matching JobView.js */}        {selectedJob && (
+        </div>        
+        {/* Job Details Section - Matching JobView.js */}        
+        {selectedJob && (
           <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
             <SavedJobsView job={selectedJob} />
           </div>

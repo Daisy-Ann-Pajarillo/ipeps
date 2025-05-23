@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -21,61 +21,79 @@ import SchoolIcon from '@mui/icons-material/School';
 import PaymentIcon from '@mui/icons-material/Payment';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
-const JobApplicationView = ({ application, onWithdraw }) => {
+// Loading state styles
+const styles = `
+  @keyframes pulse-zoom {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+  }
+  .loading-logo {
+    animation: pulse-zoom 1.5s ease-in-out infinite;
+  }
+`;
+
+const JobApplicationView = ({ application, onWithdraw, isLoading }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  if (!application) {
+  // Add styles to document
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
+    return () => styleSheet.remove();
+  }, []);
+
+  const getTimeRemaining = () => {
+    if (!application?.created_at) return 'Application submitted';
+    const applicationDate = new Date(application.created_at);
+    const now = new Date();
+    const diffInHours = Math.floor((now - applicationDate) / (1000 * 60 * 60));
+    
+    if (diffInHours >= 24) {
+      return 'Application confirmed';
+    }
+    
+    const hoursLeft = 24 - diffInHours;
+    const minutesLeft = 60 - Math.floor((now - applicationDate) / (1000 * 60)) % 60;
+    return `${hoursLeft}h ${minutesLeft}m remaining to withdraw`;
+  };
+
+  // Loading state with animation
+  if (isLoading) {
     return (
-      <div className="flex flex-col justify-center items-center h-full gap-4">
-        <img
-          src={logoNav}
-          alt="IPEPS Logo"
-          className="w-24 h-24 loading-logo"
-        />
-        <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
-          Select an Application...
-        </Typography>
+      <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-160px)] overflow-hidden w-full flex items-center justify-center">
+        <div className="flex flex-col justify-center items-center gap-4">
+          <img
+            src={logoNav}
+            alt="IPEPS Logo"
+            className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
+          />
+          <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-sm sm:text-base">
+            Loading Job Application...
+          </Typography>
+        </div>
       </div>
     );
   }
 
-  const canWithdraw = () => {
-    if (!application?.applicationTime) return false;
-    const now = new Date().getTime();
-    const timeLeft = (application.applicationTime + 24 * 60 * 60 * 1000) - now;
-    return timeLeft > 0;
-  };
-
-  const getTimeRemaining = () => {
-    if (!application?.applicationTime) return null;
-    const now = new Date().getTime();
-    const timeLeft = (application.applicationTime + 24 * 60 * 60 * 1000) - now;
-    if (timeLeft <= 0) return 'Application confirmed';
-
-    const hours = Math.floor(timeLeft / (60 * 60 * 1000));
-    const minutes = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
-    return `${hours}h ${minutes}m remaining to withdraw`;
-  };
-
-  const handleWithdraw = () => {
-    if (!canWithdraw()) return;
-
-    const appliedItems = JSON.parse(localStorage.getItem('appliedItems') || '{}');
-    const applicationTimes = JSON.parse(localStorage.getItem('applicationTimes') || '{}');
-
-    delete appliedItems[`job-${application.id}`];
-    delete applicationTimes[`job-${application.id}`];
-
-    localStorage.setItem('appliedItems', JSON.stringify(appliedItems));
-    localStorage.setItem('applicationTimes', JSON.stringify(applicationTimes));
-
-    // Call parent's onWithdraw to update the list and clear selection
-    onWithdraw(application.id);
-
-    // Trigger storage event to update other components
-    window.dispatchEvent(new Event('storage'));
-  };
+  if (!application) {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-160px)] overflow-hidden w-full flex items-center justify-center">
+        <div className="flex flex-col justify-center items-center gap-4">
+          <img
+            src={logoNav}
+            alt="IPEPS Logo"
+            className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
+          />
+          <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-sm sm:text-base">
+            Select an Application...
+          </Typography>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-160px)] overflow-hidden w-full">
@@ -162,19 +180,18 @@ const JobApplicationView = ({ application, onWithdraw }) => {
         )}
       </div>
 
-      {/* Footer Action */}
-      {canWithdraw() && (
-        <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={handleWithdraw}
-            className="h-10 sm:h-12 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base bg-red-600 hover:bg-red-700"
-          >
-            Withdraw Application
-          </Button>
-        </div>
-      )}
+      {/* Footer Action - Always show the button */}
+      <div className="px-3 sm:px-4 md:px-3 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={onWithdraw}
+          disabled={isLoading}
+          className="h-10 sm:h-12 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base bg-red-600 hover:bg-red-700"
+        >
+          {isLoading ? 'Processing...' : 'Withdraw Application'}
+        </Button>
+      </div>
     </div>
   );
 };

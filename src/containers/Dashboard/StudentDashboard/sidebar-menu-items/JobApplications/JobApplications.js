@@ -12,6 +12,7 @@ import SearchIcon from "@mui/icons-material/Search";
 
 
 
+// Add loading animation styles
 const styles = `
   @keyframes pulse-zoom {
     0% { transform: scale(1); opacity: 0.8; }
@@ -35,7 +36,6 @@ const JobApplications = ({ isCollapsed }) => {
   useEffect(() => {
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
-
   useEffect(() => {
     const loadApplications = () => {
       const appliedItemsList = JSON.parse(localStorage.getItem('appliedItems') || '{}');
@@ -59,14 +59,12 @@ const JobApplications = ({ isCollapsed }) => {
 
       setAppliedJobs(appliedJobsData);
       setApplicationTimes(applicationTimesList);
-      setIsLoading(false);
     };
 
     loadApplications();
     window.addEventListener('storage', loadApplications);
     return () => window.removeEventListener('storage', loadApplications);
   }, []);
-
   useEffect(() => {
     const loadAppliedJobs = async () => {
       try {
@@ -85,6 +83,8 @@ const JobApplications = ({ isCollapsed }) => {
         }
       } catch (error) {
         console.error("Error fetching applied jobs:", error);
+      } finally {
+        setIsLoading(false); // Only set loading to false after API call completes
       }
     };
 
@@ -121,6 +121,7 @@ const JobApplications = ({ isCollapsed }) => {
     localStorage.setItem('applicationTimes', JSON.stringify(applicationTimes));
   };
 
+  // Add styles to document
   useEffect(() => {
     const styleSheet = document.createElement("style");
     styleSheet.innerText = styles;
@@ -171,16 +172,26 @@ const JobApplications = ({ isCollapsed }) => {
         <div className="flex-1 flex flex-col min-w-0">          <div className="flex justify-between items-center mb-2 px-1">
            {/* {filteredJobs.length} jobs found */}
           </div>
-          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedApplication ? '10px' : '0' }}>
-            {isLoading ? (
-              <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
+          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedApplication ? '10px' : '0' }}>            {isLoading ? (
+              <div className="flex flex-col justify-center items-center min-h-[60vh] gap-4">
                 <img
                   src={logoNav}
                   alt="IPEPS Logo"
-                  className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
+                  className="w-24 h-24 sm:w-32 sm:h-32 loading-logo"
                 />
-                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-sm sm:text-base">
-                  Loading Applications...
+                <div className="text-center">
+                  <Typography variant="h6" className="text-gray-800 dark:text-gray-200 mb-2">
+                    Loading Job Applications
+                  </Typography>
+                  <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                    Please wait while we fetch your applications...
+                  </Typography>
+                </div>
+              </div>
+            ) : appliedJobs.length === 0 ? (
+              <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+                  No job applications found.
                 </Typography>
               </div>
             ) : (
@@ -239,7 +250,11 @@ const JobApplications = ({ isCollapsed }) => {
         </div>        {/* Application Details Section */}
         {selectedApplication && (
           <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
-            <JobApplicationView application={selectedApplication} />
+            <JobApplicationView 
+              application={selectedApplication} 
+              onWithdraw={handleWithdrawal}
+              isLoading={isLoading}
+            />
           </div>
         )}
       </div>

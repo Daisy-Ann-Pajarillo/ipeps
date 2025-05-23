@@ -90,8 +90,10 @@ const ScholarshipSearch = ({ isCollapsed }) => {
         ) {
           const scholarshipList = response.data.scholarship_postings;
           setScholarships(scholarshipList);
-
-          if (scholarshipList.length > 0 && !selectedScholarship) {
+          setFilteredScholarships(scholarshipList); // Add this line
+          
+          // Set initial selected scholarship
+          if (scholarshipList.length > 0) {
             setSelectedScholarship(scholarshipList[0]);
           }
 
@@ -101,12 +103,14 @@ const ScholarshipSearch = ({ isCollapsed }) => {
           ]);
         } else {
           setScholarships([]);
+          setFilteredScholarships([]); // Add this line
           toast.error("No scholarships found or invalid response format");
         }
       } catch (error) {
         console.error("Error fetching scholarships:", error);
         toast.error("Failed to load scholarships");
         setScholarships([]);
+        setFilteredScholarships([]); // Add this line
       } finally {
         setIsLoading(false);
       }
@@ -121,7 +125,6 @@ const ScholarshipSearch = ({ isCollapsed }) => {
   useEffect(() => {
     let updatedScholarships = [...scholarships];
 
-    // Text search filter
     if (query) {
       updatedScholarships = updatedScholarships.filter(
         (s) =>
@@ -130,21 +133,12 @@ const ScholarshipSearch = ({ isCollapsed }) => {
       );
     }
 
-    // Experience level filter
-    if (entryLevel) {
-      updatedScholarships = updatedScholarships.filter(
-        (s) => s.experience_level === entryLevel
-      );
-    }
-
-    // Scholarship type filter
     if (scholarshipType) {
       updatedScholarships = updatedScholarships.filter(
         (s) => s.scholarship_type === scholarshipType
       );
     }
 
-    // Sort options
     if (sortBy === "Most Recent") {
       updatedScholarships.sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
@@ -154,27 +148,17 @@ const ScholarshipSearch = ({ isCollapsed }) => {
     }
 
     setFilteredScholarships(updatedScholarships);
-
-    // If selected scholarship is not in filtered list, update selection
-    if (
-      selectedScholarship &&
-      !updatedScholarships.some(
-        (s) => s.scholarship_id === selectedScholarship.scholarship_id
-      )
-    ) {
-      if (updatedScholarships.length > 0) {
-        setSelectedScholarship(updatedScholarships[0]);
-      } else {
-        setSelectedScholarship(null);
-      }
-    }
-  }, [query, entryLevel, scholarshipType, sortBy, scholarships, selectedScholarship]);
+  }, [query, scholarshipType, sortBy, scholarships]); // Remove selectedScholarship from dependencies
 
   const handleScholarshipClick = (scholarshipId) => {
-    const scholarship = scholarships.find(
+    console.log("Clicked scholarship ID:", scholarshipId);
+    const selected = scholarships.find(
       (s) => s.scholarship_id === scholarshipId
     );
-    setSelectedScholarship(scholarship);
+    console.log("Found scholarship:", selected);
+    if (selected) {
+      setSelectedScholarship(selected);
+    }
   };
 
   const handleSaveScholarship = async (scholarshipId) => {
@@ -289,25 +273,10 @@ const ScholarshipSearch = ({ isCollapsed }) => {
             <option value="Amount">Amount</option>
           </select>
         </div>
-      </div>
-
-      {/* Main Content Layout */}
-      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 md:py-4 w-full max-w-[1800px] mx-auto">
-        {/* Scholarship Details (top on mobile, right on desktop) */}
-        {selectedScholarship && (
-          <div className="w-full lg:w-2/5 mb-6 lg:mb-0 lg:order-2">
-            <ScholarshipView
-              scholarship={selectedScholarship}
-              isSaved={savedScholarshipIds.includes(selectedScholarship.employer_scholarshippost_id)}
-              isApplied={appliedScholarshipIds.includes(selectedScholarship.employer_scholarshippost_id)}
-              onSave={() => handleSaveScholarship(selectedScholarship.employer_scholarshippost_id)}
-              onApply={() => handleApplyScholarship(selectedScholarship.employer_scholarshippost_id)}
-            />
-          </div>
-        )}
-
-        {/* Scholarship List */}
-        <div className={`${selectedScholarship ? "lg:w-3/5" : "w-full"} pr-0 lg:pr-6 lg:order-1`}>
+      </div>      {/* Main Content Layout */}
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
+        {/* Scholarship List - Left Side */}
+        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
           <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-40 gap-2 sm:gap-4">
@@ -329,10 +298,10 @@ const ScholarshipSearch = ({ isCollapsed }) => {
             ) : (
               filteredScholarships.map((scholarship) => (
                 <div
-                  key={scholarship.employer_scholarshippost_id}
-                  onClick={() => handleScholarshipClick(scholarship.employer_scholarshippost_id)}
+                  key={scholarship.scholarship_id}
+                  onClick={() => handleScholarshipClick(scholarship.scholarship_id)}
                   className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
-                    selectedScholarship?.employer_scholarshippost_id === scholarship.employer_scholarshippost_id
+                    selectedScholarship?.scholarship_id === scholarship.scholarship_id
                       ? "border-teal-500 shadow-lg"
                       : "border-gray-200 dark:border-gray-700"
                   } p-3 sm:p-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 w-full`}
@@ -347,11 +316,11 @@ const ScholarshipSearch = ({ isCollapsed }) => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start gap-2">
-                        <div>
+                        <div className="min-w-0 flex-1">
                           <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
                             {scholarship.scholarship_title}
                           </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 truncate">
                             {scholarship.company_name}
                           </p>
                         </div>
@@ -387,6 +356,19 @@ const ScholarshipSearch = ({ isCollapsed }) => {
             )}
           </div>
         </div>
+
+        {/* Scholarship Details - Right Side */}
+        {selectedScholarship && (
+          <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8 order-first lg:order-none">
+            <ScholarshipView
+              scholarship={selectedScholarship}
+              isSaved={savedScholarshipIds.includes(selectedScholarship.scholarship_id)}
+              isApplied={appliedScholarshipIds.includes(selectedScholarship.scholarship_id)}
+              onSave={() => handleSaveScholarship(selectedScholarship.scholarship_id)}
+              onApply={() => handleApplyScholarship(selectedScholarship.scholarship_id)}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
