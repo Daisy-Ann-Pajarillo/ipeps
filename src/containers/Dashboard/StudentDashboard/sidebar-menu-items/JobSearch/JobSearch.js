@@ -286,10 +286,10 @@ const JobSearch = ({ isCollapsed }) => {
         </select>
       </div>
 
-      {/* Main Content: Job List & Job View */}
+      {/* Main Content Layout */}
       <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
-        {/* Job List Section - vertical scroll, mobile friendly */}
-        <div className="flex-1 flex flex-col min-w-0">
+        {/* Applications List */}
+        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
           <div className="flex justify-between items-center mb-2 px-1">
       
         {/*    <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
@@ -351,10 +351,36 @@ const JobSearch = ({ isCollapsed }) => {
               </>
             )}
           </div>
-        </div>        {/* Job Details Section */}
+        </div>
+
+        {/* Job Details - Desktop View */}
         {selectedJob && (
-          <div className="w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
-            <JobView job={selectedJob} />
+          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
+            <JobView job={selectedJob} onClose={() => setSelectedJob(null)} />
+          </div>
+        )}
+
+        {/* Job Details - Mobile Modal View */}
+        {selectedJob && (
+          <div className="lg:hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute inset-0" onClick={() => setSelectedJob(null)} />
+              <div className="absolute inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0">
+                <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
+                  <div className="absolute right-4 top-4 z-10">
+                    <button
+                      onClick={() => setSelectedJob(null)}
+                      className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <JobView job={selectedJob} onClose={() => setSelectedJob(null)} isMobile={true} />
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

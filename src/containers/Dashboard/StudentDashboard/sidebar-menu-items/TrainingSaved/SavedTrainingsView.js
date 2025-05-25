@@ -1,18 +1,40 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../../../../../store/actions/index";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import logoNav from '../../../../Home/images/logonav.png';
 import { Typography, Button, Divider } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import SchoolIcon from "@mui/icons-material/School";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import BookmarkIcon from "@mui/icons-material/Bookmark";
-import logoNav from '../../../../Home/images/logonav.png';
+import WorkIcon from "@mui/icons-material/Work";
 
 const SavedTrainingsView = ({
   training = {},
   isEnrolled = false,
   onEnroll = () => {},
   onRemoveSaved = () => {},
-  isLoading = false
+  onTrainingStatusChanged = () => {},
+  isMobile = false,
 }) => {
+  const [isSaved, setIsSaved] = useState(true); // Default to true since it's a saved training
+  const [isTrainingEnrolled, setIsTrainingEnrolled] = useState(isEnrolled);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
+
+  // Update isTrainingEnrolled when the isEnrolled prop changes
+  useEffect(() => {
+    setIsTrainingEnrolled(isEnrolled);
+  }, [isEnrolled]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-full gap-4">
@@ -29,46 +51,70 @@ const SavedTrainingsView = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-160px)] overflow-hidden w-full">
-      {/* Header Section - Unified */}
-      <div className="px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-          <div className="flex gap-2 sm:gap-3">            <div className="w-10 h-10 sm:w-20 sm:h-20 bg-gray-100 dark:bg-gray-800 rounded-md sm:rounded-lg overflow-hidden">
+    <div className={`bg-white dark:bg-gray-900 ${
+      isMobile 
+        ? 'h-[85vh] w-full' 
+        : 'rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-160px)] w-full'
+    }`}>
+      {/* Header Section */}
+      <div className={`${isMobile ? 'pt-12' : ''} px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700`}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">            
+          <div className="flex gap-2 sm:gap-3">            
+            <div className={`${isMobile ? 'w-16 h-16' : 'w-10 h-10'} sm:w-20 sm:h-20 bg-gray-100 dark:bg-gray-800 rounded-md sm:rounded-lg overflow-hidden`}>
               <img
                 src={training.companyImage || "http://bij.ly/4ib59B1"}
                 alt={training.provider || training.title}
                 className="w-full h-full object-contain p-1 sm:p-2"
               />
-            </div>
+            </div>            
             <div className="flex flex-col justify-center min-h-[80px]">
-              <Typography variant="h5" className="font-bold text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl">
+              <Typography 
+                variant="h5" 
+                className="font-bold text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-2"
+              >
                 {training.title}
               </Typography>
-              <Typography variant="body1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base mt-0.5">
+              <Typography 
+                variant="body1" 
+                className="text-gray-600 dark:text-gray-400 text-sm sm:text-base"
+              >
                 {training.provider}
               </Typography>
             </div>
           </div>
-          <Button
-            onClick={onRemoveSaved}
-            disabled={isLoading}
-            className="min-w-[70px] sm:min-w-[90px] text-xs sm:text-sm px-3 py-1.5 rounded-full bg-red-50 text-red-600 hover:bg-red-100"
-            startIcon={<BookmarkIcon />}
-          >
-            Remove
-          </Button>
+
+          {/* Desktop Remove Button */}
+          {!isMobile && (
+            <Button
+              onClick={onRemoveSaved}
+              disabled={isLoading}
+              className="min-w-[70px] sm:min-w-[90px] text-xs sm:text-sm bg-red-50 text-red-600 hover:bg-red-100"
+              startIcon={<BookmarkIcon />}
+            >
+              Remove
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="p-3 sm:p-4 md:p-6 overflow-y-auto h-[calc(100%-180px)]">        {/* Training Details Section */}
-        <div className="space-y-3 sm:space-y-4 mb-6">
+      {/* Content Section - Adjust height for mobile */}
+      <div className={`p-3 sm:p-4 md:p-6 overflow-y-auto ${
+        isMobile 
+          ? 'h-[calc(100%-180px)]' 
+          : 'h-[calc(100%-120px)]'
+      }`}>
+        {/* Training Details Section */}
+        <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <LocationOnIcon className="text-gray-400 dark:text-gray-500 w-5 h-5" />
+            <LocationOnIcon fontSize="small" />
             <span>{training.city_municipality}</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <SchoolIcon className="text-gray-400 dark:text-gray-500 w-5 h-5" />
+            <WorkIcon fontSize="small" />
+            <span>{training.training_type || "Not specified"}</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
+            <SchoolIcon fontSize="small" />
             <span>{training.experience_level || "Not specified"}</span>
           </div>
           {training.expiration && (
@@ -90,19 +136,20 @@ const SavedTrainingsView = ({
         </Typography>
       </div>
 
-      {/* Footer Action */}      <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      {/* Footer Action */}
+      <div className="sticky bottom-0 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <Button
           variant="contained"
           fullWidth
           onClick={onEnroll}
-          disabled={isLoading || isEnrolled}
-          className={`h-10 sm:h-12 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-base ${
-            isEnrolled
+          disabled={isLoading || isTrainingEnrolled}
+          className={`h-12 rounded-xl font-semibold text-sm ${
+            isTrainingEnrolled
               ? 'bg-green-600 hover:bg-green-700'
               : 'bg-blue-600 hover:bg-blue-700'
-          }`}
+          } ${isMobile ? 'mb-safe' : ''}`}
         >
-          {isLoading ? 'Loading...' : isEnrolled ? 'Enrolled' : 'Enroll Now'}
+          {isLoading ? 'Loading...' : isTrainingEnrolled ? 'Enrolled' : 'Enroll Now'}
         </Button>
       </div>
     </div>
