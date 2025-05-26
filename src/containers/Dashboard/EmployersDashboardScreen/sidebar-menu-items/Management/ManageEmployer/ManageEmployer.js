@@ -27,8 +27,9 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from '../../../../../../store/actions/index';
 import axios from "../../../../../../axios";
+import completePHAddressOption from "../../../../../../reusable/constants/completePHAddressOption";
 
-// List of countries
+
 const countries = [
     "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina",
     "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados",
@@ -194,18 +195,68 @@ const ManageEmployer = () => {
 
     }, []);
 
-    // Helper functions for filtering locations
+    /////////////////////////////////////////////////////////////////////
+    const getRegions = () => {
+        return Object.entries(completePHAddressOption).map(([regionCode, regionData]) => ({
+            regionCode,
+            regionName: regionData.region_name,
+        }));
+    };
+    useEffect(() => {
+        const regionList = getRegions();
+        setRegions(regionList);
+    }, []);
+
+    // When region is selected, update provinces
+    useEffect(() => {
+        if (!selectedRegion) {
+            setProvinces([]);
+            return;
+        }
+
+        const regionData = completePHAddressOption[selectedRegion];
+        const provinceList = Object.keys(regionData.province_list);
+        setProvinces(provinceList);
+        setSelectedProvince('');
+        setMunicipalities([]);
+        setBarangays([]);
+    }, [selectedRegion]);
+
+
     const getProvincesByRegion = (regionCode) => {
-        return provinces.filter(province => province.regCode === regionCode);
+        const region = completePHAddressOption[regionCode];
+        if (!region) return [];
+
+        return Object.keys(region.province_list).map((provName, index) => ({
+            provCode: `${regionCode}-${index}`, // or use real code if available
+            provDesc: provName,
+        }));
     };
 
-    const getMunicipalitiesByProvince = (provinceCode) => {
-        return municipalities.filter(municipality => municipality.provCode === provinceCode);
+    const getMunicipalitiesByProvince = (regionCode, provinceName) => {
+        const province = completePHAddressOption[regionCode]?.province_list[provinceName];
+        if (!province) return [];
+
+        return province.municipality_list.map((munObj, index) => {
+            const name = Object.keys(munObj)[0];
+            return {
+                citymunCode: `${regionCode}-${provinceName}-${index}`, // mock code
+                citymunDesc: name,
+            };
+        });
     };
 
-    const getBarangaysByMunicipality = (municipalityCode) => {
-        return barangays.filter(barangay => barangay.citymunCode === municipalityCode);
+    const getBarangaysByMunicipality = (regionCode, provinceName, municipalityName) => {
+        const munList = completePHAddressOption[regionCode]?.province_list[provinceName]?.municipality_list;
+        if (!munList) return [];
+
+        const barangays = munList.find((mun) => Object.keys(mun)[0] === municipalityName)?.[municipalityName]?.barangay_list;
+        return (barangays || []).map((brgy, index) => ({
+            brgyCode: `${regionCode}-${provinceName}-${municipalityName}-${index}`,
+            brgyDesc: brgy,
+        }));
     };
+
 
     // Handle form submission
     const handleSubmit = async () => {
@@ -446,54 +497,67 @@ const ManageEmployer = () => {
                                             label="Region"
                                         >
                                             {regions.map((region) => (
-                                                <MenuItem key={region.regCode} value={region.regCode}>
-                                                    {region.regDesc}
+                                                <MenuItem key={region.regionCode} value={region.regionCode}>
+                                                    {region.regionName}
                                                 </MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>
                                 </Grid>
+
                                 <Grid item xs={12} md={6}>
                                     <FormControl fullWidth variant="outlined">
                                         <InputLabel>Province</InputLabel>
                                         <Select
                                             value={selectedProvince}
                                             onChange={(e) => {
-                                                setSelectedProvince(e.target.value);
-                                                setSelectedMunicipality('');
-                                                setSelectedBarangay('');
+                                                const selected = getProvincesByRegion(selectedRegion).find(
+                                                    (p) => p.provDesc === e.target.value
+                                                );
+                                                if (selected) {
+                                                    setSelectedProvince(selected.provDesc);
+                                                    setSelectedMunicipality('');
+                                                    setSelectedBarangay('');
+                                                }
                                             }}
                                             label="Province"
                                             disabled={!selectedRegion}
                                         >
                                             {getProvincesByRegion(selectedRegion).map((province) => (
-                                                <MenuItem key={province.provCode} value={province.provCode}>
+                                                <MenuItem key={province.provCode} value={province.provDesc}>
                                                     {province.provDesc}
                                                 </MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>
                                 </Grid>
+
                                 <Grid item xs={12} md={6}>
                                     <FormControl fullWidth variant="outlined">
                                         <InputLabel>Municipality</InputLabel>
                                         <Select
                                             value={selectedMunicipality}
                                             onChange={(e) => {
-                                                setSelectedMunicipality(e.target.value);
-                                                setSelectedBarangay('');
+                                                const selected = getMunicipalitiesByProvince(selectedRegion, selectedProvince).find(
+                                                    (m) => m.citymunDesc === e.target.value
+                                                );
+                                                if (selected) {
+                                                    setSelectedMunicipality(selected.citymunDesc);
+                                                    setSelectedBarangay('');
+                                                }
                                             }}
                                             label="Municipality"
                                             disabled={!selectedProvince}
                                         >
-                                            {getMunicipalitiesByProvince(selectedProvince).map((municipality) => (
-                                                <MenuItem key={municipality.citymunCode} value={municipality.citymunCode}>
+                                            {getMunicipalitiesByProvince(selectedRegion, selectedProvince).map((municipality) => (
+                                                <MenuItem key={municipality.citymunCode} value={municipality.citymunDesc}>
                                                     {municipality.citymunDesc}
                                                 </MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>
                                 </Grid>
+
                                 <Grid item xs={12} md={6}>
                                     <FormControl fullWidth variant="outlined">
                                         <InputLabel>Barangay</InputLabel>
@@ -503,14 +567,16 @@ const ManageEmployer = () => {
                                             label="Barangay"
                                             disabled={!selectedMunicipality}
                                         >
-                                            {getBarangaysByMunicipality(selectedMunicipality).map((barangay) => (
-                                                <MenuItem key={barangay.brgyCode} value={barangay.brgyCode}>
+                                            {getBarangaysByMunicipality(selectedRegion, selectedProvince, selectedMunicipality).map((barangay) => (
+                                                <MenuItem key={barangay.brgyCode} value={barangay.brgyDesc}>
                                                     {barangay.brgyDesc}
                                                 </MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>
                                 </Grid>
+
+
                             </>
                         ) : (
                             <Grid item xs={12}>
