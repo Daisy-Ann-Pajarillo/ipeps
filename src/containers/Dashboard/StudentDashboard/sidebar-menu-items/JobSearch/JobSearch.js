@@ -206,7 +206,7 @@ const JobSearch = ({ isCollapsed }) => {
   }, []);
 
 
-   {/*
+  {/*
   // Add modern gradient + SVG overlay background to body
   useEffect(() => {
     const prevBg = document.body.style.background;
@@ -223,7 +223,7 @@ const JobSearch = ({ isCollapsed }) => {
 */}
   return (
     <div className="min-h-screen w-full">
-      <ToastContainer />      {/* Modern Thin Header */}      
+      <ToastContainer />      {/* Modern Thin Header */}
       <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
         <div className="flex items-center gap-4">
           <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
@@ -291,18 +291,18 @@ const JobSearch = ({ isCollapsed }) => {
         {/* Applications List */}
         <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
           <div className="flex justify-between items-center mb-2 px-1">
-      
-        {/*    <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+
+            {/*    <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               {filteredJobs.length} jobs found
             </Typography>*/}
-            
+
           </div>
-          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedJob ? '10px' : '0' }}>
+          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{ maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedJob ? '10px' : '0' }}>
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-40 gap-2">
-                <img 
-                  src={logoNav} 
-                  alt="IPEPS Logo" 
+                <img
+                  src={logoNav}
+                  alt="IPEPS Logo"
                   className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
                 />
                 <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-base">
@@ -345,7 +345,7 @@ const JobSearch = ({ isCollapsed }) => {
                 ))}
                 <div className="flex justify-center items-center mt-2 mb-1">
                   <Typography variant="subtitle2" className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
-                  {/*  {filteredJobs.length} jobs found*/} 
+                    {/*  {filteredJobs.length} jobs found*/}
                   </Typography>
                 </div>
               </>

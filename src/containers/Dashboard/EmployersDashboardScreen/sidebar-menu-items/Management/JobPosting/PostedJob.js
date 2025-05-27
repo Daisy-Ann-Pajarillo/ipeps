@@ -16,7 +16,8 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
-  Chip
+  Chip,
+  TextField
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from '@mui/icons-material/Person';
@@ -135,31 +136,30 @@ const PostedJob = ({ createJobOpen }) => {
         auth: { username: auth.token }
       });
       if (response.data && Array.isArray(response.data.applications)) {
-        const formattedApplicants = response.data.applications.map(applicant => {
-          const personalInfo = applicant.user_details?.personal_information || {};
-          return {
-            id: applicant.application_id,
-            application_date: applicant.created_at,
-            status: applicant.status || 'pending',
-            first_name: personalInfo.first_name || 'N/A',
-            last_name: personalInfo.last_name || 'N/A',
-            email: applicant.user_details?.email || 'N/A',
-            remarks: applicant.user_details?.admin_remarks || 'N/A',
-            phone_number: personalInfo.cellphone_number || 'N/A',
-            // Just store place_of_birth directly as the location
-            location: personalInfo.place_of_birth || 'Not provided',
-            educational_background: applicant.user_details?.educational_background || [],
-            trainings: applicant.user_details?.trainings || [],
-            professional_licenses: applicant.user_details?.professional_licenses || [],
-            work_experiences: applicant.user_details?.work_experiences || [],
-            other_skills: applicant.user_details?.other_skills || [],
-            job_preference: applicant.user_details?.job_preference || {},
-            personal_information: personalInfo,
-
-            // 🔥 Safely include user_id from user_details
-            user_id: applicant.user_details?.user_id || null
-          };
-        });
+        const formattedApplicants = response.data.applications
+          .filter(applicant => applicant.status && applicant.status.toLowerCase() !== 'pending')
+          .map(applicant => {
+            const personalInfo = applicant.user_details?.personal_information || {};
+            return {
+              id: applicant.application_id,
+              application_date: applicant.created_at,
+              status: applicant.status || 'pending',
+              first_name: personalInfo.first_name || 'N/A',
+              last_name: personalInfo.last_name || 'N/A',
+              email: applicant.user_details?.email || 'N/A',
+              remarks: applicant.user_details?.admin_remarks || 'N/A',
+              phone_number: personalInfo.cellphone_number || 'N/A',
+              location: personalInfo.place_of_birth || 'Not provided',
+              educational_background: applicant.user_details?.educational_background || [],
+              trainings: applicant.user_details?.trainings || [],
+              professional_licenses: applicant.user_details?.professional_licenses || [],
+              work_experiences: applicant.user_details?.work_experiences || [],
+              other_skills: applicant.user_details?.other_skills || [],
+              job_preference: applicant.user_details?.job_preference || {},
+              personal_information: personalInfo,
+              user_id: applicant.user_details?.user_id || null
+            };
+          });
 
         setJobApplicants(formattedApplicants);
         setApplicantsOpen(true);
@@ -543,46 +543,48 @@ const PostedJob = ({ createJobOpen }) => {
                     ) : (
                       <Box sx={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
                         {jobApplicants.map((applicant) => (
-                          <Paper
-                            key={applicant.id}
-                            sx={{
-                              p: 2,
-                              mb: 2,
-                              cursor: 'pointer',
-                              '&:hover': { boxShadow: 3 }
-                            }}
-                            onClick={() => handleViewApplicantDetails(applicant)}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Avatar
-                                src={applicant.profile_pic}
-                                sx={{ width: 50, height: 50, mr: 2 }}
-                              >
-                                {applicant.first_name?.[0] || 'A'}
-                              </Avatar>
-                              <Box>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                  {applicant.first_name} {applicant.last_name}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                  Applied: {new Date(applicant.application_date).toLocaleDateString()}
-                                </Typography>
-                                <Typography variant="body2">
-                                  Status:
-                                  <Button
-                                    size="small"
-                                    color={
-                                      applicant.status === 'hired' ? 'success' :
-                                        applicant.status === 'rejected' ? 'error' : 'primary'
-                                    }
-                                    sx={{ ml: 1, textTransform: 'capitalize', pointerEvents: 'none' }}
-                                  >
-                                    {applicant.status || 'Pending'}
-                                  </Button>
-                                </Typography>
+                          applicant.status !== "pending" && (
+                            <Paper
+                              key={applicant.id}
+                              sx={{
+                                p: 2,
+                                mb: 2,
+                                cursor: 'pointer',
+                                '&:hover': { boxShadow: 3 }
+                              }}
+                              onClick={() => handleViewApplicantDetails(applicant)}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Avatar
+                                  src={applicant.profile_pic}
+                                  sx={{ width: 50, height: 50, mr: 2 }}
+                                >
+                                  {applicant.first_name?.[0] || 'A'}
+                                </Avatar>
+                                <Box>
+                                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                    {applicant.first_name} {applicant.last_name}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    Applied: {new Date(applicant.application_date).toLocaleDateString()}
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    Status:
+                                    <Button
+                                      size="small"
+                                      color={
+                                        applicant.status === 'hired' ? 'success' :
+                                          applicant.status === 'rejected' ? 'error' : 'primary'
+                                      }
+                                      sx={{ ml: 1, textTransform: 'capitalize', pointerEvents: 'none' }}
+                                    >
+                                      {applicant.status || 'Pending'}
+                                    </Button>
+                                  </Typography>
+                                </Box>
                               </Box>
-                            </Box>
-                          </Paper>
+                            </Paper>
+                          )
                         ))}
                       </Box>
                     )}
@@ -1047,6 +1049,21 @@ const PostedJob = ({ createJobOpen }) => {
                 />
               ))}
             </Box>
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+              SALARY
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <TextField
+                fullWidth
+                label="Salary Range"
+                defaultValue="20,000 - 30,000"
+                variant="outlined"
+              />
+            </Box>
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+              <b>Hired:</b>  {new Date().toLocaleDateString()}
+            </Typography>
           </Box>
         </DialogContent>
       </Dialog>

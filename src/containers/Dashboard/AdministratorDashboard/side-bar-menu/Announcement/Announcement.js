@@ -6,7 +6,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Options for target audience selection
-const audienceOptions = ['Jobseeker', 'Student', 'Employer', 'Academe'];
+const audienceOptions = ['JOBSEEKER', 'STUDENT', 'EMPLOYER', 'ACADEME'];
 
 // API: Add Announcement
 const Add_Announcement = async (announcement, authToken) => {
@@ -14,6 +14,7 @@ const Add_Announcement = async (announcement, authToken) => {
         const response = await axios.post('/api/add-announcement', announcement, {
             auth: { username: authToken },
         });
+        console.log('Announcement added successfully:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error adding announcement:', error);
@@ -58,7 +59,7 @@ export default function Announcement() {
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(6);
-
+    const [loading, setLoading] = useState(false);
     // Filtering and search state
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedAudience, setSelectedAudience] = useState('All');
@@ -127,7 +128,7 @@ export default function Announcement() {
     // Submit handler
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        setLoading(true)
         const newAnnouncement = {
             title: formData.title,
             details: formData.content,
@@ -149,7 +150,7 @@ export default function Announcement() {
 
             // Notify user
             toast.success('Announcement posted successfully!');
-
+            setLoading(false);
             // Reset form
             setFormData({
                 title: '',
@@ -160,6 +161,7 @@ export default function Announcement() {
             setShowForm(false);
         } catch (error) {
             toast.error('Failed to post announcement.');
+            setLoading(false)
             console.error('Error submitting announcement:', error);
         }
     };
@@ -314,7 +316,8 @@ export default function Announcement() {
                                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                 }`}
                                         >
-                                            {audience}
+                                            {audience.charAt(0).toUpperCase() + audience.slice(1).toLowerCase()}
+
                                         </button>
                                     ))}
                                 </div>
@@ -345,7 +348,14 @@ export default function Announcement() {
                                     type="submit"
                                     className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md transition-colors duration-300"
                                 >
-                                    Submit Announcement
+                                    {loading ? (
+                                        <svg className="animate-spin h-5 w-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2.93 6.93A8.003 8.003 0 014 12H0c0 5.523 4.477 10 10 10v-4a6.002 6.002 0 01-3.07-1.07z"></path>
+                                        </svg>
+                                    ) : (
+                                        'Post Announcement'
+                                    )}
                                 </button>
                             </div>
                         </form>
@@ -366,7 +376,8 @@ export default function Announcement() {
                                             key={audience}
                                             className="bg-indigo-100 text-indigo-800 text-xs px-3 py-1.5 rounded-lg font-medium"
                                         >
-                                            {audience}
+                                            {audience.charAt(0).toUpperCase() + audience.slice(1).toLowerCase()}
+
                                         </span>
                                     ))
                                 ) : (
@@ -433,7 +444,8 @@ export default function Announcement() {
                                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                     }`}
                                             >
-                                                {audience}
+                                                {audience.charAt(0).toUpperCase() + audience.slice(1).toLowerCase()}
+
                                             </button>
                                         ))}
                                     </div>

@@ -12,7 +12,8 @@ import {
   TablePagination,
   Button,
   Box,
-  useTheme
+  useTheme,
+  TextField
 } from '@mui/material';
 import SearchData from "../../../components/layout/Search";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -259,23 +260,31 @@ function Placement_Reports() {
               <Table sx={{ minWidth: 800 }}>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: theme.palette.action.hover }}>
+                    <TableCell sx={{ fontWeight: '600' }}>Date Added</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>First Name</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Last Name</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Position Hired</TableCell>
-                    <TableCell sx={{ fontWeight: '600' }}>Agency/Company</TableCell> {/* Updated */}
+                    <TableCell sx={{ fontWeight: '600' }}>Date Hired</TableCell>
+                    <TableCell sx={{ fontWeight: '600' }}>Employer's Name</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Deployment Country</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Deployment Region</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Salary</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Contract Period</TableCell>
+                    <TableCell sx={{ fontWeight: '600' }}>Agency</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Source</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Local/Overseas</TableCell>
                     <TableCell sx={{ fontWeight: '600' }}>Remarks</TableCell>
-                    <TableCell sx={{ fontWeight: '600' }}>Date Added</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {paginatedReports.map((report) => (
                     <TableRow key={report.id}>
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
+                          <CalendarTodayIcon fontSize="small" color="action" sx={{ mr: 1 }} />
+                          {formatDate(report.date_added)}
+                        </Box>
+                      </TableCell>
                       <TableCell>
                         <Box display="flex" alignItems="center">
                           <PersonIcon fontSize="small" color="action" sx={{ mr: 1 }} />
@@ -289,30 +298,27 @@ function Placement_Reports() {
                           {report.position_hired}
                         </Box>
                       </TableCell>
+                      <TableCell>{formatDate(report.date_hired)}</TableCell>
                       <TableCell>
                         <Box display="flex" alignItems="center">
                           <BusinessIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-                          {report.agency_company} {/* Updated */}
+                          {report.employer_name}
                         </Box>
                       </TableCell>
                       <TableCell>{report.deployment_country}</TableCell>
                       <TableCell>{report.deployment_region}</TableCell>
                       <TableCell>{report.salary}</TableCell>
                       <TableCell>{report.contract_period}</TableCell>
+                      <TableCell>{report.agency}</TableCell>
                       <TableCell>{report.source}</TableCell>
                       <TableCell>{report.local_overseas}</TableCell>
-                      <TableCell>{report.remarks}</TableCell>
-                      <TableCell>
-                        <Box display="flex" alignItems="center">
-                          <CalendarTodayIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-                          {formatDate(report.date_added)}
-                        </Box>
-                      </TableCell>
+                      <TableCell><TextField value={report.remarks}></TextField></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </TableContainer>
+
 
             {/* Pagination */}
             <Box sx={{ borderTop: `1px solid ${theme.palette.divider}`, pt: 2, mt: 2 }}>

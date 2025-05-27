@@ -28,6 +28,7 @@ const jobSchema = yup.object().shape({
   job_type: yup.string().required("Job Type is required"),
   experience_level: yup.string().required("Experience Level is required"),
   job_description: yup.string().required("Job Description is required"),
+  source: yup.string().required("Source is required"),
   estimated_salary_from: yup.number().required("Salary From is required"),
   estimated_salary_to: yup.number().required("Salary To is required"),
   no_of_vacancies: yup.number().required("Vacancies are required"),
@@ -36,8 +37,7 @@ const jobSchema = yup.object().shape({
   expiration_date: yup.date().required("Expiration Date is required"),
   other_skills: yup.string().required("Other Skills are required"),
   tech_voc_training: yup.string(),
-  Deployment_region: yup.string().required("Deployment Region is required"),
-  Contract_period: yup.string().required("Contract Period is required"),
+
   local_or_overseas: yup.string().required("Local/Overseas is required"),
 });
 
@@ -318,6 +318,35 @@ const JobPosting = ({ isCollapsed }) => {
                           error={!!errors.job_description}
                           helperText={errors.job_description?.message}
                         />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <InputLabel>Source</InputLabel>
+                        <Controller
+                          name="source"
+                          control={control}
+                          render={({ field }) => (
+                            <Select
+                              {...field}
+
+                              fullWidth
+                              defaultValue=""
+
+                              error={!!errors.job_description}
+                              helperText={errors.job_description?.message}
+                            >
+                              <MenuItem value="">Select</MenuItem>
+                              <MenuItem value="Referral">Referral</MenuItem>
+                              <MenuItem value="SRA">SRA</MenuItem>
+                              <MenuItem value="Job Fair">Job Fair</MenuItem>
+
+                            </Select>
+                          )}
+                        />
+                        {errors.source && (
+                          <p className="text-red-500 text-sm">
+                            {errors.source.message}
+                          </p>
+                        )}
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <InputLabel>Post Expiration</InputLabel>

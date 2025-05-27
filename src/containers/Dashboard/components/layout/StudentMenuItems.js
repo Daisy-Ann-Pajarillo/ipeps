@@ -86,6 +86,17 @@ const StudentMenuItems = [
         ],
     },
     {
+        title: "COMPANIES",
+        key: "companies",
+        items: [
+            {
+                title: "Companies",
+                to: "/dashboard/companies",
+                icon: <BusinessOutlined />,
+            },
+        ],
+    },
+    {
         title: "SETTINGS",
         key: "settings",
         items: [
