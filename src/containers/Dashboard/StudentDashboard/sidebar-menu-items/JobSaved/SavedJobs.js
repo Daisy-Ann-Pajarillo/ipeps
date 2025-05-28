@@ -215,11 +215,11 @@ const SavedJobs = () => {
     return () => styleSheet.remove();
   }, []);
 
-  return (      
-    <div className="w-full min-h-screen flex flex-col">
+  return (
+    <div className="min-h-screen w-full">
       <ToastContainer />
       
-      {/* Header Section - flex-shrink-0 */}      
+      {/* Header Section */}      
       <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20 flex-shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
@@ -236,7 +236,7 @@ const SavedJobs = () => {
         </div>
       </header>
 
-      {/* Search Section - flex-shrink-0 */}
+      {/* Search Section */}
       <div className="flex-shrink-0 w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e]">
         <div className="flex flex-row items-center bg-gray-100 dark:bg-gray-800/50 border border-gray-200/20 dark:border-gray-700/50 rounded-full shadow-none h-10 w-full max-w-xl">
           <span className="pl-3 pr-1 text-gray-400 dark:text-gray-300 flex items-center">
@@ -253,7 +253,7 @@ const SavedJobs = () => {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 shadow-sm w-full sm:w-auto"
+          className="bg-gray-100 dark:bg-gray-800/50 border border-gray-200/20 dark:border-gray-700/50 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 shadow-sm w-full sm:w-auto"
         >
           <option value="">Sort By</option>
           <option value="Most Recent">Recent</option>
@@ -261,11 +261,11 @@ const SavedJobs = () => {
         </select>
       </div>
 
-      {/* Main Content - flex-1 with overflow */}
-      <div className="flex-1 flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto overflow-hidden">
+      {/* Main Content Layout */}
+      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto flex-1 overflow-hidden">
         {/* Job List Section */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100vh - 180px)' }}>
+        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
+          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{ height: 'calc(100vh - 180px)' }}>
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-40 gap-2">
                 <img src={logoNav} alt="IPEPS Logo" className="w-16 h-16 sm:w-24 sm:h-24 loading-logo" />
@@ -323,7 +323,8 @@ const SavedJobs = () => {
 
         {/* Desktop Job View */}
         {selectedJob && (
-          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 sticky top-4">
+          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 sticky top-4" 
+               style={{ zIndex: 1000 }}>
             <SavedJobsView 
               job={selectedJob} 
               onClose={() => setSelectedJob(null)} 
@@ -337,18 +338,53 @@ const SavedJobs = () => {
 
         {/* Mobile Job View */}
         {selectedJob && (
-          <div className="lg:hidden fixed inset-0 z-[9999]">
-            <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setSelectedJob(null)} />
-            <div className="absolute inset-0 pointer-events-none">
-              <SavedJobsView
-                job={selectedJob}
-                isMobile={true}
-                onClose={() => setSelectedJob(null)}
-                onRemoveSaved={() => handleRemoveFromSaved(selectedJob.saved_jobpost_id)}
-                isApplied={appliedJobIds.includes(selectedJob.employer_jobpost_id)}
-                onApply={() => handleApplyJob(selectedJob.employer_jobpost_id)}
-                onJobStatusChanged={loadAppliedJobs}
-              />
+          <div 
+            className="lg:hidden fixed inset-0"
+            style={{ zIndex: Number.MAX_SAFE_INTEGER }}
+          >
+            <div 
+              className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"
+              style={{ 
+                position: 'fixed',
+                zIndex: Number.MAX_SAFE_INTEGER,
+                pointerEvents: 'auto'
+              }}
+            >
+              <div className="fixed inset-0 overflow-hidden">
+                <div className="fixed inset-0" onClick={() => setSelectedJob(null)} />
+                <div 
+                  className="fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0"
+                  style={{ 
+                    zIndex: Number.MAX_SAFE_INTEGER,
+                    pointerEvents: 'auto'
+                  }}
+                >
+                  <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
+                    <div 
+                      className="absolute right-4 top-4"
+                      style={{ zIndex: Number.MAX_SAFE_INTEGER }}
+                    >
+                      <button
+                        onClick={() => setSelectedJob(null)}
+                        className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <SavedJobsView
+                      job={selectedJob}
+                      isMobile={true}
+                      onClose={() => setSelectedJob(null)}
+                      onRemoveSaved={() => handleRemoveFromSaved(selectedJob.saved_jobpost_id)}
+                      isApplied={appliedJobIds.includes(selectedJob.employer_jobpost_id)}
+                      onApply={() => handleApplyJob(selectedJob.employer_jobpost_id)}
+                      onJobStatusChanged={loadAppliedJobs}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

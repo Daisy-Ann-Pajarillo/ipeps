@@ -207,7 +207,7 @@ const JobSearch = ({ isCollapsed }) => {
   }, []);
 */}
   return (
-    <div className="min-h-screen w-full flex flex-col">
+    <div className="min-h-screen w-full">
       <ToastContainer />
       
       {/* Modern Thin Header - flex-shrink-0 */}
@@ -342,7 +342,8 @@ const JobSearch = ({ isCollapsed }) => {
 
         {/* Job Details - Desktop View */}
         {selectedJob && (
-          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 sticky top-4">
+          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 sticky top-4" 
+               style={{ zIndex: 1000 }}>
             <JobView job={selectedJob} onClose={() => setSelectedJob(null)} />
           </div>
         )}
@@ -350,12 +351,13 @@ const JobSearch = ({ isCollapsed }) => {
         {/* Job Details - Mobile Modal View */}
         {selectedJob && (
           <div 
-            className="lg:hidden fixed inset-0 z-[9999]"
+            className="lg:hidden fixed inset-0"
+            style={{ zIndex: Number.MAX_SAFE_INTEGER }}
           >
             <div 
               className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"
               style={{ 
-                position: 'fixed', 
+                position: 'fixed',
                 zIndex: Number.MAX_SAFE_INTEGER,
                 pointerEvents: 'auto'
               }}
@@ -372,7 +374,7 @@ const JobSearch = ({ isCollapsed }) => {
                   <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
                     <div 
                       className="absolute right-4 top-4"
-                      style={{ zIndex: 999999999 }}
+                      style={{ zIndex: Number.MAX_SAFE_INTEGER }}
                     >
                       <button
                         onClick={() => setSelectedJob(null)}
@@ -383,7 +385,11 @@ const JobSearch = ({ isCollapsed }) => {
                         </svg>
                       </button>
                     </div>
-                    <JobView job={selectedJob} onClose={() => setSelectedJob(null)} isMobile={true} />
+                    <JobView 
+                      job={selectedJob} 
+                      onClose={() => setSelectedJob(null)} 
+                      isMobile={true} 
+                    />
                   </div>
                 </div>
               </div>
