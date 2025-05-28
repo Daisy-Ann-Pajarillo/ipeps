@@ -63,6 +63,25 @@ const Companies = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Set first company as default for desktop view
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && !selectedCompany && companies.length > 0) {
+        setSelectedCompany(companies[0]);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   useEffect(() => {
     let filtered = companies;
     if (query.trim()) {
@@ -73,6 +92,11 @@ const Companies = () => {
       );
     }
     setFilteredCompanies(filtered);
+    
+    // Update selected company if it's no longer in filtered results
+    if (selectedCompany && !filtered.find(c => c.id === selectedCompany.id)) {
+      setSelectedCompany(filtered[0] || null);
+    }
   }, [query]);
 
   const handleCompanyClick = (company) => {
