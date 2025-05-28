@@ -51,7 +51,9 @@ const TrainingApplications = ({ isCollapsed }) => {
 
           if (response.data.success && Array.isArray(response.data.applications)) {
             setAppliedTrainings(response.data.applications);
-            if (response.data.applications.length > 0) {
+            // Only auto-select first application on desktop
+            const isDesktop = window.innerWidth >= 1024;
+            if (response.data.applications.length > 0 && isDesktop) {
               setSelectedApplication(response.data.applications[0]);
             }
           }
@@ -127,22 +129,17 @@ const TrainingApplications = ({ isCollapsed }) => {
       <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
         {/* Applications List Section */}
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedApplication ? '10px' : '0' }}>
+          <div className="flex flex-col gap-3 h-[calc(100vh-180px)] overflow-y-auto lg:pr-4">
             {isLoading ? (
-              <div className="flex flex-col justify-center items-center min-h-[60vh] gap-4">
+              <div className="flex flex-col justify-center items-center h-40 gap-2">
                 <img
                   src={logoNav}
                   alt="IPEPS Logo"
-                  className="w-24 h-24 sm:w-32 sm:h-32 loading-logo"
+                  className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
                 />
-                <div className="text-center">
-                  <Typography variant="h6" className="text-gray-800 dark:text-gray-200 mb-2">
-                    Loading Training Applications
-                  </Typography>
-                  <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
-                    Please wait while we fetch your applications...
-                  </Typography>
-                </div>
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-base">
+                  Loading Applications...
+                </Typography>
               </div>
             ) : appliedTrainings.length === 0 ? (
               <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
@@ -160,37 +157,33 @@ const TrainingApplications = ({ isCollapsed }) => {
                   <div
                     key={training.training_id}
                     onClick={() => setSelectedApplication(training)}
-                    className={`bg-white dark:bg-gray-900 rounded-xl border transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1 border-gray-200 dark:border-gray-700 p-3 flex gap-3 items-center ${
-                      selectedApplication?.training_id === training.training_id ? 'ring-2 ring-blue-400 border-blue-500' : ''
-                    }`}
+                    className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
+                      selectedApplication?.training_id === training.training_id
+                        ? "border-blue-500 shadow-lg"
+                        : "border-gray-200 dark:border-gray-700"
+                    } p-3 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
                   >
-                    <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
-                      <img
-                        src={training.providerImage || "http://bij.ly/4ib59B1"}
-                        alt={training.training_title}
-                        className="w-full h-full object-contain p-2"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{training.training_title}</h3>
-                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">{training.provider}</p>
-                      <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
-                        {training.learning_outcomes?.split(',').slice(0, 3).map((outcome, index) => (
-                          <span
-                            key={index}
-                            className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full"
-                          >
-                            {outcome.trim()}
-                          </span>
-                        ))}
+                    <div className="flex gap-2 sm:gap-3 min-w-0">
+                      <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-md sm:rounded-lg overflow-hidden flex items-center justify-center">
+                        <img
+                          src={training.providerImage || "http://bij.ly/4ib59B1"}
+                          alt={training.provider || training.training_title}
+                          className="w-full h-full object-contain p-1 sm:p-2"
+                        />
                       </div>
-                      <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm">
-                        <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
-                          📍 {training.city_municipality}
-                        </span>
-                        <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
-                          ⏱️ {training.duration || 'Not specified'}
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+                          {training.training_title}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                          {training.city_municipality}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                          {training.training_type} • {training.experience_level}
+                        </div>
+                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                          {training.provider}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -212,27 +205,53 @@ const TrainingApplications = ({ isCollapsed }) => {
 
         {/* Application Details - Mobile Modal View */}
         {selectedApplication && (
-          <div className="lg:hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute inset-0" onClick={() => setSelectedApplication(null)} />
-              <div className="absolute inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0">
-                <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
-                  <div className="absolute right-4 top-4 z-10">
-                    <button
-                      onClick={() => setSelectedApplication(null)}
-                      className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+          <div 
+            className="lg:hidden fixed inset-0" 
+            style={{ 
+              position: 'fixed', 
+              zIndex: Number.MAX_SAFE_INTEGER,
+              isolation: 'isolate',
+              pointerEvents: 'auto'
+            }}
+          >
+            <div 
+              className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"
+              style={{ 
+                position: 'fixed', 
+                zIndex: Number.MAX_SAFE_INTEGER,
+                pointerEvents: 'auto'
+              }}
+            >
+              <div className="fixed inset-0 overflow-hidden">
+                <div className="fixed inset-0" onClick={() => setSelectedApplication(null)} />
+                <div 
+                  className="fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0"
+                  style={{ 
+                    zIndex: Number.MAX_SAFE_INTEGER,
+                    pointerEvents: 'auto'
+                  }}
+                >
+                  <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
+                    <div 
+                      className="absolute right-4 top-4"
+                      style={{ zIndex: 999999999 }}
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                      <button
+                        onClick={() => setSelectedApplication(null)}
+                        className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <TrainingApplicationView 
+                      training={selectedApplication} 
+                      onWithdraw={() => handleWithdrawal(selectedApplication.training_id)}
+                      isLoading={isLoading}
+                      isMobile={true}
+                    />
                   </div>
-                  <TrainingApplicationView 
-                    training={selectedApplication} 
-                    onWithdraw={() => handleWithdrawal(selectedApplication.training_id)}
-                    isLoading={isLoading}
-                    isMobile={true}
-                  />
                 </div>
               </div>
             </div>

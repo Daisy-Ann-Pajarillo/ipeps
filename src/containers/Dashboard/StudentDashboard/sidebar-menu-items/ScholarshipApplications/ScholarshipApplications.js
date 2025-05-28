@@ -56,7 +56,9 @@ const ScholarshipApplications = ({ isCollapsed }) => {
 
       if (response.data.success && Array.isArray(response.data.applications)) {
         setAppliedScholarships(response.data.applications);
-        if (response.data.applications.length > 0) {
+        // Only auto-select first application on desktop
+        const isDesktop = window.innerWidth >= 1024;
+        if (response.data.applications.length > 0 && isDesktop) {
           setSelectedApplication(response.data.applications[0]);
         }
 

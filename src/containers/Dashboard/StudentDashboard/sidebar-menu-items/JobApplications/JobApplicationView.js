@@ -96,13 +96,13 @@ const JobApplicationView = ({ application, onWithdraw, isLoading, isMobile = fal
   }
 
   return (
-    <div className={`bg-white dark:bg-gray-900 ${
+    <div className={`flex flex-col bg-white dark:bg-gray-900 ${
       isMobile 
         ? 'h-[85vh] w-full' 
-        : 'rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-160px)] w-full'
+        : 'rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-180px)] w-full'
     }`}>
-      {/* Header Section */}
-      <div className={`${isMobile ? 'pt-12' : ''} px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700`}>
+      {/* Header Section - flex-shrink-0 to prevent shrinking */}
+      <div className={`flex-shrink-0 ${isMobile ? 'pt-12' : ''} px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">            
           <div className="flex gap-2 sm:gap-3">            
             <div className={`${isMobile ? 'w-16 h-16' : 'w-10 h-10'} sm:w-20 sm:h-20 bg-gray-100 dark:bg-gray-800 rounded-md sm:rounded-lg overflow-hidden`}>
@@ -144,12 +144,8 @@ const JobApplicationView = ({ application, onWithdraw, isLoading, isMobile = fal
         </div>
       </div>
 
-      {/* Content Section - Adjust height for mobile */}
-      <div className={`p-3 sm:p-4 md:p-6 overflow-y-auto ${
-        isMobile 
-          ? 'h-[calc(100%-180px)]' 
-          : 'h-[calc(100%-120px)]'
-      }`}>
+      {/* Content Section - flex-1 and overflow-y-auto for scrolling */}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
         {/* Application Details Section */}
         <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
@@ -220,8 +216,8 @@ const JobApplicationView = ({ application, onWithdraw, isLoading, isMobile = fal
         )}
       </div>
 
-      {/* Footer Action */}
-      <div className="sticky bottom-0 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      {/* Footer Action - flex-shrink-0 to prevent shrinking */}
+      <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         {canWithdraw ? (
           <Button
             variant="contained"

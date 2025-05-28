@@ -360,16 +360,16 @@ const Dashboard = () => {
               {job.experience_level || "Entry"}
             </span>
           </div>
-          {/* Skills */}
-          <div className="mb-4 min-h-10">
+          {/* Skills */}          <div className="mb-4 min-h-10">
             {job.other_skills &&
               job.other_skills
                 .split(",")
                 .slice(0, 3)
                 .map((skill) => skill.trim())
-                .map((skill) => (
+                .filter(Boolean)
+                .map((skill, index) => (
                   <span
-                    key={skill}
+                    key={`${skill}-${index}`}
                     className="inline-block bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs px-3 py-1 rounded-full mr-2 mb-2"
                   >
                     {skill}
@@ -446,17 +446,20 @@ const Dashboard = () => {
               {training.training_location || "Online"}
             </span>
           </div>
-          {/* Skills */}
-          <div className="mb-4 min-h-10">
+          {/* Skills */}          <div className="mb-4 min-h-10">
             {training.skills &&
-              training.skills.split(",").slice(0, 3).map((skill) => (
-                <span
-                  key={skill}
-                  className="inline-block bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs px-3 py-1 rounded-full mr-2 mb-2"
-                >
-                  {skill.trim()}
-                </span>
-              ))}
+              training.skills
+                .split(",")
+                .slice(0, 3)
+                .filter(Boolean)
+                .map((skill, index) => (
+                  <span
+                    key={`${skill.trim()}-${index}`}
+                    className="inline-block bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs px-3 py-1 rounded-full mr-2 mb-2"
+                  >
+                    {skill.trim()}
+                  </span>
+                ))}
           </div>
         </div>
         {/* Footer */}
@@ -534,9 +537,9 @@ const Dashboard = () => {
           {/* Requirements */}
           <div className="mb-4 min-h-10">
             {scholarship.requirements &&
-              scholarship.requirements.split(",").slice(0, 3).map((req) => (
+              scholarship.requirements.split(",").slice(0, 3).map((req, index) => (
                 <span
-                  key={req}
+                  key={`${req.trim()}-${index}`}
                   className="inline-block bg-teal-100 dark:bg-teal-800 text-teal-800 dark:text-teal-200 text-xs px-3 py-1 rounded-full mr-2 mb-2"
                 >
                   {req.trim()}
@@ -566,7 +569,6 @@ const Dashboard = () => {
 
   // Get user type from auth token
   const userType = getUserType();
-  console.log("user typeeeee", userType)
   // Show a loading spinner while all data is being fetched
   if (loading.jobs && loading.trainings && loading.scholarships) {
     return (
@@ -699,7 +701,7 @@ const Dashboard = () => {
             {notifications.length > 0 ? (
               notifications.map((notif) => (
                 <MenuItem
-                  key={notif.id}
+                  key={notif.id || `notification-${Date.parse(notif.created_at)}-${notif.title}`}
                   onClick={() => {
                     setOpenAnnouncement(notif);
                     setAnchorEl(null);
@@ -810,7 +812,7 @@ const Dashboard = () => {
             <div className="flex gap-1.5 md:gap-2 mt-2 justify-center w-full">
               {portalSlides.map((_, idx) => (
             <span
-              key={idx}
+              key={`slide-indicator-${idx}`}
               className={`inline-block w-2 md:w-3 h-2 md:h-3 rounded-full transition-all duration-300 
                 ${slideIdx === idx ? "bg-blue-600" : "bg-blue-200"}`}
             />
@@ -878,7 +880,7 @@ const Dashboard = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {recommendedJobs.length > 0 ? (
                       recommendedJobs.map((job, index) => (
-                        <div key={job.job_id || index} className="flex">
+                        <div key={job.job_id || `job-${index}`} className="flex">
                           {renderJobCard(job)}
                         </div>
                       ))
@@ -920,7 +922,7 @@ const Dashboard = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {recommendedTrainings.length > 0 ? (
                       recommendedTrainings.map((training, index) => (
-                        <div key={training.id || index} className="flex">
+                        <div key={training.id || `training-${index}`} className="flex">
                           {renderTrainingCard(training)}
                         </div>
                       ))
@@ -962,7 +964,7 @@ const Dashboard = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {recommendedScholarships.length > 0 ? (
                       recommendedScholarships.map((scholarship, index) => (
-                        <div key={scholarship.id || index} className="flex">
+                        <div key={scholarship.id || `scholarship-${index}`} className="flex">
                           {renderScholarshipCard(scholarship)}
                         </div>
                       ))

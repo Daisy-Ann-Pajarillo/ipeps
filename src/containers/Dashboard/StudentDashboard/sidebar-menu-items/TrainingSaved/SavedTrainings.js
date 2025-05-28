@@ -104,7 +104,9 @@ const SavedTrainings = () => {
         }));
 
         setSavedTrainings(transformedTrainings);
-        if (transformedTrainings.length > 0 && !selectedTraining) {
+        // Only auto-select first training on desktop
+        const isDesktop = window.innerWidth >= 1024;
+        if (transformedTrainings.length > 0 && !selectedTraining && isDesktop) {
           setSelectedTraining(transformedTrainings[0]);
         }
 
@@ -240,8 +242,8 @@ const SavedTrainings = () => {
   return (
     <div className="min-h-screen w-full">
       <ToastContainer />
-
-      {/* Modern Thin Header */}      
+      
+      {/* Header */}
       <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
         <div className="flex items-center gap-4">
           <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
@@ -258,8 +260,8 @@ const SavedTrainings = () => {
         </div>
       </header>
 
-      {/* Unified Filter/Search Row */}      
-      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e]">
+      {/* Search Bar */}
+      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e] border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-row items-center bg-gray-100 dark:bg-gray-800/50 border border-gray-200/20 dark:border-gray-700/50 rounded-full shadow-none h-10 w-full max-w-xl">
           <span className="pl-3 pr-1 text-gray-400 dark:text-gray-300 flex items-center">
             <SearchIcon />
@@ -282,12 +284,12 @@ const SavedTrainings = () => {
         </select>
       </div>
 
-      {/* Main Content Layout */}
+      {/* Main Content */}
       <div className="w-full max-w-[1800px] mx-auto">
-        <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
-          {/* Training List Section */}
+        <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2">
+          {/* Training List */}
           <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedTraining ? '10px' : '0' }}>
+            <div className="flex flex-col gap-3 h-[calc(100vh-180px)] overflow-y-auto lg:pr-4">
               {isLoading ? (
                 <div className="flex flex-col justify-center items-center h-40 gap-2">
                   <img 
@@ -323,7 +325,7 @@ const SavedTrainings = () => {
                         : "border-gray-200 dark:border-gray-700"
                     } p-3 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
                   >
-                    <div className="flex gap-2 sm:gap-3">
+                    <div className="flex gap-2 sm:gap-3 min-w-0"> {/* Added min-w-0 */}
                       <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-md sm:rounded-lg overflow-hidden flex items-center justify-center">
                         <img
                           src={training.companyImage || "http://bij.ly/4ib59B1"}
@@ -331,22 +333,22 @@ const SavedTrainings = () => {
                           className="w-full h-full object-contain p-1 sm:p-2"
                         />
                       </div>
-                      <div className="flex-1">
-                        <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <div className="flex-1 min-w-0"> {/* Added min-w-0 */}
+                        <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                           {training.title}
                         </div>
-                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                           {training.city_municipality}
                         </div>
-                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                           {training.training_type} • {training.experience_level}
                         </div>
-                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                           {training.provider}
                         </div>
                       </div>
                       <button
-                        className="text-red-500 hover:text-red-700 self-start text-base sm:text-lg"
+                        className="text-red-500 hover:text-red-700 self-start text-base sm:text-lg flex-shrink-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRemoveFromSaved(training);
@@ -361,48 +363,49 @@ const SavedTrainings = () => {
             </div>
           </div>
 
-          {/* Training Details - Desktop View */}
+          {/* Desktop View */}
           {selectedTraining && (
-            <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
-              <SavedTrainingsView 
-                training={selectedTraining} 
-                onEnroll={() => handleEnroll(selectedTraining.training_id)}
-                onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
-                isEnrolled={enrolledTrainings[selectedTraining.training_id]}
-                isLoading={isLoading}
-                isMobile={false}
-              />
+            <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0">
+              <div className="sticky top-4">
+                <SavedTrainingsView 
+                  training={selectedTraining} 
+                  onEnroll={() => handleEnroll(selectedTraining.training_id)}
+                  onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
+                  isEnrolled={enrolledTrainings[selectedTraining.training_id]}
+                  isLoading={isLoading}
+                  isMobile={false}
+                />
+              </div>
             </div>
           )}
 
-          {/* Training Details - Mobile Modal View */}
+          {/* Mobile View */}
           {selectedTraining && (
-            <div className="lg:hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 overflow-hidden">
-              <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute inset-0" onClick={() => setSelectedTraining(null)} />
-                <div className="absolute inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0">
-                  <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
-                    <div className="absolute right-4 top-4 z-10">
-                      <button
-                        onClick={() => setSelectedTraining(null)}
-                        className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
+            <div 
+              className="lg:hidden fixed inset-0 z-50"
+              style={{ isolation: 'isolate' }}
+            >
+              <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm">
+                <div className="fixed inset-0 overflow-hidden">
+                  <div className="fixed inset-0" onClick={() => setSelectedTraining(null)} />
+                  <div className="fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0">
+                    <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
+                      <div className="absolute right-4 top-4 z-50">
+                        <button
+                          onClick={() => setSelectedTraining(null)}
+                          className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                      <SavedTrainingsView 
+                        training={selectedTraining}
+                        onClose={() => setSelectedTraining(null)}
+                        isMobile={true}
+                      />
                     </div>
-                    <SavedTrainingsView
-                      training={selectedTraining}
-                      onEnroll={() => handleEnroll(selectedTraining.training_id)}
-                      onRemoveSaved={() => {
-                        handleRemoveFromSaved(selectedTraining);
-                        setSelectedTraining(null);
-                      }}
-                      isEnrolled={enrolledTrainings[selectedTraining.training_id]}
-                      isLoading={isLoading}
-                      isMobile={true}
-                    />
                   </div>
                 </div>
               </div>

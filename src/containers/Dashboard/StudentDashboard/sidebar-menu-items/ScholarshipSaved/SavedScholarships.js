@@ -41,7 +41,9 @@ const SavedScholarships = () => {
 
       if (response.data.success && Array.isArray(response.data.scholarships)) {
         setSavedScholarships(response.data.scholarships);
-        if (response.data.scholarships.length > 0) {
+        // Only auto-select first scholarship on desktop
+        const isDesktop = window.innerWidth >= 1024;
+        if (response.data.scholarships.length > 0 && isDesktop) {
           setSelectedScholarship(response.data.scholarships[0]);
         }
       }
@@ -237,32 +239,32 @@ const SavedScholarships = () => {
                           className="w-full h-full object-contain p-1 sm:p-2"
                         />
                       </div>
-                      <div className="flex-1">
-                        <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      <div className="flex-1 min-w-0 max-w-full overflow-hidden"> {/* Added overflow control */}
+                        <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate pr-2">
                           {scholarship.scholarship_title || scholarship.title}
                         </div>
-                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate pr-2">
                           {scholarship.company_name || scholarship.provider}
                         </div>
                         
                         {/* Scholarship Details Tags */}
-                        <div className="flex flex-wrap gap-1 sm:gap-2 mt-2">
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mt-2 pr-2">
                           {(scholarship.reward_type || scholarship.amount) && (
-                            <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-lg text-purple-700 dark:text-purple-300 text-xs">
-                              <PaymentIcon fontSize="small" className="w-4 h-4" />
-                              {scholarship.reward_type || scholarship.amount}
+                            <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-lg text-purple-700 dark:text-purple-300 text-xs whitespace-nowrap overflow-hidden">
+                              <PaymentIcon fontSize="small" className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate max-w-[120px]">{scholarship.reward_type || scholarship.amount}</span>
                             </span>
                           )}
                           {scholarship.scholarship_type && (
-                            <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-lg text-purple-700 dark:text-purple-300 text-xs">
-                              <SchoolIcon fontSize="small" className="w-4 h-4" />
-                              {scholarship.scholarship_type}
+                            <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-lg text-purple-700 dark:text-purple-300 text-xs whitespace-nowrap overflow-hidden">
+                              <SchoolIcon fontSize="small" className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate max-w-[120px]">{scholarship.scholarship_type}</span>
                             </span>
                           )}
                           {scholarship.deadline && (
-                            <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-lg text-purple-700 dark:text-purple-300 text-xs">
-                              <CalendarTodayIcon fontSize="small" className="w-4 h-4" />
-                              Deadline: {new Date(scholarship.deadline).toLocaleDateString()}
+                            <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-lg text-purple-700 dark:text-purple-300 text-xs whitespace-nowrap overflow-hidden">
+                              <CalendarTodayIcon fontSize="small" className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate max-w-[120px]">Deadline: {new Date(scholarship.deadline).toLocaleDateString()}</span>
                             </span>
                           )}
                         </div>

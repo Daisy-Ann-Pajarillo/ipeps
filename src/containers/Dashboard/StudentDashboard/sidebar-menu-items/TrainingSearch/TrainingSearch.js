@@ -50,18 +50,17 @@ const TrainingSearch = ({ isCollapsed }) => {
             auth: { username: auth.token },
           });
 
-          console.log("API Response for All Trainings:", response.data); // Log API response
-
           if (response.data && Array.isArray(response.data.training_postings)) {
             const formattedTrainings = response.data.training_postings.map((t) => ({
               ...t,
-              training_id: t.training_id.toString(), // Ensure training IDs are strings
+              training_id: t.training_id.toString(),
             }));
 
             setTrainings(formattedTrainings);
 
-            // Auto-select first training
-            if (formattedTrainings.length > 0 && !selectedTraining) {
+            // Only auto-select first training on desktop
+            const isDesktop = window.innerWidth >= 1024;
+            if (formattedTrainings.length > 0 && !selectedTraining && isDesktop) {
               setSelectedTraining(formattedTrainings[0]);
             }
           } else {
@@ -77,7 +76,6 @@ const TrainingSearch = ({ isCollapsed }) => {
         setIsLoading(false);
       }
     };
-
     fetchTrainings();
   }, [auth.token]);
 
@@ -230,8 +228,7 @@ const TrainingSearch = ({ isCollapsed }) => {
         </div>      </div>      {/* Main Content Layout */}
       <div className="flex flex-col lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
         {/* Training List - Left Side */}
-        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
-          <div className="flex justify-between items-center mb-2 px-1">
+        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">          <div className="flex justify-between items-center mb-2 px-1">
           {/*
             <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
               {filteredTrainings.length} trainings found
@@ -239,7 +236,7 @@ const TrainingSearch = ({ isCollapsed }) => {
             */}
           </div>
 
-          <div className="space-y-3 sm:space-y-4 h-[calc(100vh-280px)] overflow-y-auto">
+          <div className="space-y-3 sm:space-y-4 h-[calc(100vh-180px)] overflow-y-auto">
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-40 gap-2 sm:gap-4">
                 <img
@@ -312,25 +309,48 @@ const TrainingSearch = ({ isCollapsed }) => {
 
         {/* Training Details - Mobile Modal View */}
         {selectedTraining && (
-          <div className="lg:hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute inset-0" onClick={() => setSelectedTraining(null)} />
-              <div className="absolute inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0">
-                <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
-                  <div className="absolute right-4 top-4 z-10">
-                    <button
-                      onClick={() => setSelectedTraining(null)}
-                      className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+          <div 
+            className="lg:hidden fixed inset-0" 
+            style={{ 
+              position: 'fixed', 
+              zIndex: Number.MAX_SAFE_INTEGER,
+              isolation: 'isolate',
+              pointerEvents: 'auto'
+            }}
+          >
+            <div 
+              className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"
+              style={{ 
+                position: 'fixed', 
+                zIndex: Number.MAX_SAFE_INTEGER,
+                pointerEvents: 'auto'
+              }}
+            >
+              <div className="fixed inset-0 overflow-hidden">
+                <div className="fixed inset-0" onClick={() => setSelectedTraining(null)} />
+                <div 
+                  className="fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0"
+                  style={{ 
+                    zIndex: Number.MAX_SAFE_INTEGER,
+                    pointerEvents: 'auto'
+                  }}
+                >
+                  <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
+                    <div 
+                      className="absolute right-4 top-4"
+                      style={{ zIndex: 999999999 }}
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                      <button
+                        onClick={() => setSelectedTraining(null)}
+                        className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <TrainingView training={selectedTraining} isMobile={true} />
                   </div>
-                  <TrainingView 
-                    training={selectedTraining} 
-                    isMobile={true}
-                  />
                 </div>
               </div>
             </div>

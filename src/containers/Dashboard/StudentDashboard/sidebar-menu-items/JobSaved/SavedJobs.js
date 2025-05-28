@@ -35,6 +35,12 @@ const SavedJobs = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
 
+  // Format salary with commas for better readability
+  const formatSalary = (value) => {
+    if (!value && value !== 0) return "N/A";
+    return value.toLocaleString();
+  };
+
   // Load authentication state
   useEffect(() => {
     dispatch(actions.getAuthStorage());
@@ -73,7 +79,6 @@ const SavedJobs = () => {
         });
 
         if (response.data.success && Array.isArray(response.data.jobs)) {
-          // Map backend data to component format
           const jobs = response.data.jobs.map((job) => ({
             saved_job_id: job.saved_job_id,
             employer_jobpost_id: job.employer_jobpost_id,
@@ -98,7 +103,9 @@ const SavedJobs = () => {
           }));
 
           setSavedJobs(jobs);
-          if (jobs.length > 0 && !selectedJob) {
+          // Only auto-select first job on desktop
+          const isDesktop = window.innerWidth >= 1024;
+          if (jobs.length > 0 && !selectedJob && isDesktop) {
             setSelectedJob(jobs[0]);
           }
         } else {
@@ -209,11 +216,11 @@ const SavedJobs = () => {
   }, []);
 
   return (      
-    <div className="min-h-screen w-full">
+    <div className="w-full min-h-screen flex flex-col">
       <ToastContainer />
-
-      {/* Modern Thin Header */}      
-      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
+      
+      {/* Header Section - flex-shrink-0 */}      
+      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20 flex-shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
             <BookmarkIcon className="h-6 w-6 text-blue-700 dark:text-blue-300" />
@@ -229,8 +236,8 @@ const SavedJobs = () => {
         </div>
       </header>
 
-      {/* Unified Filter/Search Row */}      
-      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e]">
+      {/* Search Section - flex-shrink-0 */}
+      <div className="flex-shrink-0 w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e]">
         <div className="flex flex-row items-center bg-gray-100 dark:bg-gray-800/50 border border-gray-200/20 dark:border-gray-700/50 rounded-full shadow-none h-10 w-full max-w-xl">
           <span className="pl-3 pr-1 text-gray-400 dark:text-gray-300 flex items-center">
             <SearchIcon />
@@ -252,133 +259,96 @@ const SavedJobs = () => {
           <option value="Most Recent">Recent</option>
           <option value="Salary">Salary</option>
         </select>
-      </div>      {/* Main Content: Job List & Job View */}
-      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
-        {/* Job List Section - vertical scroll, mobile friendly */}
+      </div>
+
+      {/* Main Content - flex-1 with overflow */}
+      <div className="flex-1 flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto overflow-hidden">
+        {/* Job List Section */}
         <div className="flex-1 flex flex-col min-w-0">
-
-         
-          <div className="flex justify-between items-center mb-2 px-1">
-             {/*
-            <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-              {sortedJobs.length} saved jobs
-            </Typography>
-
-            */}
-          </div>
-          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedJob ? '10px' : '0' }}>
+          <div className="flex-1 overflow-y-auto" style={{ height: 'calc(100vh - 180px)' }}>
             {isLoading ? (
-              <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
-                <img
-                  src={logoNav}
-                  alt="IPEPS Logo"
-                  className="w-16 h-16 sm:w-24 sm:h-24 loading-logo"
-                />
-                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse text-sm sm:text-base">
-                  Loading Saved Jobs...
+              <div className="flex flex-col justify-center items-center h-40 gap-2">
+                <img src={logoNav} alt="IPEPS Logo" className="w-16 h-16 sm:w-24 sm:h-24 loading-logo" />
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                  Loading saved jobs...
                 </Typography>
               </div>
-            ) : sortedJobs.length === 0 ? (
-              <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
-                <Typography variant="body1" className="text-gray-500 dark:text-gray-400 text-sm sm:text-base">
+            ) : filteredJobs.length === 0 ? (
+              <div className="flex flex-col justify-center items-center h-40 gap-2">
+                <BookmarkIcon className="w-16 h-16 text-gray-400 dark:text-gray-600" />
+                <Typography variant="h6" className="text-gray-600 dark:text-gray-400">
                   No saved jobs found
                 </Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => navigate('/dashboard/job-search')}
-                  className="bg-blue-600 hover:bg-blue-700 text-xs sm:text-base"
-                >
-                  Browse Jobs
-                </Button>
+                <Typography variant="body2" className="text-gray-500 dark:text-gray-500">
+                  {searchQuery ? "Try adjusting your search" : "Start saving jobs you're interested in"}
+                </Typography>
               </div>
             ) : (
-              sortedJobs.map((job) => (
-                <div
-                  key={job.saved_job_id}
-                  onClick={() => handleSelectJob(job)}
-                  className={`bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl border ${
-                    selectedJob?.saved_job_id === job.saved_job_id
-                      ? "border-blue-500 shadow-lg"
-                      : "border-gray-200 dark:border-gray-700"
-                  } p-3 sm:p-6 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1`}
-                >
-                  <div className="flex gap-2 sm:gap-3">
-                    {/* Company Logo */}
-                    <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-md sm:rounded-lg overflow-hidden flex items-center justify-center">
+              <div className="flex flex-col gap-3">
+                {/* Job Cards */}
+                {filteredJobs.map((job) => (
+                  <div
+                    key={job.saved_job_id}
+                    onClick={() => handleSelectJob(job)}
+                    className={`bg-white dark:bg-gray-900 rounded-xl border transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1 border-gray-200 dark:border-gray-700 p-3 flex gap-3 items-center ${
+                      selectedJob?.saved_job_id === job.saved_job_id ? 'ring-2 ring-blue-400 border-blue-500' : ''
+                    }`}
+                  >
+                    <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
                       <img
-                        src={job.companyImage || "http://bit.ly/4ib59B1"}
+                        src={job.companyImage || 'http://bij.ly/4ib59B1'}
                         alt={job.job_title}
-                        className="w-full h-full object-contain p-1 sm:p-2"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                          padding: "8px",
-                        }}
+                        className="w-full h-full object-contain p-2"
                       />
                     </div>
-                    {/* Job Info */}
-                    <div className="flex-1">
-                      <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {job.job_title}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                        {job.country} • {job.city_municipality}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                        {job.job_type} • {job.experience_level}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                        💰 {job.estimated_salary_from} - {job.estimated_salary_to}
-                      </div>
-                      {/* Posted By Employer */}
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {"Posted By: " + (job.employer?.full_name || "N/A")}
-                      </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{job.job_title}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{job.country} • {job.city_municipality}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">{job.job_type} • {job.experience_level}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">💰 {formatSalary(job.estimated_salary_from)} - {formatSalary(job.estimated_salary_to)}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">🏢 {job.employer?.company_name ?? 'Unknown Company'}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">👤 {job.employer?.full_name ?? 'N/A'}</div>
                     </div>
-                    {/* Remove Button */}
-                    <button
-                      className="text-red-500 hover:text-red-700 self-start text-base sm:text-lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFromSaved(job.employer_jobpost_id);
-                      }}
-                    >
-                      ✕
-                    </button>
+                    {appliedJobIds.includes(job.employer_jobpost_id) && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
+                        Applied
+                      </span>
+                    )}
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
           </div>
-        </div>        
-        {/* Job Details Section - Matching JobView.js */}          {/* Job Details - Desktop View */}
+        </div>
+
+        {/* Desktop Job View */}
         {selectedJob && (
-          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
-            <SavedJobsView job={selectedJob} onClose={() => setSelectedJob(null)} />
+          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 sticky top-4">
+            <SavedJobsView 
+              job={selectedJob} 
+              onClose={() => setSelectedJob(null)} 
+              onRemoveSaved={() => handleRemoveFromSaved(selectedJob.saved_job_id)}
+              isApplied={appliedJobIds.includes(selectedJob.employer_jobpost_id)}
+              onApply={() => handleApplyJob(selectedJob.employer_jobpost_id)}
+              onJobStatusChanged={loadAppliedJobs}
+            />
           </div>
         )}
 
-        {/* Job Details - Mobile Modal View */}
+        {/* Mobile Job View */}
         {selectedJob && (
-          <div className="lg:hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute inset-0" onClick={() => setSelectedJob(null)} />
-              <div className="absolute inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0">
-                <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
-                  <div className="absolute right-4 top-4 z-10">
-                    <button
-                      onClick={() => setSelectedJob(null)}
-                      className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <SavedJobsView job={selectedJob} onClose={() => setSelectedJob(null)} isMobile={true} />
-                </div>
-              </div>
+          <div className="lg:hidden fixed inset-0 z-[9999]">
+            <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setSelectedJob(null)} />
+            <div className="absolute inset-0 pointer-events-none">
+              <SavedJobsView
+                job={selectedJob}
+                isMobile={true}
+                onClose={() => setSelectedJob(null)}
+                onRemoveSaved={() => handleRemoveFromSaved(selectedJob.saved_jobpost_id)}
+                isApplied={appliedJobIds.includes(selectedJob.employer_jobpost_id)}
+                onApply={() => handleApplyJob(selectedJob.employer_jobpost_id)}
+                onJobStatusChanged={loadAppliedJobs}
+              />
             </div>
           </div>
         )}

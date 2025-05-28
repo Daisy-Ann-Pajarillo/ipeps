@@ -84,29 +84,14 @@ const JobSearch = ({ isCollapsed }) => {
             auth: { username: auth.token },
           });
 
-          console.log("🔍 Full API Response:", response.data);
-
-          if (
-            response.data &&
-            Array.isArray(response.data.job_postings)
-          ) {
+          if (response.data && Array.isArray(response.data.job_postings)) {
             const jobsData = response.data.job_postings;
-
-            console.log("📋 Jobs Data:", jobsData);
-
-            // Extract full_name from the API response
-            const fullName =
-              response.data.full_name || "Unknown Company";
-
-            console.log("👤 Employer Full Name:", fullName);
-            console.log("🏢 Employer Raw Array:", response.data.employer);
-
-            setEmployerName(fullName);
             setJobs(jobsData);
 
-            if (jobsData.length > 0 && !selectedJob) {
+            // Only auto-select first job on desktop
+            const isDesktop = window.innerWidth >= 1024; // 1024px is the 'lg' breakpoint
+            if (jobsData.length > 0 && !selectedJob && isDesktop) {
               setSelectedJob(jobsData[0]);
-              console.log("✅ Default selected job set:", jobsData[0]);
             }
           } else {
             setJobs([]);
@@ -222,9 +207,11 @@ const JobSearch = ({ isCollapsed }) => {
   }, []);
 */}
   return (
-    <div className="min-h-screen w-full">
-      <ToastContainer />      {/* Modern Thin Header */}
-      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
+    <div className="min-h-screen w-full flex flex-col">
+      <ToastContainer />
+      
+      {/* Modern Thin Header - flex-shrink-0 */}
+      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20 flex-shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
             <TravelExploreOutlinedIcon className="h-6 w-6 text-blue-700 dark:text-blue-300" />
@@ -236,12 +223,12 @@ const JobSearch = ({ isCollapsed }) => {
         </div>
         <div className="flex flex-col items-end">
           <span className="text-lg font-semibold text-gray-900 dark:text-white">{filteredJobs.length}</span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">Available Jobs</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Jobs Found</span>
         </div>
       </header>
 
-      {/* Unified Filter/Search Row */}
-      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e]">
+      {/* Search Bar Section - flex-shrink-0 */}
+      <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-2 py-4 bg-[#1a237e] flex-shrink-0">
         <div className="flex flex-row items-center bg-gray-100 dark:bg-gray-800/50 border border-gray-200/20 dark:border-gray-700/50 rounded-full shadow-none h-10 w-full max-w-xl">
           <span className="pl-3 pr-1 text-gray-400 dark:text-gray-300 flex items-center">
             <SearchIcon />
@@ -286,18 +273,18 @@ const JobSearch = ({ isCollapsed }) => {
         </select>
       </div>
 
-      {/* Main Content Layout */}
-      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
+      {/* Main Content Layout - flex-1 with overflow */}
+      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto flex-1 overflow-hidden">
         {/* Applications List */}
         <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
           <div className="flex justify-between items-center mb-2 px-1">
-
-            {/*    <Typography variant="subtitle1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+            <Typography variant="subtitle2" className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
               {filteredJobs.length} jobs found
-            </Typography>*/}
-
+            </Typography>
           </div>
-          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{ maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedJob ? '10px' : '0' }}>
+          
+          {/* Jobs List with Scroll */}
+          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{ height: 'calc(100vh - 180px)' }}>
             {isLoading ? (
               <div className="flex flex-col justify-center items-center h-40 gap-2">
                 <img
@@ -355,29 +342,49 @@ const JobSearch = ({ isCollapsed }) => {
 
         {/* Job Details - Desktop View */}
         {selectedJob && (
-          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
+          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 sticky top-4">
             <JobView job={selectedJob} onClose={() => setSelectedJob(null)} />
           </div>
         )}
 
         {/* Job Details - Mobile Modal View */}
         {selectedJob && (
-          <div className="lg:hidden fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute inset-0" onClick={() => setSelectedJob(null)} />
-              <div className="absolute inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0">
-                <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
-                  <div className="absolute right-4 top-4 z-10">
-                    <button
-                      onClick={() => setSelectedJob(null)}
-                      className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+          <div 
+            className="lg:hidden fixed inset-0 z-[9999]"
+          >
+            <div 
+              className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"
+              style={{ 
+                position: 'fixed', 
+                zIndex: Number.MAX_SAFE_INTEGER,
+                pointerEvents: 'auto'
+              }}
+            >
+              <div className="fixed inset-0 overflow-hidden">
+                <div className="fixed inset-0" onClick={() => setSelectedJob(null)} />
+                <div 
+                  className="fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0"
+                  style={{ 
+                    zIndex: Number.MAX_SAFE_INTEGER,
+                    pointerEvents: 'auto'
+                  }}
+                >
+                  <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
+                    <div 
+                      className="absolute right-4 top-4"
+                      style={{ zIndex: 999999999 }}
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                      <button
+                        onClick={() => setSelectedJob(null)}
+                        className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <JobView job={selectedJob} onClose={() => setSelectedJob(null)} isMobile={true} />
                   </div>
-                  <JobView job={selectedJob} onClose={() => setSelectedJob(null)} isMobile={true} />
                 </div>
               </div>
             </div>

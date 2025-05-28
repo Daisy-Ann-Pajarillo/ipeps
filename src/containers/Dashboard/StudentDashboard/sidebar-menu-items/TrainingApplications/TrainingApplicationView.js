@@ -1,32 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Typography, Button, Divider } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import SchoolIcon from "@mui/icons-material/School";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import WorkIcon from "@mui/icons-material/Work";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import ComputerIcon from "@mui/icons-material/Computer";
 import logoNav from '../../../../Home/images/logonav.png';
 
-const styles = `
-  @keyframes pulse-zoom {
-    0% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); opacity: 0.8; }
-  }
-  .loading-logo {
-    animation: pulse-zoom 1.5s ease-in-out infinite;
-  }
-`;
-
-const TrainingApplicationView = ({ training, onWithdraw, isLoading }) => {
-  // Add styles to document
-  useEffect(() => {
-    const styleSheet = document.createElement("style");
-    styleSheet.innerText = styles;
-    document.head.appendChild(styleSheet);
-    return () => styleSheet.remove();
-  }, []);
-
+const TrainingApplicationView = ({ training, onWithdraw, isLoading, isMobile = false }) => {
   if (isLoading) {
     return (
       <div className="flex flex-col justify-center items-center h-full gap-4">
@@ -43,28 +23,32 @@ const TrainingApplicationView = ({ training, onWithdraw, isLoading }) => {
   }
 
   return (
-    <div className={`bg-white dark:bg-gray-900 h-[85vh] w-full`}>
-      {/* Header Section */}
-      <div className="pt-12 px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700">
+    <div className={`flex flex-col bg-white dark:bg-gray-900 ${
+      isMobile 
+        ? 'h-[85vh] w-full' 
+        : 'rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg sm:shadow-xl h-[calc(100vh-180px)] w-full'
+    }`}>
+      {/* Header Section - flex-shrink-0 */}
+      <div className={`flex-shrink-0 ${isMobile ? 'pt-12' : ''} px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">            
-          <div className="flex gap-2 sm:gap-3">            
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 dark:bg-gray-800 rounded-md sm:rounded-lg overflow-hidden">
+          <div className="flex gap-2 sm:gap-3 min-w-0">
+            <div className={`${isMobile ? 'w-16 h-16' : 'w-10 h-10'} sm:w-20 sm:h-20 bg-gray-100 dark:bg-gray-800 rounded-md sm:rounded-lg overflow-hidden flex-shrink-0`}>
               <img
                 src={training.providerImage || "http://bij.ly/4ib59B1"}
-                alt={training.training_title}
+                alt={training.provider || training.training_title}
                 className="w-full h-full object-contain p-1 sm:p-2"
               />
             </div>            
-            <div className="flex flex-col justify-center min-h-[80px]">
+            <div className="flex flex-col justify-center min-w-0">
               <Typography 
                 variant="h5" 
-                className="font-bold text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-2"
+                className="font-bold text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-2 truncate"
               >
                 {training.training_title}
               </Typography>
               <Typography 
                 variant="body1" 
-                className="text-gray-600 dark:text-gray-400 text-sm sm:text-base"
+                className="text-gray-600 dark:text-gray-400 text-sm sm:text-base truncate"
               >
                 {training.provider}
               </Typography>
@@ -73,34 +57,22 @@ const TrainingApplicationView = ({ training, onWithdraw, isLoading }) => {
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="p-3 sm:p-4 md:p-6 overflow-y-auto h-[calc(100%-180px)]">
+      {/* Content Section - flex-1 and overflow-y-auto */}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
         {/* Training Details Section */}
         <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
             <LocationOnIcon fontSize="small" />
-            <span>{training.city_municipality}, {training.country}</span>
+            <span>{training.city_municipality}</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <ComputerIcon fontSize="small" />
+            <WorkIcon fontSize="small" />
             <span>{training.training_type || "Not specified"}</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
             <SchoolIcon fontSize="small" />
             <span>{training.experience_level || "Not specified"}</span>
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <AccessTimeIcon fontSize="small" />
-            <span>Duration: {training.duration || "Not specified"}</span>
-          </div>
-          {training.no_of_slots && (
-            <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span>Slots: {training.no_of_slots}</span>
-            </div>
-          )}
           {training.expiration_date && (
             <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
               <CalendarTodayIcon fontSize="small" />
@@ -118,37 +90,18 @@ const TrainingApplicationView = ({ training, onWithdraw, isLoading }) => {
         <Typography variant="body2" className="text-gray-600 dark:text-gray-300 whitespace-pre-line mb-4 sm:mb-6 text-xs sm:text-base">
           {training.training_description}
         </Typography>
-
-        {/* Learning Outcomes Section */}
-        {training.learning_outcomes && (
-          <>
-            <Typography variant="h6" className="font-semibold mb-2 sm:mb-3 text-gray-900 dark:text-white text-base sm:text-lg">
-              Learning Outcomes
-            </Typography>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {training.learning_outcomes.split(",").map((outcome, index) => (
-                <span
-                  key={index}
-                  className="text-purple-700 dark:text-purple-300 text-xs sm:text-sm bg-purple-50 dark:bg-purple-900/30 rounded-full px-3 py-1"
-                >
-                  {outcome.trim()}
-                </span>
-              ))}
-            </div>
-          </>
-        )}
       </div>
 
-      {/* Footer Action */}
-      <div className="sticky bottom-0 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      {/* Footer Action - flex-shrink-0 */}
+      <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <Button
           variant="contained"
           fullWidth
           onClick={onWithdraw}
           disabled={isLoading}
-          className={`h-12 rounded-xl font-semibold text-sm bg-red-600 hover:bg-red-700 mb-safe`}
+          className={`h-12 rounded-xl font-semibold text-sm bg-red-600 hover:bg-red-700 ${isMobile ? 'mb-safe' : ''}`}
         >
-          {isLoading ? 'Processing...' : 'Withdraw Application'}
+          {isLoading ? 'Loading...' : 'Withdraw Application'}
         </Button>
       </div>
     </div>
