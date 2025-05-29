@@ -288,7 +288,7 @@ const SavedTrainings = () => {
       <div className="w-full max-w-[1800px] mx-auto">
         <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2">
           {/* Training List */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
             <div className="flex flex-col gap-3 h-[calc(100vh-180px)] overflow-y-auto lg:pr-4">
               {isLoading ? (
                 <div className="flex flex-col justify-center items-center h-40 gap-2">
@@ -365,32 +365,51 @@ const SavedTrainings = () => {
 
           {/* Desktop View */}
           {selectedTraining && (
-            <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0">
-              <div className="sticky top-4">
-                <SavedTrainingsView 
-                  training={selectedTraining} 
-                  onEnroll={() => handleEnroll(selectedTraining.training_id)}
-                  onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
-                  isEnrolled={enrolledTrainings[selectedTraining.training_id]}
-                  isLoading={isLoading}
-                  isMobile={false}
-                />
-              </div>
+            <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8 order-first lg:order-none">
+              <SavedTrainingsView 
+                training={selectedTraining} 
+                onEnroll={() => handleEnroll(selectedTraining.training_id)}
+                onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
+                isEnrolled={enrolledTrainings[selectedTraining.training_id]}
+                isLoading={isLoading}
+                isMobile={false}
+              />
             </div>
           )}
 
           {/* Mobile View */}
           {selectedTraining && (
             <div 
-              className="lg:hidden fixed inset-0 z-50"
-              style={{ isolation: 'isolate' }}
+              className="lg:hidden fixed inset-0" 
+              style={{ 
+                position: 'fixed', 
+                zIndex: Number.MAX_SAFE_INTEGER,
+                isolation: 'isolate',
+                pointerEvents: 'auto'
+              }}
             >
-              <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm">
+              <div 
+                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"
+                style={{ 
+                  position: 'fixed', 
+                  zIndex: Number.MAX_SAFE_INTEGER,
+                  pointerEvents: 'auto'
+                }}
+              >
                 <div className="fixed inset-0 overflow-hidden">
                   <div className="fixed inset-0" onClick={() => setSelectedTraining(null)} />
-                  <div className="fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0">
+                  <div 
+                    className="fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0"
+                    style={{ 
+                      zIndex: Number.MAX_SAFE_INTEGER,
+                      pointerEvents: 'auto'
+                    }}
+                  >
                     <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
-                      <div className="absolute right-4 top-4 z-50">
+                      <div 
+                        className="absolute right-4 top-4"
+                        style={{ zIndex: 999999999 }}
+                      >
                         <button
                           onClick={() => setSelectedTraining(null)}
                           className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
@@ -402,8 +421,12 @@ const SavedTrainings = () => {
                       </div>
                       <SavedTrainingsView 
                         training={selectedTraining}
-                        onClose={() => setSelectedTraining(null)}
+                        onEnroll={() => handleEnroll(selectedTraining.training_id)}
+                        onRemoveSaved={() => handleRemoveFromSaved(selectedTraining)}
+                        isEnrolled={enrolledTrainings[selectedTraining.training_id]}
+                        isLoading={isLoading}
                         isMobile={true}
+                        onClose={() => setSelectedTraining(null)}
                       />
                     </div>
                   </div>
