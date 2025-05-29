@@ -1,17 +1,83 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
-import {Box, Typography, Paper, Grid, Avatar, Chip, Button, CircularProgress} from "@mui/material";
-import { useSelector } from 'react-redux';
-
 import {
-    School, Work, EmojiEvents, 
-    LocationOn, ArrowForward, Verified
+    Typography, 
+    Button, 
+    CircularProgress, 
+    IconButton, 
+    Badge, 
+    Menu, 
+    MenuItem,
+    Divider, 
+    Avatar,
+    Grid,
+    Paper,
+    Box,
+} from "@mui/material";
+import {
+    ChevronLeft as ChevronLeftIcon,
+    ChevronRight as ChevronRightIcon,
+    KeyboardArrowDown as KeyboardArrowDownIcon,
+    Facebook as FacebookIcon,
+    Notifications as NotificationsIcon,
+    Work as WorkIcon,
+    School as SchoolIcon,
+    EmojiEvents as EmojiEventsIcon,
+    ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
-
-import { tokens } from "../../../theme";
-import DashboardHeader from './DashboardHeader';
+import { useSelector } from 'react-redux';
 import axios from '../../../../../axios';
+import { tokens } from '../../../theme';
+
+// Add loading animation styles
+const styles = `
+  @keyframes pulse-zoom {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+  }
+  .loading-logo {
+    animation: pulse-zoom 1.5s ease-in-out infinite;
+  }
+`;
+
+// Update portal slides with instructions
+const portalSlides = [
+  {
+    title: "Create Job Postings",
+    description: "Click on 'Job Posting' in the sidebar menu. Fill in job details including title, description, requirements, and benefits. Review and publish to make it visible to job seekers.",
+    image: "https://example.com/job-posting-guide.jpg", // Replace with actual image
+    actionText: "Create Job Posting",
+    actionPath: "/dashboard/job-posting"
+  },
+  {
+    title: "Manage Training Programs",
+    description: "Access 'Training Posting' to create and manage training opportunities. Specify program details, duration, and requirements. Track enrollments and manage participants.",
+    image: "https://example.com/training-guide.jpg", // Replace with actual image
+    actionText: "Create Training",
+    actionPath: "/dashboard/training-posting"
+  },
+  {
+    title: "Post Scholarships",
+    description: "Use the 'Scholarship Posting' section to create scholarship opportunities. Define eligibility criteria, funding details, and application deadlines.",
+    image: "https://example.com/scholarship-guide.jpg", // Replace with actual image
+    actionText: "Create Scholarship",
+    actionPath: "/dashboard/scholarship-posting"
+  },
+  {
+    title: "Track Applications",
+    description: "Monitor and manage all applications through your dashboard. Review candidate profiles, schedule interviews, and track hiring progress.",
+    image: "https://example.com/track-guide.jpg", // Replace with actual image
+    actionText: "View Applications",
+    actionPath: "/dashboard/applications"
+  },
+];
+
+// Helper function for relative time
+const getRelativeTimeString = (date) => {
+  // ...existing time calculation code...
+};
 
 const Dashboard = ({ isCollapsed }) => {
     const theme = useTheme();
@@ -29,23 +95,40 @@ const Dashboard = ({ isCollapsed }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
+    // Slideshow state
+    const [slideIdx, setSlideIdx] = useState(0);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [openAnnouncement, setOpenAnnouncement] = useState(null);
+    
     // Fetch counts on component mount
     useEffect(() => {
         const fetchCounts = async () => {
             setLoading(true);
             try {
-                const response = await axios.get('/api/public/all-postings', {
+                // Get job postings count
+                const jobsResponse = await axios.get('/api/get-job-postings', {
                     auth: { username: auth.token }
                 });
                 
-                // Extract counts from the response
-                if (response.data) {
-                    setCounts({
-                        jobs: response.data.job_postings?.data?.length || 0,
-                        trainings: response.data.training_postings?.data?.length || 0,
-                        scholarships: response.data.scholarship_postings?.data?.length || 0
-                    });
-                }
+                // Get training postings count
+                const trainingsResponse = await axios.get('/api/get-training-postings', {
+                    auth: { username: auth.token }
+                });
+                
+                // Get scholarship postings count
+                const scholarshipsResponse = await axios.get('/api/get-scholarship-postings', {
+                    auth: { username: auth.token }
+                });
+                
+                // Set the counts based on the employer's own postings
+                setCounts({
+                    jobs: jobsResponse.data.job_postings?.length || 0,
+                    trainings: trainingsResponse.data.training_postings?.length || 0,
+                    scholarships: scholarshipsResponse.data.scholarship_postings?.length || 0
+                });
+                
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching posting counts:', err);
@@ -56,6 +139,40 @@ const Dashboard = ({ isCollapsed }) => {
         
         if (auth && auth.token) {
             fetchCounts();
+        }
+    }, [auth.token]);
+    
+    // Slideshow effect
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSlideIdx((prev) => (prev + 1) % portalSlides.length);
+        }, 3500);
+        return () => clearTimeout(timer);
+    }, [slideIdx]);
+    
+    // Add styles to document
+    useEffect(() => {
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = styles;
+        document.head.appendChild(styleSheet);
+        return () => styleSheet.remove();
+    }, []);
+    
+    // Fetch announcements
+    const fetchAnnouncements = async () => {
+        try {
+            const response = await axios.get("/api/get-announcements", {
+                auth: { username: auth.token },
+            });
+            setNotifications(response.data.announcements);
+        } catch (error) {
+            console.error("Error fetching announcements:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (auth.token) {
+            fetchAnnouncements();
         }
     }, [auth.token]);
     
@@ -80,7 +197,7 @@ const Dashboard = ({ isCollapsed }) => {
         {
             id: 'jobs',
             title: 'Job Postings',
-            icon: <Work fontSize="large" />,
+            icon: <WorkIcon fontSize="large" />,
             count: counts.jobs,
             color: '#002763',
             path: '/dashboard/employer/job-postings'
@@ -88,7 +205,7 @@ const Dashboard = ({ isCollapsed }) => {
         {
             id: 'trainings',
             title: 'Training Postings',
-            icon: <EmojiEvents fontSize="large" />,
+            icon: <EmojiEventsIcon fontSize="large" />,
             count: counts.trainings,
             color: '#7E57C2',
             path: '/dashboard/employer/training-postings'
@@ -96,7 +213,7 @@ const Dashboard = ({ isCollapsed }) => {
         {
             id: 'scholarships',
             title: 'Scholarship Postings',
-            icon: <School fontSize="large" />,
+            icon: <SchoolIcon fontSize="large" />,
             count: counts.scholarships,
             color: '#FF7043',
             path: '/dashboard/employer/scholarship-postings'
@@ -104,43 +221,111 @@ const Dashboard = ({ isCollapsed }) => {
     ];
     
     return (
-        <Box>
-            {/* Header with search and announcements */}
-            <DashboardHeader isCollapsed={isCollapsed} />
+        <div className="min-h-screen w-full bg-gradient-to-br from-[#e0e7ef] to-[#f8fafc] dark:from-gray-900 dark:to-gray-800">
+            {/* Hero Section */}
+            <section className="w-full flex flex-col items-center justify-center bg-gradient-to-r from-blue-800 via-blue-600 to-blue-400 dark:from-blue-900 dark:to-blue-700 py-24 px-4 shadow-lg relative overflow-hidden">
+                {/* Hero content similar to Home.js but customized for employers */}
+                <div className="max-w-6xl w-full flex flex-col items-center text-center z-10">
+                    <Typography variant="h2" className="font-extrabold text-xl sm:text-3xl md:text-5xl lg:text-7xl text-white mb-4 sm:mb-6 drop-shadow-lg tracking-tight">
+                        Employer Dashboard
+                    </Typography>
+                    <Typography variant="h5" className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-blue-100 mb-6 sm:mb-10 font-medium">
+                        Manage your postings and connect with Students and Job Seekers
+                    </Typography>
+                    {/* Action buttons */}
+                    <div className="flex flex-wrap gap-4 sm:gap-6 mt-2 sm:mt-4 justify-center">
+                        {/* ...action buttons... */}
+                    </div>
+                </div>
+                {/* Decorative elements */}
+                <div className="absolute top-0 left-0 w-72 h-72 bg-blue-300 opacity-30 rounded-full -z-1 blur-2xl" />
+                <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-800 opacity-20 rounded-full -z-1 blur-2xl" />
+                <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-blue-200 opacity-10 rounded-full -z-1 blur-3xl" style={{ transform: "translate(-50%, -50%)" }} />
+            </section>
 
-            {/* Main content area */}
-            <Box
-                sx={{
-                    position: 'fixed',
-                    top: headerHeight,
-                    left: isCollapsed ? '80px' : '250px',
-                    right: 0,
-                    bottom: 0,
-                    transition: 'left 0.3s',
-                    overflowY: 'auto',
-                    p: 3,
-                    backgroundColor: '#f5f5f5'
-                }}
-            >
-                {/* Welcome Section */}
-                <Box sx={{ mb: 4, mt: 2 }}>
+            {/* Notifications Header */}
+            {/* ...copy notification header from Home.js... */}
+
+            {/* Main Content */}
+            <div className="w-full max-w-7xl mx-auto px-4 py-8">
+                {/* Instructions Slideshow Section */}
+                <section className="w-full flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 
+                  bg-white dark:bg-gray-900 rounded-2xl md:rounded-3xl shadow-xl md:shadow-2xl 
+                  border border-blue-100 dark:border-blue-900 
+                  p-6 md:p-12 mt-[-30px] md:mt-[-60px] z-10">
+                  
+                  {/* Text Content */}
+                  <div className="flex-1 flex flex-col items-start justify-center w-full">
                     <Typography 
-                        variant="h4" 
-                        fontWeight="700" 
-                        sx={{ color: '#002763' }}
+                      variant="h4" 
+                      className="font-bold text-xl md:text-2xl text-blue-700 mb-3 md:mb-4"
                     >
-                        Welcome to Your Dashboard
+                      Quick Start Guide
                     </Typography>
-                    <Typography 
-                        variant="body1" 
-                        sx={{ mt: 1, color: 'text.secondary', maxWidth: '800px' }}
-                    >
-                        Manage your job, training, and scholarship postings from one convenient place.
-                        Use the search bar above to quickly find specific postings.
-                    </Typography>
-                </Box>
-                
-                {/* Summary Cards */}
+                    
+                    <div className="w-full flex flex-col items-start">
+                      <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 w-full">
+                        <button
+                          className="rounded-full bg-blue-100 text-blue-700 p-1 md:px-3 md:py-1 text-base md:text-lg font-bold shadow hover:bg-blue-200 transition"
+                          onClick={() => setSlideIdx((slideIdx - 1 + portalSlides.length) % portalSlides.length)}
+                        >
+                          <ChevronLeftIcon fontSize="small" />
+                        </button>
+                        
+                        <div className="flex-1">
+                          <Typography className="text-base md:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            {portalSlides[slideIdx].title}
+                          </Typography>
+                          <Typography className="text-sm md:text-base text-gray-600 dark:text-gray-400">
+                            {portalSlides[slideIdx].description}
+                          </Typography>
+                        </div>
+                        
+                        <button
+                          className="rounded-full bg-blue-100 text-blue-700 p-1 md:px-3 md:py-1 text-base md:text-lg font-bold shadow hover:bg-blue-200 transition"
+                          onClick={() => setSlideIdx((slideIdx + 1) % portalSlides.length)}
+                        >
+                          <ChevronRightIcon fontSize="small" />
+                        </button>
+                      </div>
+
+                      <Button
+                        variant="contained"
+                        onClick={() => navigate(portalSlides[slideIdx].actionPath)}
+                        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-full"
+                      >
+                        {portalSlides[slideIdx].actionText}
+                      </Button>
+                      
+                      <div className="flex gap-1.5 md:gap-2 mt-4 justify-center w-full">
+                        {portalSlides.map((_, idx) => (
+                          <span
+                            key={`slide-indicator-${idx}`}
+                            className={`inline-block w-2 md:w-3 h-2 md:h-3 rounded-full transition-all duration-300 
+                              ${slideIdx === idx ? "bg-blue-600" : "bg-blue-200"}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Image Section */}
+                  <div className="flex-1 flex justify-center items-center w-full mt-4 md:mt-0">
+                    <img
+                      src={portalSlides[slideIdx].image}
+                      alt={portalSlides[slideIdx].title}
+                      className="rounded-xl md:rounded-2xl shadow-lg md:shadow-xl 
+                        w-full md:w-[420px] h-48 md:h-72 object-cover 
+                        border-2 md:border-4 border-blue-200 transition-all duration-500"
+                      style={{ 
+                        maxWidth: '100%',
+                        minHeight: 160
+                      }}
+                    />
+                  </div>
+                </section>
+
+                {/* Summary Cards Section */}
                 <Grid container spacing={3}>
                     {loading ? (
                         <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -225,7 +410,7 @@ const Dashboard = ({ isCollapsed }) => {
                                     
                                     <Button 
                                         variant="text" 
-                                        endIcon={<ArrowForward />}
+                                        endIcon={<ArrowForwardIcon />}
                                         sx={{ 
                                             mt: 'auto', 
                                             alignSelf: 'flex-start',
@@ -241,8 +426,8 @@ const Dashboard = ({ isCollapsed }) => {
                     )}
                 </Grid>
                 
-                {/* Recent Activity Section - placeholder for future enhancement */}
-                <Box sx={{ mt: 4 }}>
+                {/* Recent Activity Section */}
+        {/*         <Box sx={{ mt: 4 }}>
                     <Typography variant="h5" fontWeight="700" sx={{ mb: 2, color: '#002763' }}>
                         Recent Activity
                     </Typography>
@@ -259,9 +444,26 @@ const Dashboard = ({ isCollapsed }) => {
                             Your recent activities will appear here
                         </Typography>
                     </Paper>
-                </Box>
-            </Box>
-        </Box>
+                </Box>*/}
+            </div>
+
+            {/* Footer */}
+            <footer className="w-full bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 mt-20">
+                <div className="max-w-7xl mx-auto px-6 py-8">
+                    <div className="text-center">
+                        <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
+                            © {new Date().getFullYear()} PESO ILOILO. All rights reserved.
+                        </Typography>
+                        <Typography variant="caption" className="text-gray-500 dark:text-gray-500 mt-1 block">
+                            A project of the Provincial Government of Iloilo
+                        </Typography>
+                        <Typography variant="caption" className="text-gray-400 dark:text-gray-600 mt-1 block">
+                            peso@iloilo.gov.ph
+                        </Typography>
+                    </div>
+                </div>
+            </footer>
+        </div>
     );
 };
 

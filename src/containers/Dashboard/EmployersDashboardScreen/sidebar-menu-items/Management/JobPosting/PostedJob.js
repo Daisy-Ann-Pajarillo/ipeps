@@ -24,7 +24,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTheme } from "@mui/material";
-
+import TravelExploreOutlinedIcon from '@mui/icons-material/TravelExploreOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 
 // Function to map status to MUI color
 const getStatusColor = (status) => {
@@ -59,6 +60,11 @@ const PostedJob = ({ createJobOpen }) => {
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showApplicantDetails, setShowApplicantDetails] = useState(false);
   const [openDetailDialog, setOpenDetailDialog] = useState(false);
+  const [query, setQuery] = useState("");
+  const [sortBy, setSortBy] = useState("");
+  const [jobType, setJobType] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("");
+  const [filteredJobs, setFilteredJobs] = useState([]);
 
 
   // setup auth, retrieving the token from local storage
@@ -282,793 +288,193 @@ const PostedJob = ({ createJobOpen }) => {
   };
 
 
+  // Filter and sort jobs
+  useEffect(() => {
+    let updatedJobs = [...jobs];
+
+    // Text search filter
+    if (query) {
+      updatedJobs = updatedJobs.filter(
+        (j) =>
+          j.job_title?.toLowerCase().includes(query.toLowerCase()) ||
+          j.job_description?.toLowerCase().includes(query.toLowerCase()) ||
+          j.city_municipality?.toLowerCase().includes(query.toLowerCase()) ||
+          j.country?.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    // Job type filter
+    if (jobType) {
+      updatedJobs = updatedJobs.filter((j) => j.job_type === jobType);
+    }
+
+    // Experience level filter
+    if (experienceLevel) {
+      updatedJobs = updatedJobs.filter((j) => j.experience_level === experienceLevel);
+    }
+
+    // Sort options
+    if (sortBy === "Most Recent") {
+      updatedJobs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (sortBy === "Salary") {
+      updatedJobs.sort((a, b) => (b.estimated_salary_from || 0) - (a.estimated_salary_from || 0));
+    }
+
+    setFilteredJobs(updatedJobs);
+  }, [jobs, query, jobType, experienceLevel, sortBy]);
+
+
   return (
-    <Box sx={{ height: "100%", position: "relative", display: "flex", flexDirection: "column" }}>
-      <Box sx={{ height: "100%", position: "relative", display: "flex" }}>
-        <Box
-          sx={{
-            height: "100%",
-            overflowY: "auto",
-            p: 3,
-            width: detailsPanelOpen ? "calc(100% - 400px)" : "100%",
-            transition: "width 0.3s ease-in-out"
-          }}
-        >
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
-              Jobs Posted
-            </Typography>
-          </Box>
-          <Box
-            className={`p-6 grid gap-3 grid-cols-3`}
-          >
-            {jobs.map((job) => (
-              <Paper
-                key={job.id}
-                sx={{
-                  p: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  mb: 2,
-                  cursor: "pointer",
-                  '&:hover': {
-                    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-                  },
-                  height: "100%"
-                }}
-                onClick={() => handleViewDetails(job)}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                  <Avatar
-                    src={job.logo}
-                    alt={job.company || "Company"}
-                    sx={{ width: 56, height: 56, mr: 2 }}
-                  />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: "bold", mb: 0.5 }}>
-                      {job.job_title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">{job.company || "Company"}</Typography>
-                  </Box>
-                </Box>
-                <Typography variant="body2" color="text.secondary" sx={{
-                  mb: 2,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}>
-                  {job.job_description || "No description provided"}
-                </Typography>
-                <Box sx={{ mt: "auto" }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Vacancies: {job.no_of_vacancies || "Not specified"}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Expiration: {job.expiration_date || "Not specified"}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ display: "flex", alignItems: "center", mt: 1 }}
-                  >
-                    Status:
-                    <Button
-                      variant="contained"
-                      color={getStatusColor(job.status)}
-                      sx={{
-                        borderRadius: "4px",
-                        padding: "2px 8px",
-                        marginLeft: "8px",
-                        fontSize: "0.875rem",
-                        textTransform: "capitalize",
-                        lineHeight: "1.5",
-                        minWidth: "auto",
-                        height: "24px",
-                      }}
-                    >
-                      {job.status}
-                    </Button>
-                  </Typography>
-                </Box>
-              </Paper>
-            ))}
-          </Box>
-        </Box>
-        {/* Details Panel with slide animation */}
-        <Slide direction="left" in={detailsPanelOpen} mountOnEnter unmountOnExit>
-          <Box
-            sx={{
-              position: "absolute",
-              right: 0,
-              top: 0,
-              width: "400px",
-              height: "100%",
-              bgcolor: "background.paper",
-              boxShadow: "-4px 0 10px rgba(0,0,0,0.1)",
-              p: 3,
-              overflowY: "auto",
-              zIndex: 10,
-            }}
-          >
-            {selectedJob && (
-              <>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                  <Typography variant="h5" component="h2" sx={{ fontWeight: "bold" }}>
-                    {applicantsOpen ?
-                      (showApplicantDetails ? "Applicant Details" : "Job Applicants") :
-                      selectedJob.job_title}
-                  </Typography>
-                  <IconButton onClick={handleCloseDetails} size="small">
-                    <CloseIcon />
-                  </IconButton>
-                </Box>
-                <Divider sx={{ mb: 2 }} />
-                {/* Show job details when applicants section is closed */}
-                {!applicantsOpen && !showApplicantDetails && (
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Avatar
-                        src={selectedJob.logo}
-                        alt={selectedJob.company}
-                        sx={{ width: 80, height: 80, mr: 2 }}
-                      />
-                      <Box>
-                        <Typography variant="h6">{selectedJob.company}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {selectedJob.job_type} • {selectedJob.experience_level}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle2" color="text.secondary">Status</Typography>
-                      <Button
-                        variant="contained"
-                        color={getStatusColor(selectedJob.status)}
-                        sx={{
-                          borderRadius: "4px",
-                          padding: "2px 8px",
-                          fontSize: "0.875rem",
-                          textTransform: "capitalize",
-                          lineHeight: "1.5",
-                          minWidth: "auto",
-                        }}
-                      >
-                        {selectedJob.status}
-                      </Button>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle2" color="text.secondary">Vacancies Available</Typography>
-                      <Typography variant="body1">{selectedJob.no_of_vacancies}</Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle2" color="text.secondary">Salary Range</Typography>
-                      <Typography variant="body1">
-                        {selectedJob.estimated_salary_from} - {selectedJob.estimated_salary_to}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle2" color="text.secondary">Location</Typography>
-                      <Typography variant="body1">
-                        {selectedJob.city_municipality}, {selectedJob.country}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle2" color="text.secondary">Expiration</Typography>
-                      <Typography variant="body1">{selectedJob.expiration_date}</Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle2" color="text.secondary">Description</Typography>
-                      <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                        {selectedJob.job_description}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle2" color="text.secondary">Required Skills</Typography>
-                      <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                        {selectedJob.other_skills || "Not specified"}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Typography variant="subtitle2" color="text.secondary">Admin Remarks</Typography>
-                      <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                        {selectedJob.remarks || "Not specified"}
-                      </Typography>
-                    </Grid>
-                    {selectedJob.tech_voc_training && (
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary">Technical/Vocational Training</Typography>
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
-                          {selectedJob.tech_voc_training}
-                        </Typography>
-                      </Grid>
-                    )}
-                    {selectedJob.courses && selectedJob.courses.length > 0 && (
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>
-                          Training Courses
-                        </Typography>
-                        {selectedJob.courses.map((course, index) => (
-                          <Paper sx={{ p: 2, mb: 2 }} key={index}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                              {course.course_name}
-                            </Typography>
-                            <Typography variant="body2">
-                              Institution: {course.training_institution}
-                            </Typography>
-                            <Typography variant="body2">
-                              Certificate: {course.certificate_received}
-                            </Typography>
-                            <Typography variant="body2">
-                              Slots: {course.slots}
-                            </Typography>
-                          </Paper>
-                        ))}
-                      </Grid>
-                    )}
-                    <Grid item xs={12} sx={{ mt: 2 }}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        startIcon={<PersonIcon />}
-                        onClick={() => handleViewApplicants(selectedJob?.job_id)}
-                      >
-                        View Applicants
-                      </Button>
-                    </Grid>
-                  </Grid>
-                )}
-                {/* Show applicants section when opened */}
-                {applicantsOpen && !showApplicantDetails && (
-                  <>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                      <Typography variant="h6">
-                        Applicants ({jobApplicants.length})
-                      </Typography>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => setApplicantsOpen(false)}
-                      >
-                        Back to Details
-                      </Button>
-                    </Box>
-                    <Divider sx={{ mb: 2 }} />
-                    {jobApplicants.length === 0 ? (
-                      <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
-                        No applicants yet
-                      </Typography>
-                    ) : (
-                      <Box sx={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}>
-                        {jobApplicants.map((applicant) => (
-                          applicant.status !== "pending" && (
-                            <Paper
-                              key={applicant.id}
-                              sx={{
-                                p: 2,
-                                mb: 2,
-                                cursor: 'pointer',
-                                '&:hover': { boxShadow: 3 }
-                              }}
-                              onClick={() => handleViewApplicantDetails(applicant)}
-                            >
-                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar
-                                  src={applicant.profile_pic}
-                                  sx={{ width: 50, height: 50, mr: 2 }}
-                                >
-                                  {applicant.first_name?.[0] || 'A'}
-                                </Avatar>
-                                <Box>
-                                  <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                    {applicant.first_name} {applicant.last_name}
-                                  </Typography>
-                                  <Typography variant="body2" color="text.secondary">
-                                    Applied: {new Date(applicant.application_date).toLocaleDateString()}
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    Status:
-                                    <Button
-                                      size="small"
-                                      color={
-                                        applicant.status === 'hired' ? 'success' :
-                                          applicant.status === 'rejected' ? 'error' : 'primary'
-                                      }
-                                      sx={{ ml: 1, textTransform: 'capitalize', pointerEvents: 'none' }}
-                                    >
-                                      {applicant.status || 'Pending'}
-                                    </Button>
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            </Paper>
-                          )
-                        ))}
-                      </Box>
-                    )}
-                  </>
-                )}
-                {/* Individual applicant details */}
-                {showApplicantDetails && selectedApplicant && (
-                  <>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                      <Typography variant="h6">
-                        Application Review
-                      </Typography>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => setShowApplicantDetails(false)}
-                      >
-                        Back to Applicants
-                      </Button>
-                    </Box>
-                    <Divider sx={{ mb: 3 }} />
-                    <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <Avatar
-                        src={selectedApplicant.profile_pic}
-                        sx={{ width: 100, height: 100, mb: 2 }}
-                      >
-                        {selectedApplicant.first_name?.[0] || 'A'}
-                      </Avatar>
-                      <Typography variant="h6">
-                        {selectedApplicant.first_name} {selectedApplicant.last_name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {selectedApplicant.email}
-                      </Typography>
-                    </Box>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Phone</Typography>
-                        <Typography variant="body1">{selectedApplicant.phone_number || 'Not provided'}</Typography>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Typography variant="subtitle2" color="text.secondary">Location</Typography>
-                        <Typography variant="body1">
-                          {selectedApplicant?.location}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary">Education</Typography>
-                        <Typography variant="body1">
-                          {selectedApplicant.educational_background && selectedApplicant.educational_background.length > 0
-                            ? selectedApplicant.educational_background.map((edu, idx) =>
-                              `${edu.degree_or_qualification || ''}${edu.field_of_study ? ' in ' + edu.field_of_study : ''}${edu.school_name ? ', ' + edu.school_name : ''}`
-                            ).join('; ')
-                            : 'Not provided'}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary">Experience</Typography>
-                        <Typography variant="body1">
-                          {selectedApplicant.work_experiences && selectedApplicant.work_experiences.length > 0
-                            ? selectedApplicant.work_experiences.map((exp, idx) =>
-                              `${exp.position || ''}${exp.company_name ? ' at ' + exp.company_name : ''}`
-                            ).join('; ')
-                            : 'Not provided'}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography variant="subtitle2" color="text.secondary">Skills</Typography>
-                        <Typography variant="body1">
-                          {selectedApplicant.other_skills && selectedApplicant.other_skills.length > 0
-                            ? selectedApplicant.other_skills.map(skill => skill.skills).join(', ')
-                            : 'Not provided'}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Button
-                          variant="contained"
-                          color="primary"
-                          startIcon={<PersonIcon />}
-                          onClick={handleViewFullDetails}
-                          fullWidth
-                          sx={{ mt: 1 }}
-                        >
-                          View Full Detail of Applicant
-                        </Button>
-                      </Grid>
-                      <Grid item xs={12} sx={{ mt: 2 }}>
-                        <Divider sx={{ mb: 2 }} />
-                        <Typography variant="subtitle1" sx={{ mb: 2 }}>Application Status</Typography>
-                        {selectedApplicant.status !== 'hired' && selectedApplicant.status !== 'rejected' ? (
-                          <Box sx={{ display: 'flex', gap: 2 }}>
-                            <Button
-                              variant="contained"
-                              color="success"
-                              fullWidth
-                              onClick={() => handleHireApplicant(selectedApplicant.id)}
-                            >
-                              Hire Applicant
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              color="error"
-                              fullWidth
-                              onClick={() => handleRejectApplicant(selectedApplicant.id)}
-                            >
-                              Reject
-                            </Button>
-                          </Box>
-                        ) : (
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              textAlign: 'center',
-                              color: selectedApplicant.status === 'hired' ? 'success.main' : 'error.main',
-                              fontWeight: 'bold'
-                            }}
-                          >
-                            This applicant has been {selectedApplicant.status}
-                          </Typography>
-                        )}
-                      </Grid>
-                    </Grid>
-                  </>
-                )}
-              </>
-            )}
-          </Box>
-        </Slide>
-      </Box>
-      <Dialog
-        open={openDetailDialog}
-        onClose={handleCloseDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            Applicant Full Details
-            <IconButton onClick={handleCloseDialog}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>ABOUT</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Prefix</Typography>
-                <Typography>{selectedApplicant?.personal_information?.prefix || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">First Name</Typography>
-                <Typography>{selectedApplicant?.personal_information?.first_name || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Middle Name</Typography>
-                <Typography>{selectedApplicant?.personal_information?.middle_name || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Last Name</Typography>
-                <Typography>{selectedApplicant?.personal_information?.last_name || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Height</Typography>
-                <Typography>{selectedApplicant?.personal_information?.height || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Weight</Typography>
-                <Typography>{selectedApplicant?.personal_information?.weight || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Sex</Typography>
-                <Typography>{selectedApplicant?.personal_information?.sex || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Date of Birth</Typography>
-                <Typography>{selectedApplicant?.personal_information?.date_of_birth || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Place of Birth</Typography>
-                <Typography>{selectedApplicant?.personal_information?.place_of_birth || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Civil Status</Typography>
-                <Typography>{selectedApplicant?.personal_information?.civil_status || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Phone Number</Typography>
-                <Typography>{selectedApplicant?.personal_information?.cellphone_number || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Religion</Typography>
-                <Typography>{selectedApplicant?.personal_information?.religion || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Temporary Country</Typography>
-                <Typography>{selectedApplicant?.personal_information?.temporary_country || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Temporary Province</Typography>
-                <Typography>{selectedApplicant?.personal_information?.temporary_province || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Temporary Municipality</Typography>
-                <Typography>{selectedApplicant?.personal_information?.temporary_municipality || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Temporary Zip Code</Typography>
-                <Typography>{selectedApplicant?.personal_information?.temporary_zip_code || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Temporary Barangay</Typography>
-                <Typography>{selectedApplicant?.personal_information?.temporary_barangay || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Temporary House No./Street Village</Typography>
-                <Typography>{selectedApplicant?.personal_information?.temporary_house_no_street_village || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Permanent Country</Typography>
-                <Typography>{selectedApplicant?.personal_information?.permanent_country || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Permanent Province</Typography>
-                <Typography>{selectedApplicant?.personal_information?.permanent_province || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Permanent Municipality</Typography>
-                <Typography>{selectedApplicant?.personal_information?.permanent_municipality || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Permanent Zip Code</Typography>
-                <Typography>{selectedApplicant?.personal_information?.permanent_zip_code || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Permanent Barangay</Typography>
-                <Typography>{selectedApplicant?.personal_information?.permanent_barangay || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Permanent House No./Street Village</Typography>
-                <Typography>{selectedApplicant?.personal_information?.permanent_house_no_street_village || 'N/A'}</Typography>
-              </Grid>
-            </Grid>
-
-
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PREFERRED WORK LOCATION</Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Country</Typography>
-                <Typography>{selectedApplicant?.job_preference?.country || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Province</Typography>
-                <Typography>{selectedApplicant?.job_preference?.province || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Municipality/City</Typography>
-                <Typography>{selectedApplicant?.job_preference?.municipality || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Industry</Typography>
-                <Typography>{selectedApplicant?.job_preference?.industry || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Preferred Occupation</Typography>
-                <Typography>{selectedApplicant?.job_preference?.preferred_occupation || 'N/A'}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography color="text.secondary">Salary Range</Typography>
-                <Typography>
-                  {selectedApplicant?.job_preference?.salary_from || 'N/A'} - {selectedApplicant?.job_preference?.salary_to || 'N/A'}
-                </Typography>
-              </Grid>
-            </Grid>
-
-
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>EDUCATIONAL BACKGROUND</Typography>
-            {selectedApplicant?.educational_background?.map((edu, index) => (
-              //     <Paper key={index} sx={{ p: 2, mb: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">School Name</Typography>
-                  <Typography>{edu.school_name || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Field of Study</Typography>
-                  <Typography>{edu.field_of_study || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Degree/Qualification</Typography>
-                  <Typography>{edu.degree_or_qualification || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Program Duration</Typography>
-                  <Typography>{edu.program_duration ? `${edu.program_duration} years` : 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Date From</Typography>
-                  <Typography>{edu.date_from || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Date To</Typography>
-                  <Typography>{edu.date_to || 'N/A'}</Typography>
-                </Grid>
-              </Grid>
-              //     </Paper>
-            ))}
-
-
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>TRAININGS</Typography>
-            {selectedApplicant?.trainings?.map((training, index) => (
-              //      <Paper key={index} sx={{ p: 2, mb: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Training Title</Typography>
-                  <Typography>{training.course_name || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Training Institution</Typography>
-                  <Typography>{training.training_institution || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Skills Acquired</Typography>
-                  <Typography>{training.skills_acquired || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Hours of Training</Typography>
-                  <Typography>{training.hours_of_training || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Start Date</Typography>
-                  <Typography>{training.start_date ? new Date(training.start_date).toLocaleDateString() : 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">End Date</Typography>
-                  <Typography>{training.end_date ? new Date(training.end_date).toLocaleDateString() : 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Certificate Received</Typography>
-                  <Typography>{training.certificates_received || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Credential ID</Typography>
-                  <Typography>{training.credential_id || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography color="text.secondary">Credential URL</Typography>
-                  <Typography>
-                    {training.credential_url ? (
-                      <a href={training.credential_url} target="_blank" rel="noopener noreferrer">
-                        {training.credential_url}
-                      </a>
-                    ) : 'N/A'}
-                  </Typography>
-                </Grid>
-              </Grid>
-              //     </Paper>
-            ))}
-
-
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>PROFESSIONAL LICENSE</Typography>
-            {selectedApplicant?.professional_licenses?.map((license, index) => (
-              //  <Paper key={index} sx={{ p: 2, mb: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">License Name</Typography>
-                  <Typography>{license.name || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">License Type</Typography>
-                  <Typography>{license.license || 'N/A'}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Valid Until</Typography>
-                  <Typography>
-                    {/* Debug: Show raw value */}
-                    {/* {JSON.stringify(license.validity)} */}
-                    {
-                      license.validity && typeof license.validity === 'string' && /^\d{4}-\d{2}-\d{2}/.test(license.validity)
-                        ? new Date(license.validity + 'T00:00:00').toLocaleDateString()
-                        : 'N/A'
-                    }
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Rating</Typography>
-                  <Typography>{license.rating || 'N/A'}</Typography>
-                </Grid>
-              </Grid>
-              //      </Paper>
-            ))}
-
-
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>WORK EXPERIENCE</Typography>
-            {selectedApplicant?.work_experiences?.map((exp, index) => (
-              //   <Paper key={index} sx={{ p: 2, mb: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Company Name</Typography>
-                  <Typography>{exp.company_name}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Position</Typography>
-                  <Typography>{exp.position}</Typography>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography color="text.secondary">Job Description</Typography>
-                  <Typography>{exp.job_description}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">Start Date</Typography>
-                  <Typography>
-                    {
-                      exp.date_start
-                        ? (() => {
-                          // Accept both 'YYYY-MM-DD' and 'YYYY-MM-DDTHH:mm:ss' formats
-                          const d = new Date(exp.date_start);
-                          return isNaN(d.getTime())
-                            ? (
-                              /^\d{4}-\d{2}-\d{2}$/.test(exp.date_start)
-                                ? new Date(exp.date_start + 'T00:00:00').toLocaleDateString()
-                                : 'N/A'
-                            )
-                            : d.toLocaleDateString();
-                        })()
-                        : 'N/A'
-                    }
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography color="text.secondary">End Date</Typography>
-                  <Typography>
-                    {
-                      exp.date_end
-                        ? (() => {
-                          const d = new Date(exp.date_end);
-                          return isNaN(d.getTime())
-                            ? (
-                              /^\d{4}-\d{2}-\d{2}$/.test(exp.date_end)
-                                ? new Date(exp.date_end + 'T00:00:00').toLocaleDateString()
-                                : 'N/A'
-                            )
-                            : d.toLocaleDateString();
-                        })()
-                        : 'Present'
-                    }
-                  </Typography>
-                </Grid>
-              </Grid>
-              //    </Paper>
-            ))}
-
-
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>OTHER SKILLS</Typography>
-            <Box sx={{ mb: 2 }}>
-              {selectedApplicant?.other_skills?.map((skill, index) => (
-                <Chip
-                  key={index}
-                  label={skill.skills}
-                  sx={chipStyles}
-                />
-              ))}
-            </Box>
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-              SALARY
-            </Typography>
-            <Box sx={{ mb: 2 }}>
-              <TextField
-                fullWidth
-                label="Salary Range"
-                defaultValue="20,000 - 30,000"
-                variant="outlined"
-              />
-            </Box>
-
-            <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-              <b>Hired:</b>  {new Date().toLocaleDateString()}
-            </Typography>
-          </Box>
-        </DialogContent>
-      </Dialog>
+    <div className="min-h-screen w-full">
       <ToastContainer />
-    </Box>
+
+      {/* Modern Thin Header */}
+      <header className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center justify-between px-2 sm:px-6 py-2 gap-2 sticky top-0 z-20">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900">
+            <TravelExploreOutlinedIcon className="h-6 w-6 text-blue-700 dark:text-blue-300" />
+          </div>
+          <div>
+            <h1 className="font-semibold text-gray-900 dark:text-white text-lg">Posted Jobs</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Manage your job postings</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">{filteredJobs.length}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Active Jobs</span>
+        </div>
+      </header>
+
+      {/* Search Bar Section */}
+      <div className="w-full bg-[#1a237e] dark:bg-[#0d1544] shadow-lg sm:shadow-xl py-4 px-2 sm:px-4">
+        <div className="max-w-[1800px] mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+          <div className="flex flex-row items-center bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 rounded-full shadow-none h-10 w-full max-w-xl">
+            <span className="pl-3 pr-1 text-gray-400 dark:text-gray-500 flex items-center">
+              <SearchIcon />
+            </span>
+            <input
+              type="text"
+              placeholder="Search jobs..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 h-full px-0"
+            />
+          </div>
+          <select
+            value={jobType}
+            onChange={(e) => setJobType(e.target.value)}
+            className="bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 shadow-sm w-full sm:w-auto"
+          >
+            <option value="">Job Type</option>
+            <option value="Full-Time">Full Time</option>
+            <option value="Part-Time">Part Time</option>
+            <option value="Contract">Contract</option>
+            <option value="Internship">Internship</option>
+          </select>
+          <select
+            value={experienceLevel}
+            onChange={(e) => setExperienceLevel(e.target.value)}
+            className="bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 shadow-sm w-full sm:w-auto"
+          >
+            <option value="">Experience Level</option>
+            <option value="Entry">Entry Level</option>
+            <option value="Mid">Mid Level</option>
+            <option value="Senior">Senior Level</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="bg-white/90 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent outline-none transition-all duration-200 shadow-sm w-full sm:w-auto"
+          >
+            <option value="">Sort By</option>
+            <option value="Most Recent">Most Recent</option>
+            <option value="Salary">Salary</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Main Content Layout */}
+      <Box sx={{ height: "100%", position: "relative", display: "flex" }}>
+        {/* Jobs List */}
+        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none p-4">
+          <div className="space-y-3 sm:space-y-4 h-[calc(100vh-180px)] overflow-y-auto">
+            {jobs.length === 0 ? (
+              <Paper sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="h6" color="text.secondary">
+                  No jobs posted yet.
+                </Typography>
+              </Paper>
+            ) : filteredJobs.length === 0 ? (
+              <Paper sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="h6" color="text.secondary">
+                  No jobs found matching your criteria.
+                </Typography>
+              </Paper>
+            ) : (
+              filteredJobs.map((job) => (
+                <div
+                  key={job.job_id}
+                  onClick={() => handleViewDetails(job)}
+                  className={`bg-white dark:bg-gray-900 rounded-xl border transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1 ${
+                    selectedJob?.job_id === job.job_id
+                      ? "border-blue-500 ring-2 ring-blue-400"
+                      : "border-gray-200 dark:border-gray-700"
+                  } p-4`}
+                >
+                  <div className="flex gap-4">
+                    <div className="w-20 h-20 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+                      <img
+                        src={job.logo || "http://bij.ly/4ib59B1"}
+                        alt={job.job_title}
+                        className="w-full h-full object-contain p-2"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                        {job.job_title}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {job.city_municipality}, {job.country}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {job.job_type}
+                        </span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {job.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Details Panel - Similar to JobView */}
+        {selectedJob && (
+          <Slide direction="left" in={detailsPanelOpen} mountOnEnter unmountOnExit>
+            <Box
+              sx={{
+                position: "fixed",
+                right: 0,
+                top: 0,
+                width: "600px",
+                height: "100%",
+                bgcolor: "background.paper",
+                boxShadow: "-4px 0 10px rgba(0,0,0,0.1)",
+                overflowY: "auto",
+                zIndex: 1200,
+              }}
+            >
+              {/* Copy the structure from JobView component here */}
+              {/* ... */}
+            </Box>
+          </Slide>
+        )}
+      </Box>
+    </div>
   );
 };
 

@@ -24,7 +24,7 @@ const styles = `
   }
 `;
 
-const JobApplications = ({ isCollapsed }) => {
+const JobApplications = () => {
   const [appliedJobs, setAppliedJobs] = useState([]);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -165,156 +165,132 @@ const JobApplications = ({ isCollapsed }) => {
             className="flex-1 bg-transparent border-none outline-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-300 h-full px-0"
           />
         </div>
-      </div>
-
-      {/* Main Content Layout */}
-      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto flex-1 overflow-hidden">
-        {/* Applications List */}
-        <div className="flex-1 flex flex-col min-w-0 order-last lg:order-none">
-          <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{ height: 'calc(100vh - 180px)' }}>
-            {/* Applications List Section - vertical scroll, mobile friendly */}
-            <div className="flex-1 flex flex-col min-w-0">          <div className="flex justify-between items-center mb-2 px-1">
-             {/* {filteredJobs.length} jobs found */}
-            </div>
-            <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4" style={{maxHeight: 'calc(100vh - 180px)', paddingBottom: selectedApplication ? '10px' : '0' }}>            {isLoading ? (
-                <div className="flex flex-col justify-center items-center min-h-[60vh] gap-4">
-                  <img
-                    src={logoNav}
-                    alt="IPEPS Logo"
-                    className="w-24 h-24 sm:w-32 sm:h-32 loading-logo"
-                  />
-                  <div className="text-center">
-                    <Typography variant="h6" className="text-gray-800 dark:text-gray-200 mb-2">
-                      Loading Job Applications
-                    </Typography>
-                    <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
-                      Please wait while we fetch your applications...
-                    </Typography>
-                  </div>
-                </div>
-              ) : appliedJobs.length === 0 ? (
-                <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
-                  <Typography variant="body1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                    No job applications found.
+      </div>      {/* Main Content: Applications List & Application View */}
+      <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto">
+        {/* Applications List Section */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex flex-col gap-3 h-[calc(100vh-180px)] overflow-y-auto lg:pr-4">
+            {isLoading ? (
+              <div className="flex flex-col justify-center items-center min-h-[60vh] gap-4">
+                <img
+                  src={logoNav}
+                  alt="IPEPS Logo"
+                  className="w-24 h-24 sm:w-32 sm:h-32 loading-logo"
+                />
+                <div className="text-center">
+                  <Typography variant="h6" className="text-gray-800 dark:text-gray-200 mb-2">
+                    Loading Job Applications
+                  </Typography>
+                  <Typography variant="body1" className="text-gray-600 dark:text-gray-400 animate-pulse">
+                    Please wait while we fetch your applications...
                   </Typography>
                 </div>
-              ) : (
-                appliedJobs
-                  .filter(job =>
-                    job.job_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    job.company_name.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-                  .map(job => (
-                    <div                    key={job.job_posting_id}
-                      onClick={() => setSelectedApplication(job)}
-                      className={`bg-white dark:bg-gray-900 rounded-xl border transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1 border-gray-200 dark:border-gray-700 p-3 flex gap-3 items-center ${selectedApplication?.job_posting_id === job.job_posting_id ? 'ring-2 ring-blue-400 border-blue-500' : ''}`}
-                    >
-                      <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
-                        <img
-                          src={job.companyImage || "http://bij.ly/4ib59B1"}
-                          alt={job.job_title}
-                          className="w-full h-full object-contain p-2"
-                          />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{job.job_title}</h3>
-                          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">{job.company_name}</p>
-                          {/* Skills Tags */}
-                          <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
-                            {job.required_skills?.split(',').slice(0, 3).map((skill, index) => (
-                              <span
-                                key={index}
-                                className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full"
-                              >
-                                {skill.trim()}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm">
-                            <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
-                              📍 {job.city_municipality}
-                            </span>
-                            <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
-                              💰 ₱{job.estimated_salary_from?.toLocaleString()} - ₱{job.estimated_salary_to?.toLocaleString()}
-                            </span>
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg ${
-                              canWithdraw(job.job_posting_id)
-                                ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-                                : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                            }`}>
-                              {getTimeRemaining(job.job_posting_id)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                 
-                  ))
-              )}
-            </div>
-          </div>        {/* Application Details - Desktop View */}
-          {selectedApplication && (
-            <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 sticky top-4" 
-                 style={{ zIndex: 1000 }}>
-              <JobApplicationView 
-                application={selectedApplication} 
-                onWithdraw={handleWithdrawal}
-                isLoading={isLoading}
-              />
-            </div>
-          )}
-
-          {/* Application Details - Mobile Modal View */}
-          {selectedApplication && (
-            <div 
-              className="lg:hidden fixed inset-0"
-              style={{ zIndex: Number.MAX_SAFE_INTEGER }}
-            >
-              <div 
-                className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"
-                style={{ 
-                  position: 'fixed',
-                  zIndex: Number.MAX_SAFE_INTEGER,
-                  pointerEvents: 'auto'
-                }}
-              >
-                <div className="fixed inset-0 overflow-hidden">
-                  <div className="fixed inset-0" onClick={() => setSelectedApplication(null)} />
-                  <div 
-                    className="fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0"
-                    style={{ 
-                      zIndex: Number.MAX_SAFE_INTEGER,
-                      pointerEvents: 'auto'
-                    }}
+              </div>
+            ) : appliedJobs.length === 0 ? (
+              <div className="flex flex-col justify-center items-center h-32 sm:h-40 gap-2 sm:gap-4">
+                <Typography variant="body1" className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+                  No job applications found.
+                </Typography>
+              </div>
+            ) : (
+              appliedJobs
+                .filter(job =>
+                  job.job_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  job.company_name.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map(job => (
+                  <div                    key={job.job_posting_id}
+                    onClick={() => setSelectedApplication(job)}
+                    className={`bg-white dark:bg-gray-900 rounded-xl border transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1 border-gray-200 dark:border-gray-700 p-3 flex gap-3 items-center ${selectedApplication?.job_posting_id === job.job_posting_id ? 'ring-2 ring-blue-400 border-blue-500' : ''}`}
                   >
-                    <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
-                      <div 
-                        className="absolute right-4 top-4"
-                        style={{ zIndex: Number.MAX_SAFE_INTEGER }}
-                      >
-                        <button
-                          onClick={() => setSelectedApplication(null)}
-                          className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+                    <div className="w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                      <img
+                        src={job.companyImage || "http://bij.ly/4ib59B1"}
+                        alt={job.job_title}
+                        className="w-full h-full object-contain p-2"
+                        />
                       </div>
-                      <JobApplicationView 
-                        application={selectedApplication} 
-                        onWithdraw={handleWithdrawal} 
-                        isLoading={isLoading}
-                        isMobile={true}
-                      />
+                      <div className="flex-1">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{job.job_title}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">{job.company_name}</p>
+                        {/* Skills Tags */}
+                        <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
+                          {job.required_skills?.split(',').slice(0, 3).map((skill, index) => (
+                            <span
+                              key={index}
+                              className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full"
+                            >
+                              {skill.trim()}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm">
+                          <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
+                            📍 {job.city_municipality}
+                          </span>
+                          <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
+                            💰 ₱{job.estimated_salary_from?.toLocaleString()} - ₱{job.estimated_salary_to?.toLocaleString()}
+                          </span>
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg ${
+                            canWithdraw(job.job_posting_id)
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                              : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                          }`}>
+                            {getTimeRemaining(job.job_posting_id)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
+               
+                ))
+            )}
+          </div>
+        </div>
+
+        {/* Application Details - Desktop View */}
+        {selectedApplication && (
+          <div className="hidden lg:block w-full lg:w-[600px] xl:w-[800px] flex-shrink-0 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-0 h-fit self-start lg:sticky lg:top-8">
+            <JobApplicationView 
+              application={selectedApplication} 
+              onWithdraw={() => handleWithdrawal(selectedApplication.job_posting_id)}
+              isLoading={isLoading}
+              isMobile={false}
+            />
+          </div>
+        )}
+
+        {/* Application Details - Mobile Modal View */}
+        {selectedApplication && (
+          <div className="lg:hidden fixed inset-0" style={{ position: 'fixed', zIndex: Number.MAX_SAFE_INTEGER, isolation: 'isolate', pointerEvents: 'auto' }}>
+            <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm">
+              <div className="fixed inset-0 overflow-hidden">
+                <div className="fixed inset-0" onClick={() => setSelectedApplication(null)} />
+                <div className="fixed inset-x-0 bottom-0 transform transition-transform duration-300 ease-out translate-y-0"
+                  style={{ zIndex: Number.MAX_SAFE_INTEGER, pointerEvents: 'auto' }}>
+                  <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl max-h-[90vh] overflow-hidden">
+                    <div className="absolute right-4 top-4" style={{ zIndex: 999999999 }}>
+                      <button
+                        onClick={() => setSelectedApplication(null)}
+                        className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <JobApplicationView 
+                      application={selectedApplication} 
+                      onWithdraw={() => handleWithdrawal(selectedApplication.job_posting_id)}
+                      isLoading={isLoading}
+                      isMobile={true}
+                    />
                   </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
     </div>
   );
 };
