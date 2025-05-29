@@ -106,33 +106,55 @@ const Dashboard = ({ isCollapsed }) => {
     useEffect(() => {
         const fetchCounts = async () => {
             setLoading(true);
+            let newCounts = {
+                jobs: 0,
+                trainings: 0,
+                scholarships: 0
+            };
+
             try {
                 // Get job postings count
-                const jobsResponse = await axios.get('/api/get-job-postings', {
-                    auth: { username: auth.token }
-                });
-                
+                try {
+                    const jobsResponse = await axios.get('/api/get-job-postings', {
+                        auth: { username: auth.token }
+                    });
+                    if (jobsResponse.data && Array.isArray(jobsResponse.data.job_postings)) {
+                        newCounts.jobs = jobsResponse.data.job_postings.length;
+                    }
+                } catch (error) {
+                    console.error('Error fetching job postings:', error);
+                }
+
                 // Get training postings count
-                const trainingsResponse = await axios.get('/api/get-training-postings', {
-                    auth: { username: auth.token }
-                });
-                
+                try {
+                    const trainingsResponse = await axios.get('/api/get-training-postings', {
+                        auth: { username: auth.token }
+                    });
+                    if (trainingsResponse.data && Array.isArray(trainingsResponse.data.training_postings)) {
+                        newCounts.trainings = trainingsResponse.data.training_postings.length;
+                    }
+                } catch (error) {
+                    console.error('Error fetching training postings:', error);
+                }
+
                 // Get scholarship postings count
-                const scholarshipsResponse = await axios.get('/api/get-scholarship-postings', {
-                    auth: { username: auth.token }
-                });
-                
-                // Set the counts based on the employer's own postings
-                setCounts({
-                    jobs: jobsResponse.data.job_postings?.length || 0,
-                    trainings: trainingsResponse.data.training_postings?.length || 0,
-                    scholarships: scholarshipsResponse.data.scholarship_postings?.length || 0
-                });
-                
-                setLoading(false);
+                try {
+                    const scholarshipsResponse = await axios.get('/api/get-scholarship-postings', {
+                        auth: { username: auth.token }
+                    });
+                    if (scholarshipsResponse.data && Array.isArray(scholarshipsResponse.data.scholarship_postings)) {
+                        newCounts.scholarships = scholarshipsResponse.data.scholarship_postings.length;
+                    }
+                } catch (error) {
+                    console.error('Error fetching scholarship postings:', error);
+                }
+
+                // Set the counts even if some requests failed
+                setCounts(newCounts);
+                setError(null);
             } catch (err) {
-                console.error('Error fetching posting counts:', err);
-                setError('Failed to load posting counts');
+                console.error('Error in fetchCounts:', err);
+            } finally {
                 setLoading(false);
             }
         };
@@ -220,6 +242,16 @@ const Dashboard = ({ isCollapsed }) => {
         }
     ];
     
+    // Filter active summary items
+    const getActiveSummaryItems = () => {
+        return summaryItems.filter(item => counts[item.id] > 0);
+    };
+
+    // Check if there are any postings at all
+    const hasAnyPostings = () => {
+        return Object.values(counts).some(count => count > 0);
+    };
+
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-[#e0e7ef] to-[#f8fafc] dark:from-gray-900 dark:to-gray-800">
             {/* Hero Section */}
@@ -355,8 +387,54 @@ const Dashboard = ({ isCollapsed }) => {
                                 </Button>
                             </Paper>
                         </Grid>
+                    ) : !hasAnyPostings() ? (
+                        <Grid item xs={12}>
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    p: 6,
+                                    textAlign: 'center',
+                                    borderRadius: 3,
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    bgcolor: 'background.paper',
+                                    maxWidth: 600,
+                                    margin: '0 auto'
+                                }}
+                            >
+                                <Typography 
+                                    variant="h5" 
+                                    color="text.primary" 
+                                    gutterBottom
+                                    sx={{ fontWeight: 'medium' }}
+                                >
+                                    No Job, Training, or Scholarship Posted Yet
+                                </Typography>
+                                <Typography 
+                                    color="text.secondary" 
+                                    sx={{ mb: 3 }}
+                                >
+                                    Start creating your first posting to connect with potential candidates.
+                                </Typography>
+                           {/*      <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => navigate('/dashboard/job-posting')}
+                                    sx={{ mr: 2 }}
+                                >
+                                    Create Job Posting
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    onClick={() => navigate('/dashboard/training-posting')}
+                                >
+                                    Create Training
+                                </Button> */}
+                            </Paper>
+                        </Grid>
                     ) : (
-                        summaryItems.map((item) => (
+                        getActiveSummaryItems().map((item) => (
                             <Grid item xs={12} md={4} key={item.id}>
                                 <Paper
                                     elevation={0}
