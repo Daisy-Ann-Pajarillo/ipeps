@@ -308,8 +308,7 @@ const PostedTraining = () => {
 
       {/* Main Content: Training List & Details */}
       <div className="flex flex-col-reverse lg:flex-row gap-4 md:gap-8 px-1 sm:px-2 md:px-4 py-2 w-full max-w-[1800px] mx-auto flex-1 overflow-hidden relative">
-        {/* Training List Section */}
-        <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${detailsPanelOpen ? 'hidden lg:flex' : ''}`}>
+        {/* Training List Section */}        <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${detailsPanelOpen ? 'hidden lg:flex' : 'flex'}`}>
           <div className="flex flex-col gap-3 overflow-y-auto lg:pr-4 pb-20 lg:pb-4 h-full">
             {trainingData.map((training) => (
               <TrainingCard
@@ -744,18 +743,7 @@ const PostedTraining = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Training Card Component - Mobile */}
-        <div className="lg:hidden w-full max-w-md mx-auto py-4">
-          {trainingData.map((training) => (
-            <TrainingCard
-              key={training.id}
-              training={training}
-              onClick={() => handleViewDetails(training)}
-              selected={selectedTraining?.id === training.id}
-            />
-          ))}
-        </div>
-      </div>
+        {/* Training Card Component - Mobile */}      </div>
     </div>
   );
 };

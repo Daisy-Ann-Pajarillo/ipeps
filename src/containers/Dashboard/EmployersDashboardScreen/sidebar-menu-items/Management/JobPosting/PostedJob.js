@@ -30,49 +30,7 @@ import WorkIcon from '@mui/icons-material/Work';
 import SearchIcon from '@mui/icons-material/Search';
 
 // JobCard component definition
-const JobCard = ({ job, onClick }) => (
-  <div
-    onClick={onClick}
-    className="bg-white dark:bg-gray-900 rounded-xl border transition-all duration-300 cursor-pointer shadow-md hover:shadow-xl hover:-translate-y-1 border-gray-200 dark:border-gray-700 p-3 flex flex-col sm:flex-row gap-3 mb-4"
-  >
-    <div className="w-full sm:w-20 h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
-      <img
-        src={job.logo || "http://bij.ly/4ib59B1"}
-        alt={job.company}
-        className="w-full h-full object-contain p-2"
-      />
-    </div>
-    <div className="flex-1">
-      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{job.job_title}</h3>
-      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1 sm:mb-2">{job.company}</p>
-      <div className="flex flex-wrap gap-1 sm:gap-2 mb-2 sm:mb-3">
-        {job.other_skills?.split(',').slice(0, 3).map((skill, index) => (
-          <span
-            key={index}
-            className="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full"
-          >
-            {skill.trim()}
-          </span>
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-1 sm:gap-2 text-xs sm:text-sm">
-        <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
-          📍 {job.city_municipality}
-        </span>
-        <span className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg text-gray-700 dark:text-gray-300">
-          💰 ₱{job.estimated_salary_from?.toLocaleString()} - ₱{job.estimated_salary_to?.toLocaleString()}
-        </span>
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg ${
-          job.status?.toLowerCase() === 'active'
-            ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-        }`}>
-          {job.status}
-        </span>
-      </div>
-    </div>
-  </div>
-);
+const JobCard = ({ job, onClick, selected }) => {};
 
 // Function to map status to MUI color
 const getStatusColor = (status) => {
@@ -1120,7 +1078,7 @@ const PostedJob = ({ createJobOpen }) => {
         </Dialog>
 
         {/* Job Card Component - Mobile */}
-        <div className="lg:hidden w-full max-w-md mx-auto py-4">
+        <div className="">
           {jobs.map((job) => (
             <JobCard
               key={job.id}
