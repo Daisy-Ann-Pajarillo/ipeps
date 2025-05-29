@@ -619,7 +619,7 @@ const Dashboard = () => {
             variant="h5"
             className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-blue-100 mb-6 sm:mb-10 font-medium"
             >
-            Discover, Connect, and Grow your career in Iloilo.
+            Discover, Connect, and Grow your career.
             </Typography>
             <div className="flex flex-wrap gap-4 sm:gap-6 mt-2 sm:mt-4 justify-center">
             <Button
