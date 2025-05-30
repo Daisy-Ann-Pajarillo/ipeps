@@ -10,6 +10,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { tokens } from "../../../theme";
 import SavedTrainingsView from "./SavedTrainingsView";
 import SearchData from "../../../components/layout/Search";
@@ -86,21 +87,21 @@ const SavedTrainings = () => {
         auth: {
           username: auth.token,
         },
-      });
-
-      // Handle the response data
-      if (response.data.success && Array.isArray(response.data.trainings)) {
-        const transformedTrainings = response.data.trainings.map((training) => ({
+      });      // Handle the response data
+      if (response.data.success && Array.isArray(response.data.trainings)) {        const transformedTrainings = response.data.trainings.map((training) => ({
           id: training.saved_training_id,
-          training_id: training.employer_trainingpost_id || training.training_id,
+          training_id: training.employer_trainingpost_id,
           title: training.training_title,
           description: training.training_description,
-          companyImage: training.providerImage || "https://bit.ly/3Qgevzn",
-          expiration: training.expiration_date,
-          provider: training.provider || "Unknown Provider",
-          city_municipality: training.city_municipality,
-          training_type: training.training_type,
-          experience_level: training.experience_level,
+          expiration_date: training.expiration_date,
+          provider: training.employer?.company_name || "Unknown Provider",
+          employer: {
+            full_name: training.employer?.full_name || training.employer?.company_name || "Unknown Provider",
+            company_name: training.employer?.company_name || "Unknown Provider"
+          },
+          slots: training.slots || 0,
+          status: training.status,
+          created_at: training.created_at
         }));
 
         setSavedTrainings(transformedTrainings);
@@ -338,13 +339,17 @@ const SavedTrainings = () => {
                           {training.title}
                         </div>
                         <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {training.city_municipality}
+                          Employer: {training.employer?.full_name || training.provider}
                         </div>
-                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {training.training_type} • {training.experience_level}
+                        <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          <span>Vacancies: {training.slots || training.no_of_slots || "N/A"}</span>
                         </div>
-                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {training.provider}
+                        <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                          <CalendarTodayIcon className="h-3.5 w-3.5" />
+                          <span>Expires: {training.expiration_date ? new Date(training.expiration_date).toLocaleDateString() : "Not specified"}</span>
                         </div>
                       </div>
                       <button

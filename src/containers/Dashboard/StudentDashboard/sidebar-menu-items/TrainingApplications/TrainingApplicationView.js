@@ -45,12 +45,12 @@ const TrainingApplicationView = ({ training, onWithdraw, isLoading, isMobile = f
                 className="font-bold text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-2 truncate"
               >
                 {training.training_title}
-              </Typography>
+              </Typography>              
               <Typography 
                 variant="body1" 
                 className="text-gray-600 dark:text-gray-400 text-sm sm:text-base truncate"
               >
-                {training.provider}
+                {training.employer?.company_name}
               </Typography>
             </div>
           </div>
@@ -60,25 +60,27 @@ const TrainingApplicationView = ({ training, onWithdraw, isLoading, isMobile = f
       {/* Content Section - flex-1 and overflow-y-auto */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
         {/* Training Details Section */}
-        <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <LocationOnIcon fontSize="small" />
-            <span>{training.city_municipality}</span>
-          </div>
-          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <WorkIcon fontSize="small" />
-            <span>{training.training_type || "Not specified"}</span>
-          </div>
+        <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">          {/* Application Status */}
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
             <SchoolIcon fontSize="small" />
-            <span>{training.experience_level || "Not specified"}</span>
+            <span>Status: {training.status || "Pending"}</span>
           </div>
-          {training.expiration_date && (
-            <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-              <CalendarTodayIcon fontSize="small" />
-              <span>Expires: {new Date(training.expiration_date).toLocaleDateString()}</span>
-            </div>
-          )}
+          
+          {/* Training Status */}
+          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
+            <WorkIcon fontSize="small" />
+            <span>Training Status: {training.training_status || "Active"}</span>
+          </div>
+            {/* Vacancies */}
+          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
+            <LocationOnIcon fontSize="small" />
+            <span>Vacancies: {training.slots}</span>
+          </div>
+          {/* Expiration Date */}
+          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
+            <CalendarTodayIcon fontSize="small" />
+            <span>Expires: {training.expiration_date}</span>
+          </div>
         </div>
 
         <Divider className="my-4 sm:my-6" />
@@ -88,7 +90,7 @@ const TrainingApplicationView = ({ training, onWithdraw, isLoading, isMobile = f
           Training Description
         </Typography>
         <Typography variant="body2" className="text-gray-600 dark:text-gray-300 whitespace-pre-line mb-4 sm:mb-6 text-xs sm:text-base">
-          {training.training_description}
+          {training.description}
         </Typography>
       </div>
 

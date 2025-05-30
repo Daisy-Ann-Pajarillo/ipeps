@@ -43,8 +43,19 @@ const SavedJobs = () => {
 
   // Load authentication state
   useEffect(() => {
+    console.log("Auth effect running");
     dispatch(actions.getAuthStorage());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (auth.token) {
+      console.log("Auth token available, loading data");
+      loadSavedJobs();
+      loadAppliedJobs();
+    } else {
+      console.log("No auth token yet");
+    }
+  }, [auth.token]);
 
   // Load applied jobs to check which jobs the user has already applied for
   const loadAppliedJobs = async () => {
@@ -74,11 +85,15 @@ const SavedJobs = () => {
     try {
       setIsLoading(true);
       if (auth.token) {
+        console.log("Fetching saved jobs");
         const response = await axios.get("/api/get-saved-jobs", {
           auth: { username: auth.token },
         });
 
+        console.log("Saved jobs response:", response.data);
+
         if (response.data.success && Array.isArray(response.data.jobs)) {
+          console.log("Processing jobs array:", response.data.jobs);
           const jobs = response.data.jobs.map((job) => ({
             saved_job_id: job.saved_job_id,
             employer_jobpost_id: job.employer_jobpost_id,
@@ -94,38 +109,44 @@ const SavedJobs = () => {
             city_municipality: job.city_municipality,
             other_skills: job.other_skills,
             created_at: job.created_at,
-            expiration_date: job.expiration_date,
+            expiration_date: job.expiration_date,            
             company: job.employer?.company_name || "N/A",
-            companyImage: job.employer?.logo_url || "http://bij.ly/4ib59B1",
+            companyImage: job.employer?.logo_url || "http://bij.ly/4ib59B1",            
             employer: {
-              full_name: job.employer?.full_name || "Unknown Employer",
+              full_name: job.employer?.full_name || job.employer?.first_name + " " + job.employer?.last_name,
+              company_name: job.employer?.company_name
             },
           }));
 
+          console.log("Transformed jobs:", jobs);
           setSavedJobs(jobs);
           // Only auto-select first job on desktop
           const isDesktop = window.innerWidth >= 1024;
           if (jobs.length > 0 && !selectedJob && isDesktop) {
+            console.log("Auto-selecting first job:", jobs[0]);
             setSelectedJob(jobs[0]);
           }
         } else {
+          console.log("No saved jobs found or invalid response format");
           setSavedJobs([]);
           setSelectedJob(null);
         }
       }
     } catch (error) {
       console.error("Error fetching saved jobs:", error);
+      toast.error("Failed to load saved jobs");
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
+    useEffect(() => {
     if (auth.token) {
       loadSavedJobs();
       loadAppliedJobs();
     }
   }, [auth.token]);
+
 
   // Filter jobs based on search query
   const filteredJobs = savedJobs.filter(
@@ -306,8 +327,8 @@ const SavedJobs = () => {
                       <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{job.country} • {job.city_municipality}</div>
                       <div className="text-xs text-gray-600 dark:text-gray-400">{job.job_type} • {job.experience_level}</div>
                       <div className="text-xs text-gray-600 dark:text-gray-400">💰 {formatSalary(job.estimated_salary_from)} - {formatSalary(job.estimated_salary_to)}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">🏢 {job.employer?.company_name ?? 'Unknown Company'}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">👤 {job.employer?.full_name ?? 'N/A'}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">🏢 {job.employer?.company_name || 'Unknown Company'}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">👤 {job.employer?.full_name || 'N/A'}</div>
                     </div>
                     {appliedJobIds.includes(job.employer_jobpost_id) && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">

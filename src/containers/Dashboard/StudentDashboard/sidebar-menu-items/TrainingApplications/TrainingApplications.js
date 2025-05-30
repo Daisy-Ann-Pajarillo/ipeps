@@ -148,10 +148,9 @@ const TrainingApplications = ({ isCollapsed }) => {
                 </Typography>
               </div>
             ) : (
-              appliedTrainings
-                .filter(training =>
+              appliedTrainings                .filter(training =>
                   training.training_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  training.provider?.toLowerCase().includes(searchQuery.toLowerCase())
+                  training.employer?.company_name?.toLowerCase().includes(searchQuery.toLowerCase())
                 )
                 .map(training => (
                   <div
@@ -171,18 +170,17 @@ const TrainingApplications = ({ isCollapsed }) => {
                           className="w-full h-full object-contain p-1 sm:p-2"
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+                      <div className="flex-1 min-w-0">                        <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                           {training.training_title}
                         </div>
                         <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {training.city_municipality}
+                          {training.employer?.company_name}
                         </div>
                         <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {training.training_type} • {training.experience_level}
+                          Vacancies: {training.slots}
                         </div>
                         <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {training.provider}
+                          Expires: {training.expiration_date}
                         </div>
                       </div>
                     </div>

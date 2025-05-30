@@ -301,13 +301,13 @@ const ScholarshipSearch = () => {
                         {scholarship.scholarship_title}
                       </div>
                       <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {scholarship.city_municipality}
+                        {scholarship.company_name || scholarship.employer?.company_name || 'Unknown Company'}
                       </div>
                       <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {scholarship.scholarship_type} • {scholarship.reward_type}
+                        Vacancies: {scholarship.slots || 0}
                       </div>
                       <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {scholarship.company_name}
+                        Expires: {scholarship.expiration_date ? new Date(scholarship.expiration_date).toLocaleDateString() : 'Not specified'}
                       </div>
                     </div>
                   </div>

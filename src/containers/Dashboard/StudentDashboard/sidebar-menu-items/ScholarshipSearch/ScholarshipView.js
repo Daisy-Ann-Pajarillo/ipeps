@@ -7,6 +7,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import SchoolIcon from "@mui/icons-material/School";
 import PaymentIcon from "@mui/icons-material/Payment";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import WorkIcon from "@mui/icons-material/Work";
 import * as actions from "../../../../../store/actions/index";
 import { toast } from "react-toastify";
 import axios from "../../../../../axios";
@@ -227,23 +228,19 @@ const ScholarshipView = ({ scholarship, isSaved, isApplied, onSave, onApply, isM
         {/* Scholarship Details Section */}
         <div className="space-y-3 sm:space-y-4 mb-6">
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <LocationOnIcon className="text-gray-400 dark:text-gray-500 w-5 h-5" />
-            <span>{scholarship.city_municipality}, {scholarship.country}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span>Employer: {scholarship.company_name}</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <SchoolIcon fontSize="small" />
-            <span>{scholarship.scholarship_type || "Not specified"}</span>
+            <WorkIcon fontSize="small" />
+            <span>Vacancies: {scholarship.slots || "Not specified"}</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <PaymentIcon fontSize="small" />
-            <span>{scholarship.reward_type || "Not specified"}</span>
+            <CalendarTodayIcon fontSize="small" />
+            <span>Expires: {scholarship.expiration_date ? new Date(scholarship.expiration_date).toLocaleDateString() : "Not specified"}</span>
           </div>
-          {scholarship.deadline && (
-            <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-              <CalendarTodayIcon fontSize="small" />
-              <span>Deadline: {new Date(scholarship.deadline).toLocaleDateString()}</span>
-            </div>
-          )}
         </div>
 
         <Divider className="my-6" />

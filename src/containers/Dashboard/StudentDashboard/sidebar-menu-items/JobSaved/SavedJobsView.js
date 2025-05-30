@@ -171,13 +171,14 @@ const SavedJobsView = ({
                 className="font-bold text-gray-900 dark:text-white text-lg sm:text-xl lg:text-2xl mt-2"
               >
                 {job.job_title}
-              </Typography>
-              <Typography 
-                variant="body1" 
-                className="text-gray-600 dark:text-gray-400 text-sm sm:text-base"
-              >
-                {job.employer?.company_name}
-              </Typography>
+              </Typography>              {job.employer?.company_name && (
+                <Typography 
+                  variant="body1" 
+                  className="text-gray-600 dark:text-gray-400 text-sm sm:text-base"
+                >
+                  {job.employer.company_name}
+                </Typography>
+              )}
             </div>
           </div>
 

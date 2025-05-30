@@ -320,8 +320,8 @@ const JobSearch = ({ isCollapsed }) => {
                       <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{job.country} • {job.city_municipality}</div>
                       <div className="text-xs text-gray-600 dark:text-gray-400">{job.job_type} • {job.experience_level}</div>
                       <div className="text-xs text-gray-600 dark:text-gray-400">💰 {formatSalary(job.estimated_salary_from)} - {formatSalary(job.estimated_salary_to)}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">🏢 {job.employer?.company_name ?? 'Unknown Company'}</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">👤 {job.employer?.full_name ?? 'N/A'}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">🏢 {job.employer?.company_name || 'Unknown Company'}</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 truncate">👤 {job.employer?.full_name || 'N/A'}</div>
                     </div>
                     {appliedJobIds.includes(job.job_id) && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">

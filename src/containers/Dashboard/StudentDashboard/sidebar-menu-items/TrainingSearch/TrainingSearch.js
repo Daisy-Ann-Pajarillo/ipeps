@@ -7,6 +7,8 @@ import SearchData from "../../../components/layout/Search";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Typography } from "@mui/material"; // Changed from @material-ui/core to @mui/material
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import logoNav from '../../../../Home/images/logonav.png';
 import pesoLogo from '../../../../Home/images/pesoLogo.png';
 
@@ -49,6 +51,8 @@ const TrainingSearch = ({ isCollapsed }) => {
           const response = await axios.get("/api/all-training-postings", {
             auth: { username: auth.token },
           });
+
+          console.log('Training data:', response.data); // Add this line to debug
 
           if (response.data && Array.isArray(response.data.training_postings)) {
             const formattedTrainings = response.data.training_postings.map((t) => ({
@@ -269,28 +273,40 @@ const TrainingSearch = ({ isCollapsed }) => {
                     <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
                       <img
                         src={training.providerImage || "http://bij.ly/4ib59B1"}
-                        alt={training.training_title}
+                        alt={training.provider}
                         className="w-full h-full object-contain p-2"
                       />
-                    </div>                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
-                            {training.training_title}
-                          </h3>
-                        </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {/* Title */}
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+                        {training.training_title}
+                      </h3>
+
+                      {/* Employer */}
+                      <div className="flex flex-col gap-1 mb-3">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Employer:</span> {training.employer?.full_name || training.provider}
+                        </p>
+                        {training.employer?.company_name && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="font-medium">Company:</span> {training.employer.company_name}
+                          </p>
+                        )}
                       </div>
-                      
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                          {training.training_type || "Not specified"}
-                        </span>
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                          {training.experience_level || "Any Level"}
-                        </span>
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                          {training.city_municipality}, {training.country}
-                        </span>
+
+                      {/* Vacancies */}
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span>Vacancies: {training.slots || training.no_of_slots || 'N/A'}</span>
+                      </div>
+
+                      {/* Expiration Date */}
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <CalendarTodayIcon className="w-4 h-4 mr-1" />
+                        <span>Expires: {training.expiration_date ? new Date(training.expiration_date).toLocaleDateString() : 'Not specified'}</span>
                       </div>
                     </div>
                   </div>
