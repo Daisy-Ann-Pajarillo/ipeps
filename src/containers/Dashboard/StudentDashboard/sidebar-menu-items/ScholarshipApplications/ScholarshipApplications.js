@@ -243,16 +243,17 @@ const ScholarshipApplications = ({ isCollapsed }) => {
                           </span>
                         </div>
                       </div>
+                    
                       
                       <div className="flex flex-wrap gap-2 mt-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                          {scholarship.scholarship_type || "Not specified"}
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                          Available Slots: {scholarship.slots || "Not specified"}
                         </span>
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                          {scholarship.city_municipality}, {scholarship.country}
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300">
+                          Expiration: {scholarship.expiration_date ? new Date(scholarship.expiration_date).toLocaleDateString() : "Not specified"}
                         </span>
                       </div>
-                      
+
                       {canWithdraw(scholarship.scholarship_posting_id) && (
                         <div className="mt-2">
                           <span className="text-xs text-purple-600 dark:text-purple-400">

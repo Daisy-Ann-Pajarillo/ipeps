@@ -134,26 +134,15 @@ const SavedScholarshipView = ({
       }`}>
         {/* Scholarship Details Section */}
         <div className="space-y-3 sm:space-y-4 mb-6">
-          {scholarship.city_municipality && scholarship.country && (
-            <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-              <LocationOnIcon className="text-gray-400 dark:text-gray-500 w-5 h-5" />
-              <span>{scholarship.city_municipality}, {scholarship.country}</span>
-            </div>
-          )}
+
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <SchoolIcon fontSize="small" />
-            <span>{scholarship.scholarship_type || "Not specified"}</span>
+            <PaymentIcon className="text-gray-400 dark:text-gray-500 w-5 h-5 flex-shrink-0" />
+            <span>Available Slots: {scholarship.slots || "Not specified"}</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-            <PaymentIcon fontSize="small" />
-            <span>{scholarship.reward_type || "Not specified"}</span>
+            <CalendarTodayIcon className="text-gray-400 dark:text-gray-500 w-5 h-5 flex-shrink-0" />
+            <span>Expiration: {scholarship.expiration_date ? new Date(scholarship.expiration_date).toLocaleDateString() : "Not specified"}</span>
           </div>
-          {scholarship.deadline && (
-            <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-              <CalendarTodayIcon fontSize="small" />
-              <span>Deadline: {new Date(scholarship.deadline).toLocaleDateString()}</span>
-            </div>
-          )}
         </div>
 
         <Divider className="my-6" />

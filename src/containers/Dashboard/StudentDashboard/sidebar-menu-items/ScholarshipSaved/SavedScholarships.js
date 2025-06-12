@@ -6,14 +6,13 @@ import axios from "../../../../../axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
+import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import PeopleIcon from "@mui/icons-material/People";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import SearchIcon from "@mui/icons-material/Search";
 import logoNav from "../../../../Home/images/logonav.png";
 import { Typography, Button } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import SavedScholarshipView from "./SavedScholarshipView";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import SchoolIcon from "@mui/icons-material/School";
-import PaymentIcon from "@mui/icons-material/Payment";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 
 const SavedScholarships = () => {
   const navigate = useNavigate();
@@ -86,28 +85,29 @@ const SavedScholarships = () => {
     }
   };
 
-  const handleRemoveFromSaved = async (scholarshipId) => {
-    try {
-      setIsLoading(true);
-      await axios.post(
-        "/api/remove-saved-scholarship",
-        { scholarship_id: scholarshipId },
-        { auth: { username: auth.token } }
-      );
-
-      setSavedScholarships((prev) =>
-        prev.filter((s) => s.scholarship_id !== scholarshipId)
-      );
-      if (selectedScholarship?.scholarship_id === scholarshipId) {
-        setSelectedScholarship(null);
-      }
-      toast.success("Scholarship removed from saved list");
-    } catch (error) {
-      console.error("Error removing scholarship:", error);
-      toast.error("Failed to remove scholarship");
-    } finally {
-      setIsLoading(false);
+  const handleRemoveFromSaved = async (employerScholarshippostId) => {
+  try {
+    setIsLoading(true);
+    await axios.post(
+      "/api/save-scholarship",
+      { employer_scholarshippost_id: employerScholarshippostId },
+      { auth: { username: auth.token } }
+    );
+    setSavedScholarships((prev) =>
+      prev.filter((s) => s.scholarship_id !== employerScholarshippostId)
+    );
+    if (selectedScholarship?.scholarship_id === employerScholarshippostId) {
+      setSelectedScholarship(null);
     }
+    toast.success("Scholarship removed from saved list");
+  } catch (error) {
+    console.error("Error removing scholarship:", error);
+    toast.error(
+      error.response?.data?.message || "Failed to remove scholarship"
+    );
+  } finally {
+    setIsLoading(false);
+  }
   };
 
   // Filter scholarships
@@ -228,39 +228,27 @@ const SavedScholarships = () => {
                     <div className="flex gap-2 sm:gap-3">
                       <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded-md sm:rounded-lg overflow-hidden flex items-center justify-center">
                         <img
-                          src={scholarship.companyImage || scholarship.provider_logo || "http://bij.ly/4ib59B1"}
-                          alt={scholarship.scholarship_title || scholarship.title}
+                          src={scholarship.companyImage || "http://bij.ly/4ib59B1"}
+                          alt={scholarship.scholarship_title}
                           className="w-full h-full object-contain p-1 sm:p-2"
                         />
-                      </div>
-                      <div className="flex-1 min-w-0 max-w-full overflow-hidden"> {/* Added overflow control */}
-                        <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate pr-2">
-                          {scholarship.scholarship_title || scholarship.title}
-                        </div>
-                        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate pr-2">
-                          {scholarship.company_name || scholarship.provider}
-                        </div>
-                        
-                        {/* Scholarship Details Tags */}
-                        <div className="flex flex-wrap gap-1 sm:gap-2 mt-2 pr-2">
-                          {(scholarship.reward_type || scholarship.amount) && (
-                            <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-lg text-purple-700 dark:text-purple-300 text-xs whitespace-nowrap overflow-hidden">
-                              <PaymentIcon fontSize="small" className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate max-w-[120px]">{scholarship.reward_type || scholarship.amount}</span>
-                            </span>
-                          )}
-                          {scholarship.scholarship_type && (
-                            <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-lg text-purple-700 dark:text-purple-300 text-xs whitespace-nowrap overflow-hidden">
-                              <SchoolIcon fontSize="small" className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate max-w-[120px]">{scholarship.scholarship_type}</span>
-                            </span>
-                          )}
-                          {scholarship.deadline && (
-                            <span className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded-lg text-purple-700 dark:text-purple-300 text-xs whitespace-nowrap overflow-hidden">
-                              <CalendarTodayIcon fontSize="small" className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate max-w-[120px]">Deadline: {new Date(scholarship.deadline).toLocaleDateString()}</span>
-                            </span>
-                          )}
+                      </div>                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 dark:text-white text-base sm:text-lg truncate">
+                          {scholarship.scholarship_title}
+                        </h3>
+                        <div className="mt-1 flex flex-col gap-1">
+                          <p className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+                            <BusinessCenterIcon fontSize="small" />
+                            {scholarship.employer?.company_name || scholarship.company_name || "Unknown Company"}
+                          </p>
+                          <p className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+                            <PeopleIcon fontSize="small" />
+                            {scholarship.slots || 0} Slots
+                          </p>
+                          <p className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
+                            <CalendarTodayIcon fontSize="small" />
+                            Expires: {scholarship.expiration_date ? new Date(scholarship.expiration_date).toLocaleDateString() : 'Not specified'}
+                          </p>
                         </div>
                       </div>
                       <button

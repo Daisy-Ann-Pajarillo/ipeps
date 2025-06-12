@@ -81,25 +81,29 @@ const ScholarshipApplicationView = ({ application, onWithdraw, isMobile }) => {
           ? 'h-[calc(100%-180px)]' 
           : 'h-[calc(100%-120px)]'
       }`}>
-        {/* Application Details Section */}
-        <div className="space-y-3 sm:space-y-4 mb-6">
-          {application?.city_municipality && application?.country && (
-            <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
-              <LocationOnIcon className="text-gray-400 dark:text-gray-500 w-5 h-5 flex-shrink-0" />
+        {/* Application Details Section */}        
+       <div className="space-y-3 sm:space-y-4 mb-6">
+          {/*  {application?.city_municipality && application?.country && (
+                <LocationOnIcon className="text-gray-400 dark:text-gray-500 w-5 h-5 flex-shrink-0" />
               <span className="truncate">{application.city_municipality}, {application.country}</span>
             </div>
           )}
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
             <SchoolIcon className="text-gray-400 dark:text-gray-500 w-5 h-5 flex-shrink-0" />
-            <span className="truncate">{application?.scholarship_type || "Not specified"}</span>
+            <span className="truncate">{application?.scholarship_type || "Not specified"}</span> 
           </div>
+               */}
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
             <PaymentIcon className="text-gray-400 dark:text-gray-500 w-5 h-5 flex-shrink-0" />
-            <span className="truncate">{application?.reward_type || "Not specified"}</span>
+            <span className="truncate">Available Slots: {application?.slots || "Not specified"}</span>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
             <CalendarTodayIcon className="text-gray-400 dark:text-gray-500 w-5 h-5 flex-shrink-0" />
             <span className="truncate">Applied: {new Date(application?.applied_at).toLocaleDateString()}</span>
+          </div>
+          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 dark:text-gray-300 text-xs sm:text-base">
+            <CalendarTodayIcon className="text-gray-400 dark:text-gray-500 w-5 h-5 flex-shrink-0" />
+            <span className="truncate">Expiration: {application?.expiration_date ? new Date(application.expiration_date).toLocaleDateString() : "Not specified"}</span>
           </div>
         </div>
 

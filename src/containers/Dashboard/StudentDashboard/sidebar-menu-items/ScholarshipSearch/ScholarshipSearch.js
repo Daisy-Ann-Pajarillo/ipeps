@@ -300,9 +300,19 @@ const ScholarshipSearch = () => {
                       <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {scholarship.scholarship_title}
                       </div>
-                      <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {scholarship.company_name || scholarship.employer?.company_name || 'Unknown Company'}
+
+                      {/* Employer */}
+                      <div className="flex flex-col gap-1 mb-3">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Employer:</span> {scholarship.employer?.full_name || scholarship.provider}
+                        </p>
+                        {scholarship.employer?.company_name && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <span className="font-medium">Company:</span> {scholarship.employer.company_name}
+                          </p>
+                        )}
                       </div>
+
                       <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                         Vacancies: {scholarship.slots || 0}
                       </div>
