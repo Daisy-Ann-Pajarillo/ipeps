@@ -1,5 +1,4 @@
-// JobSeeker.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,17 +13,29 @@ import {
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
-import {
-  FaRegCalendarAlt,
-  FaUniversity,
-  FaChartBar,
-  FaUsers,
-  FaChalkboardTeacher,
-  FaUserGraduate,
-  FaFilter,
-  FaDownload
-} from 'react-icons/fa';
+import axios from '../../../../../../axios';
+import { useSelector, useDispatch } from 'react-redux';
+import * as actions from '../../../../../../store/actions/index';
 
+// Lucide Icons
+import {
+  BarChart2,
+  Users,
+  GraduationCap,
+  MapPin,
+  Settings,
+  Star,
+  Download,
+  ArrowLeft,
+  Eye,
+  TrendingUp,
+} from 'lucide-react';
+
+// Excel/CSV export
+import * as XLSX from 'xlsx';
+import FileSaver from 'file-saver';
+
+// Register chart components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -34,314 +45,165 @@ ChartJS.register(
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ChartDataLabels
 );
-ChartJS.register(ChartDataLabels);
 
 const JobSeeker = () => {
-  // State for active section
-  const [activeSection, setActiveSection] = useState('job');
+  const [loading, setLoading] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [apiData, setApiData] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [selectedCharts, setSelectedCharts] = useState([]);
+  const [dateFilter, setDateFilter] = useState({
+    from: '',
+    to: ''
+  });
 
-  // State for date filter
-  const [startDate, setStartDate] = useState('2023-01-01');
-  const [endDate, setEndDate] = useState('2023-05-31');
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
 
-  // State for selected course
-  const [selectedCourse, setSelectedCourse] = useState('');
+  // Fetch auth storage
+  useEffect(() => {
+    dispatch(actions.getAuthStorage());
+  }, [dispatch]);
 
-  // Dummy data arrays
-  const jobTitles = ['Software Engineer', 'Marketing Specialist', 'Accountant', 'Project Manager', 'Sales Executive'];
-  const municipalities = ['Metro Manila', 'Cebu City', 'Davao City', 'Baguio City', 'Iloilo City'];
-  const educationLevels = ['High School', 'Vocational', 'Associate Degree', 'Bachelor\'s Degree', 'Master\'s Degree'];
-  const ageBrackets = ['Under 20', '20-24', '25-29', '30-34', '35-39', '40+'];
-  const courses = ['Computer Science', 'Business Administration', 'Engineering', 'Education', 'Arts & Sciences'];
-  const genders = ['Male', 'Female'];
-  const sectors = ['IT & Software', 'Healthcare', 'Manufacturing', 'Finance', 'Retail'];
-
-  // Generate dummy data
-  const generateRandomData = (length) => {
-    return Array.from({ length }, () => Math.floor(Math.random() * 1000));
-  };
-
-  // Generate dates between start and end dates
-  const getDatesBetween = (start, end) => {
-    const dates = [];
-    let currentDate = new Date(start);
-    const endDate = new Date(end);
-
-    while (currentDate <= endDate) {
-      dates.push(currentDate.toISOString().split('T')[0]);
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    return dates;
-  };
-  const colorPalette = {
-    job: [
-      { bg: 'rgba(75, 192, 192, 0.8)', border: 'rgba(75, 192, 192, 1)' },   // Teal
-      { bg: 'rgba(54, 162, 235, 0.8)', border: 'rgba(54, 162, 235, 1)' },   // Blue
-      { bg: 'rgba(153, 102, 255, 0.8)', border: 'rgba(153, 102, 255, 1)' }, // Purple
-    ],
-    sex: [
-      { bg: 'rgba(255, 99, 132, 0.8)', border: 'rgba(255, 99, 132, 1)' },   // Rose
-      { bg: 'rgba(255, 159, 64, 0.8)', border: 'rgba(255, 159, 64, 1)' },   // Orange
-    ],
-    municipality: [
-      { bg: 'rgba(255, 205, 86, 0.8)', border: 'rgba(255, 205, 86, 1)' },   // Yellow
-      { bg: 'rgba(100, 149, 237, 0.8)', border: 'rgba(100, 149, 237, 1)' }, // Cornflower Blue
-      { bg: 'rgba(30, 144, 255, 0.8)', border: 'rgba(30, 144, 255, 1)' },   // Dodger Blue
-    ],
-    education: [
-      { bg: 'rgba(144, 238, 144, 0.8)', border: 'rgba(144, 238, 144, 1)' }, // Light Green
-      { bg: 'rgba(60, 179, 113, 0.8)', border: 'rgba(60, 179, 113, 1)' },   // Medium Sea Green
-      { bg: 'rgba(46, 139, 87, 0.8)', border: 'rgba(46, 139, 87, 1)' },     // Sea Green
-    ],
-    age: [
-      { bg: 'rgba(255, 105, 180, 0.8)', border: 'rgba(255, 105, 180, 1)' }, // Hot Pink
-      { bg: 'rgba(218, 112, 214, 0.8)', border: 'rgba(218, 112, 214, 1)' }, // Orchid
-      { bg: 'rgba(199, 21, 133, 0.8)', border: 'rgba(199, 21, 133, 1)' },   // Medium Violet Red
-    ],
-    course: [
-      { bg: 'rgba(255, 165, 0, 0.8)', border: 'rgba(255, 165, 0, 1)' },     // Orange
-      { bg: 'rgba(230, 161, 68, 0.8)', border: 'rgba(230, 161, 68, 1)' },   // Gold
-      { bg: 'rgba(204, 85, 0, 0.8)', border: 'rgba(204, 85, 0, 1)' },       // Dark Orange
-    ]
-  };
-  // Employment statistics data
-  const employmentStats = {
-    labor_force: 15000,
-    employed: 12750,
-    unemployed: 2250,
-    employment_rate: 85.0,
-    unemployment_rate: 15.0,
-    jobs_created: 1250,
-    top_sectors: [
-      { Sector: 'IT & Software', HiringCount: 3500 },
-      { Sector: 'Healthcare', HiringCount: 2800 },
-      { Sector: 'Manufacturing', HiringCount: 2200 },
-      { Sector: 'Finance', HiringCount: 1950 },
-      { Sector: 'Retail', HiringCount: 1550 }
-    ],
-    previous_period: {
-      employment_rate: 82.7,
-      unemployment_rate: 17.3,
-      jobs_created: 1125
+  // Fetch analytics data
+  const fetchData = async (filters = {}) => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams(filters).toString();
+      const res = await axios.get(`/api/jobseeker-statistics${params ? `?${params}` : ''}`, {
+        auth: { username: auth.token },
+      });
+      setApiData(res.data);
+      console.log('Fetched API Data:', res.data);
+    } catch (error) {
+      console.error('Error fetching jobseeker statistics:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Job data
-  const jobData = {
-    jobseekers_by_title: jobTitles.map(title => ({
-      Title: title,
-      NumJobSeekers: Math.floor(Math.random() * 1000)
-    })),
-    in_demand_jobs: jobTitles.map(title => ({
-      Title: title,
-      InDemandCount: Math.floor(Math.random() * 500)
-    })),
-    workers_by_title: getDatesBetween(startDate, endDate).flatMap(date =>
-      jobTitles.map(title => ({
-        Title: title,
-        RecordDate: date,
-        NumWorkers: Math.floor(Math.random() * 1000)
-      }))
-    )
-  };
+  useEffect(() => {
+    fetchData(); // Initial load without any date filters
+  }, [auth.token]);
 
-  // Sex data
-  const sexData = {
-    sex_distribution: genders.map(gender => ({
-      Sex: gender,
-      Count: Math.floor(Math.random() * 1000)
-    })),
-    job_preferences_by_sex: jobTitles.flatMap(title =>
-      genders.map(gender => ({
-        Title: title,
-        Sex: gender,
-        NumPreferences: Math.floor(Math.random() * 500)
-      }))
-    ),
-    sex_by_municipality: municipalities.flatMap(muni =>
-      genders.map(gender => ({
-        Municipality: muni,
-        Sex: gender,
-        NumJobSeekers: Math.floor(Math.random() * 500)
-      }))
-    )
-  };
+  // Extract relevant data from API response
+  const jobPreferences =
+    apiData.job_seekers?.course?.distribution || [];
 
-  // Municipality data
-  const municipalityData = {
-    hired_by_municipality: municipalities.map(muni => ({
-      Municipality: muni,
-      District: `District ${Math.ceil(Math.random() * 5)}`,
-      NumHired: Math.floor(Math.random() * 1000)
-    })),
-    hiring_status: municipalities.flatMap(muni =>
-      ['Hired', 'Searching', 'Training'].map(status => ({
-        Municipality: muni,
-        HiringStatus: status,
-        Count: Math.floor(Math.random() * 500)
-      }))
-    ),
-    jobseeker_concentration: municipalities.map(muni => ({
-      Municipality: muni,
-      NumJobSeekers: Math.floor(Math.random() * 2000)
-    }))
-  };
+  const demographicsAge =
+    apiData.jobseeker_demographics?.age_distribution?.detailed_data || [];
 
-  // Education data
-  const educationData = {
-    education_distribution: educationLevels.map(level => ({
-      EducationalAttainment: level,
-      Count: Math.floor(Math.random() * 1000)
-    })),
-    job_by_education: educationLevels.flatMap(level =>
-      jobTitles.map(title => ({
-        Title: title,
-        EducationalAttainment: level,
-        NumPreferences: Math.floor(Math.random() * 500)
-      }))
-    ),
-    education_by_municipality: municipalities.flatMap(muni =>
-      educationLevels.map(level => ({
-        Municipality: muni,
-        EducationalAttainment: level,
-        NumJobSeekers: Math.floor(Math.random() * 500)
-      }))
-    )
-  };
+  const demographicsGender =
+    apiData.jobseeker_demographics?.gender_distribution?.detailed_data || [];
 
-  // Age data
-  const ageData = {
-    age_distribution: ageBrackets.map(bracket => ({
-      AgeBracket: bracket,
-      Count: Math.floor(Math.random() * 1000)
-    })),
-    job_by_age: ageBrackets.flatMap(bracket =>
-      jobTitles.map(title => ({
-        Title: title,
-        AgeBracket: bracket,
-        NumPreferences: Math.floor(Math.random() * 500)
-      }))
-    ),
-    age_by_municipality: municipalities.flatMap(muni =>
-      ageBrackets.map(bracket => ({
-        Municipality: muni,
-        AgeBracket: bracket,
-        NumJobSeekers: Math.floor(Math.random() * 500)
-      }))
-    )
-  };
+  const hiredPerMonth =
+    apiData.job_seekers?.job?.workers_trend || [];
 
-  // Course data
-  const courseData = {
-    course_distribution: courses.map(course => ({
-      Course: course,
-      Count: Math.floor(Math.random() * 1000)
-    })),
-    job_by_course: courses.flatMap(course =>
-      jobTitles.slice(0, 3).map(title => ({
-        Title: title,
-        Course: course,
-        NumPreferences: Math.floor(Math.random() * 500)
-      }))
-    ),
-    skills_in_demand: ['Programming', 'Digital Marketing', 'Financial Analysis', 'Project Management', 'Customer Service']
-      .map(skill => ({
-        SkillName: skill,
-        DemandCount: Math.floor(Math.random() * 500)
-      }))
-  };
+  const skillsMonthly =
+    apiData.jobseeker_skills_per_municipality?.municipality_summary?.[0]?.top_skills || [];
 
-  // Filtered data based on date range
-  const filteredJobData = {
-    ...jobData,
-    workers_by_title: jobData.workers_by_title.filter(item =>
-      item.RecordDate >= startDate && item.RecordDate <= endDate
-    )
-  };
+  const totalJobPreferences = jobPreferences.reduce((sum, item) => sum + item.count, 0);
+  const totalHired = hiredPerMonth.reduce((sum, item) => sum + item.hired, 0);
 
-  // Handler functions
-  const handleNavClick = (section) => {
-    setActiveSection(section);
-  };
-
-  const handleApplyFilter = () => {
-    // In a real app, we would fetch data based on these dates
-    // For now, we just regenerate random data
-    console.log(`Applying filter from ${startDate} to ${endDate}`);
-  };
-
-  const handleCourseChange = (e) => {
-    setSelectedCourse(e.target.value);
-  };
-
-  // Create chart data
-  const barColors = [
-    { bg: 'rgba(75, 192, 192, 0.6)', border: 'rgba(75, 192, 192, 1)' },   // Teal
-    { bg: 'rgba(255, 99, 132, 0.6)', border: 'rgba(255, 99, 132, 1)' },   // Rose
-    { bg: 'rgba(255, 205, 86, 0.6)', border: 'rgba(255, 205, 86, 1)' },   // Yellow
-    { bg: 'rgba(54, 162, 235, 0.6)', border: 'rgba(54, 162, 235, 1)' },   // Blue
-    { bg: 'rgba(153, 102, 255, 0.6)', border: 'rgba(153, 102, 255, 1)' }, // Purple
+  // Card configurations with date support where applicable
+  const cardConfigs = [
+    {
+      id: 'preferences',
+      title: "Job Seekers Course Preferences",
+      subtitle: "Most sought-after courses",
+      icon: <BarChart2 className="w-6 h-6" />,
+      gradient: 'from-blue-500 to-blue-600',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      total: totalJobPreferences,
+      change: '+12.5%',
+      hasDateFilter: true
+    },
+    {
+      id: 'hired',
+      title: 'Job Seekers Hired Per Month',
+      subtitle: 'Successful placements by month',
+      icon: <Users className="w-6 h-6" />,
+      gradient: 'from-emerald-500 to-emerald-600',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
+      total: totalHired,
+      change: '+8.3%',
+      hasDateFilter: true
+    },
+    {
+      id: 'demographics-age',
+      title: 'Jobseekers Demographics (Age)',
+      subtitle: 'Age breakdown of job seekers',
+      icon: <GraduationCap className="w-6 h-6" />,
+      gradient: 'from-orange-500 to-orange-600',
+      iconBg: 'bg-orange-100',
+      iconColor: 'text-orange-600',
+      total: demographicsAge.reduce((sum, d) => sum + d.count, 0),
+      change: '+6.2%'
+    },
+    {
+      id: 'demographics-gender',
+      title: 'Jobseekers Gender Distribution',
+      subtitle: 'Male vs Female distribution',
+      icon: <GraduationCap className="w-6 h-6" />,
+      gradient: 'from-pink-500 to-pink-600',
+      iconBg: 'bg-pink-100',
+      iconColor: 'text-pink-600',
+      total: demographicsGender.reduce((sum, d) => sum + d.count, 0),
+      change: '+6.2%'
+    },
+    {
+      id: 'skills',
+      title: 'In-Demand Skills',
+      subtitle: 'Top skills by job seekers',
+      icon: <Settings className="w-6 h-6" />,
+      gradient: 'from-teal-500 to-teal-600',
+      iconBg: 'bg-teal-100',
+      iconColor: 'text-teal-600',
+      total: skillsMonthly.length,
+      change: '+9.8%',
+      hasDateFilter: true
+    },
+    {
+      id: 'top10',
+      title: 'Top In-Demand Jobs',
+      subtitle: 'Highest demand positions',
+      icon: <Star className="w-6 h-6" />,
+      gradient: 'from-amber-500 to-amber-600',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
+      total: jobPreferences.length,
+      change: '+4.1%',
+      hasDateFilter: true
+    }
   ];
 
-  const createBarChartData = (labels, data, label, colorIndex = 0) => {
-    const color = barColors[colorIndex % barColors.length];
-    return {
-      labels: labels,
-      datasets: [
-        {
-          label: label,
-          data: data,
-          backgroundColor: color.bg,
-          borderColor: color.border,
-          borderWidth: 1,
-        },
-      ],
-    };
-  };
-
-  const doughnutColors = [
-    { bg: 'rgba(75, 192, 192, 0.6)', border: 'rgba(75, 192, 192, 1)' },
-    { bg: 'rgba(255, 99, 132, 0.6)', border: 'rgba(255, 99, 132, 1)' },
-    { bg: 'rgba(255, 205, 86, 0.6)', border: 'rgba(255, 205, 86, 1)' },
-    { bg: 'rgba(54, 162, 235, 0.6)', border: 'rgba(54, 162, 235, 1)' },
-    { bg: 'rgba(153, 102, 255, 0.6)', border: 'rgba(153, 102, 255, 1)' }
-  ];
-
-  const createDoughnutChartData = (labels, data) => {
-    return {
-      labels: labels,
-      datasets: [
-        {
-          label: 'Distribution',
-          data: data,
-          backgroundColor: doughnutColors.slice(0, data.length).map(c => c.bg),
-          borderColor: doughnutColors.slice(0, data.length).map(c => c.border),
-          borderWidth: 1,
-        },
-      ],
-    };
-  };
-
-
-  const options = {
+  // Chart options
+  const baseOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: false,
+      legend: { display: false },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(17, 24, 39, 0.95)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: 'rgba(156, 163, 175, 0.2)',
+        borderWidth: 6,
+        cornerRadius: 8
       },
       datalabels: {
+        display: false,
         anchor: 'end',
         align: 'end',
-        color: '#000',
-        font: {
-          weight: 'bold'
-        },
+        color: '#374151',
+        font: { weight: 'bold', size: 11 },
         formatter: (value) => value.toLocaleString()
       }
     },
@@ -350,679 +212,571 @@ const JobSeeker = () => {
         ticks: {
           autoSkip: false,
           maxRotation: 45,
-          minRotation: 45
+          minRotation: 45,
+          font: { size: 11 },
+          color: '#6B7280'
+        },
+        grid: { display: false },
+        barThickness: 4
+      },
+      y: {
+        ticks: { display: false },
+        grid: { display: false }
+      }
+    },
+    backgroundColor: 'white'
+  };
+
+  const lineChartOptions = {
+    ...baseOptions,
+    plugins: {
+      ...baseOptions.plugins,
+      datalabels: { display: false }
+    },
+    scales: {
+      x: {
+        ticks: { font: { size: 11 }, color: '#6B7280' },
+        grid: { display: true, color: 'rgba(156, 163, 175, 0.1)' }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: { display: true, font: { size: 11 }, color: '#6B7280' },
+        grid: { display: true, color: 'rgba(156, 163, 175, 0.1)' }
+      }
+    }
+  };
+
+  const doughnutChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          font: { size: 11 },
+          color: '#374151',
+          padding: 20,
+          usePointStyle: true,
+          pointStyle: 'circle'
+        }
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(17, 24, 39, 0.95)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: 'rgba(156, 163, 175, 0.2)',
+        borderWidth: 1,
+        cornerRadius: 8
+      },
+      datalabels: {
+        display: true,
+        color: '#fff',
+        font: { weight: 'bold', size: 10 },
+        formatter: (value, context) => {
+          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+          return `${((value / total) * 100).toFixed(1)}%`;
         }
       }
     }
   };
 
-  // Create job seekers by title chart data
-  const jobSeekersByTitleData = createBarChartData(
-    jobData.jobseekers_by_title.map(item => item.Title),
-    jobData.jobseekers_by_title.map(item => item.NumJobSeekers),
-    'Number of Job Seekers'
-  );
+  const renderChart = () => {
+    if (!selectedCard || loading)
+      return (
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      );
 
-  // Create in-demand jobs chart data
-  const inDemandJobsData = createBarChartData(
-    jobData.in_demand_jobs.map(item => item.Title),
-    jobData.in_demand_jobs.map(item => item.InDemandCount),
-    'Demand Score',
-    1
-  );
-
-  // Prepare data for line chart
-  const prepareLineChartData = () => {
-    const titles = [...new Set(filteredJobData.workers_by_title.map(item => item.Title))];
-
-    return {
-      labels: [...new Set(filteredJobData.workers_by_title.map(item => item.RecordDate))],
-      datasets: titles.map((title, index) => ({
-        label: title,
-        data: filteredJobData.workers_by_title
-          .filter(item => item.Title === title)
-          .map(item => item.NumWorkers),
-        borderColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 1)`,
-        backgroundColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 0.5)`,
-        tension: 0.1,
-      })),
+    const chartConfig = {
+      preferences: {
+        component: Bar,
+        options: baseOptions,
+        data: {
+          labels: jobPreferences.map(p => p.course),
+          datasets: [{
+            label: 'Number of Job Seekers',
+            data: jobPreferences.map(p => p.count),
+            backgroundColor: 'rgba(14, 165, 233, 0.8)', // Sky Blue
+            borderColor: 'rgba(14, 165, 233, 1)',
+            borderWidth: 1
+          }]
+        }
+      },
+      hired: {
+        component: Line,
+        options: lineChartOptions,
+        data: {
+          labels: hiredPerMonth.map(h => h.month),
+          datasets: [{
+            label: 'Hired Job Seekers',
+            data: hiredPerMonth.map(h => h.hired),
+            borderColor: 'rgba(16, 185, 129, 1)',       // Emerald Green
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+            fill: true,
+            tension: 0.4
+          }]
+        }
+      },
+      'demographics-age': {
+        component: Doughnut,
+        options: doughnutChartOptions,
+        data: {
+          labels: demographicsAge.map(d => d.age_range),
+          datasets: [{
+            label: 'Demographics',
+            data: demographicsAge.map(d => d.count),
+            backgroundColor: [
+              'rgba(239, 68, 68, 0.8)',   // Red
+              'rgba(249, 115, 22, 0.8)',  // Orange
+              'rgba(245, 158, 11, 0.8)',  // Amber
+              'rgba(34, 197, 94, 0.8)',   // Emerald
+              'rgba(59, 130, 246, 0.8)',  // Blue
+              'rgba(139, 92, 246, 0.8)',  // Violet
+              'rgba(217, 119, 252, 0.8)'  // Pink
+            ],
+            borderColor: '#fff',
+            borderWidth: 3
+          }]
+        }
+      },
+      'demographics-gender': {
+        component: Doughnut,
+        options: doughnutChartOptions,
+        data: {
+          labels: demographicsGender.map(d => d.gender),
+          datasets: [{
+            label: 'Gender Distribution',
+            data: demographicsGender.map(d => d.count),
+            backgroundColor: ['rgba(59, 130, 246, 0.8)', 'rgba(244, 63, 94, 0.8)'],
+            borderColor: '#fff',
+            borderWidth: 3
+          }]
+        }
+      },
+      skills: {
+        component: Bar,
+        options: baseOptions,
+        data: {
+          labels: skillsMonthly.map(s => s.skill),
+          datasets: [{
+            label: 'Skills',
+            data: skillsMonthly.map(s => s.count),
+            backgroundColor: 'rgba(20, 184, 166, 0.8)', // Teal
+            borderColor: 'rgba(20, 184, 166, 1)',
+            borderWidth: 2
+          }]
+        }
+      },
+      top10: {
+        component: Bar,
+        options: {
+          ...baseOptions,
+          indexAxis: 'y',
+          scales: {
+            x: {
+              ticks: { display: true, font: { size: 11 }, color: '#6B7280' },
+              grid: { display: true, color: 'rgba(156, 163, 175, 0.1)' }
+            },
+            y: {
+              ticks: { font: { size: 11 }, color: '#6B7280' },
+              grid: { display: false }
+            }
+          }
+        },
+        data: {
+          labels: jobPreferences.slice(0, 10).map(p => p.course),
+          datasets: [{
+            label: 'Top 10 Courses',
+            data: jobPreferences.slice(0, 10).map(p => p.count),
+            backgroundColor: 'rgba(245, 149, 96, 0.8)', // Warm Amber
+            borderColor: 'rgba(245, 149, 96, 1)',
+            borderWidth: 2
+          }]
+        }
+      }
     };
+
+    const config = chartConfig[selectedCard.id];
+    if (!config) return null;
+
+    const ChartComponent = config.component;
+    const chartData = config.data;
+
+    const hasData =
+      chartData.labels && chartData.labels.length > 0 &&
+      chartData.datasets.some(ds => ds.data.length > 0);
+
+    return (
+      <div className="h-96 exportable-chart" data-chartid={selectedCard.id}>
+        {hasData ? (
+          <ChartComponent options={config.options} data={chartData} />
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-500 text-lg">
+            No data available
+          </div>
+        )}
+      </div>
+    );
   };
 
-  const workersTrendData = prepareLineChartData();
+  const Data_Export_as_excel = (format) => {
+    const workbook = XLSX.utils.book_new();
 
-  // Create overall sex distribution chart data
-  const sexDistributionData = createDoughnutChartData(
-    sexData.sex_distribution.map(item => item.Sex),
-    sexData.sex_distribution.map(item => item.Count)
-  );
+    // Sheet 1: Course Preferences
+    const courseTable = apiData.job_seekers?.course?.distribution || [];
+    const courseSheet = XLSX.utils.json_to_sheet(courseTable);
+    XLSX.utils.book_append_sheet(workbook, courseSheet, 'Course Preferences');
 
-  // Create job preferences by sex chart data
-  const createJobPreferencesBySexData = () => {
-    const titles = [...new Set(sexData.job_preferences_by_sex.map(item => item.Title))];
-    const genders = [...new Set(sexData.job_preferences_by_sex.map(item => item.Sex))];
+    // Sheet 2: Age Demographics
+    const ageTable = apiData.jobseeker_demographics?.age_distribution?.detailed_data || [];
+    const ageSheet = XLSX.utils.json_to_sheet(ageTable);
+    XLSX.utils.book_append_sheet(workbook, ageSheet, 'Demographics - Age');
 
-    return {
-      labels: titles,
-      datasets: genders.map((gender, index) => ({
-        label: gender,
-        data: titles.map(title => {
-          const match = sexData.job_preferences_by_sex.find(
-            item => item.Title === title && item.Sex === gender
-          );
-          return match ? match.NumPreferences : 0;
-        }),
-        backgroundColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 0.6)`,
-        borderColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 1)`,
-        borderWidth: 1,
-      })),
-    };
+    // Sheet 3: Gender Demographics
+    const genderTable = apiData.jobseeker_demographics?.gender_distribution?.detailed_data || [];
+    const genderSheet = XLSX.utils.json_to_sheet(genderTable);
+    XLSX.utils.book_append_sheet(workbook, genderSheet, 'Demographics - Gender');
+
+    // Sheet 4: Job Skills
+    const skillTable = apiData.jobseeker_skills_per_municipality?.skills_detailed || [];
+    const skillSheet = XLSX.utils.json_to_sheet(skillTable);
+    XLSX.utils.book_append_sheet(workbook, skillSheet, 'Skills');
+
+    // Sheet 5: Summary Stats
+    const summaryTable = [
+      { Metric: "Total Job Seekers", Value: apiData.jobseeker_demographics?.total_jobseekers || 0 },
+      { Metric: "Last Updated", Value: new Date(apiData.meta?.generated_at).toLocaleString() }
+    ];
+    const summarySheet = XLSX.utils.json_to_sheet(summaryTable);
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+    // Write and Save
+    const excelBuffer = XLSX.write(workbook, { bookType: format, type: 'array' });
+    const blob = new Blob([excelBuffer], {
+      type: format === 'xlsx' ? 'application/octet-stream' : 'text/csv'
+    });
+    FileSaver.saveAs(blob, `JobSeeker_Analytics_${new Date().toISOString().slice(0, 10)}.${format}`);
+    setIsModalOpen(false);
   };
 
-  const jobPreferencesBySexData = createJobPreferencesBySexData();
-
-  // Create gender distribution by municipality chart data
-  const createGenderByMunicipalityData = () => {
-    const municipalities = [...new Set(sexData.sex_by_municipality.map(item => item.Municipality))];
-    const genders = [...new Set(sexData.sex_by_municipality.map(item => item.Sex))];
-
-    return {
-      labels: municipalities,
-      datasets: genders.map((gender, index) => ({
-        label: gender,
-        data: municipalities.map(muni => {
-          const match = sexData.sex_by_municipality.find(
-            item => item.Municipality === muni && item.Sex === gender
-          );
-          return match ? match.NumJobSeekers : 0;
-        }),
-        backgroundColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 0.6)`,
-        borderColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 1)`,
-        borderWidth: 1,
-      })),
-    };
+  const handleChartExport = () => {
+    const chartEl = document.querySelector(`.exportable-chart`);
+    if (!chartEl) return;
+    import('html2canvas').then(html2canvas => {
+      html2canvas.default(chartEl).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `${selectedCard.id}_chart.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    });
   };
 
-  const genderByMunicipalityData = createGenderByMunicipalityData();
-
-  // Create hired job seekers by municipality chart data
-  const hiredByMunicipalityData = createBarChartData(
-    municipalityData.hired_by_municipality.map(item => `${item.Municipality} (${item.District})`),
-    municipalityData.hired_by_municipality.map(item => item.NumHired),
-    'Number of Hired Job Seekers',
-    2
-  );
-
-  // Create hiring status by municipality chart data
-  const createHiringStatusData = () => {
-    const municipalities = [...new Set(municipalityData.hiring_status.map(item => item.Municipality))];
-    const statuses = [...new Set(municipalityData.hiring_status.map(item => item.HiringStatus))];
-
-    return {
-      labels: municipalities,
-      datasets: statuses.map((status, index) => ({
-        label: status,
-        data: municipalities.map(muni => {
-          const match = municipalityData.hiring_status.find(
-            item => item.Municipality === muni && item.HiringStatus === status
-          );
-          return match ? match.Count : 0;
-        }),
-        backgroundColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 0.6)`,
-        borderColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 1)`,
-        borderWidth: 1,
-      })),
-    };
+  const applyDateFilter = () => {
+    fetchData(dateFilter);
   };
-
-  const hiringStatusData = createHiringStatusData();
-
-  // Create educational attainment distribution chart data
-  const educationDistributionData = createBarChartData(
-    educationData.education_distribution.map(item => item.EducationalAttainment),
-    educationData.education_distribution.map(item => item.Count),
-    'Number of Job Seekers',
-    3
-  );
-
-  // Create job preferences by educational attainment chart data
-  const jobByEducationData = createBarChartData(
-    educationData.job_by_education.map(item => `${item.Title} (${item.EducationalAttainment})`),
-    educationData.job_by_education.map(item => item.NumPreferences),
-    'Number of Preferences',
-    4
-  );
-
-  // Create educational attainment by municipality chart data
-  const createEducationByMunicipalityData = () => {
-    const municipalities = [...new Set(educationData.education_by_municipality.map(item => item.Municipality))];
-    const levels = [...new Set(educationData.education_by_municipality.map(item => item.EducationalAttainment))];
-
-    return {
-      labels: municipalities,
-      datasets: levels.map((level, index) => ({
-        label: level,
-        data: municipalities.map(muni => {
-          const match = educationData.education_by_municipality.find(
-            item => item.Municipality === muni && item.EducationalAttainment === level
-          );
-          return match ? match.NumJobSeekers : 0;
-        }),
-        backgroundColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 0.6)`,
-        borderColor: `rgba(${index * 50 + 52}, ${index * 50 + 152}, ${index * 50 + 219}, 1)`,
-        borderWidth: 1,
-      })),
-    };
-  };
-
-  const educationByMunicipalityData = createEducationByMunicipalityData();
-
-  // Create age distribution chart data
-  const ageDistributionData = createBarChartData(
-    ageData.age_distribution.map(item => item.AgeBracket),
-    ageData.age_distribution.map(item => item.Count),
-    'Number of Job Seekers',
-    5
-  );
-
-  // Create job preferences by age group chart data
-  const jobByAgeData = createBarChartData(
-    ageData.job_by_age.map(item => `${item.Title} (${item.AgeBracket})`),
-    ageData.job_by_age.map(item => item.NumPreferences),
-    'Number of Preferences',
-    1
-  );
-
-  // Create course distribution chart data
-  const courseDistributionData = createDoughnutChartData(
-    courseData.course_distribution.map(item => item.Course),
-    courseData.course_distribution.map(item => item.Count)
-  );
-
-  // Create job preferences by course chart data
-  const jobByCourseData = createBarChartData(
-    courseData.job_by_course.map(item => `${item.Title} (${item.Course})`),
-    courseData.job_by_course.map(item => item.NumPreferences),
-    'Number of Preferences',
-    2
-  );
-
-  // Create skills in demand chart data
-  const skillsInDemandData = createBarChartData(
-    courseData.skills_in_demand.map(item => item.SkillName),
-    courseData.skills_in_demand.map(item => item.DemandCount),
-    'Demand Score',
-    3
-  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-blue-700 text-white p-4 shadow-md relative">
-        <button
-          onClick={() => window.history.back()}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white bg-blue-800 hover:bg-blue-900 px-3 py-1 rounded shadow"
-        >
-          Back
-        </button>
-        <div className="container mx-auto">
-          <h1 className="text-2xl md:text-3xl font-bold text-center">Job Seeker Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between h-auto sm:h-16 py-3 sm:py-0 gap-3 sm:gap-0">
+          <div className="flex items-center space-x-4 w-full sm:w-auto">
+            <button
+              className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors duration-200 group"
+              onClick={() => window.history.back()}
+            >
+              <ArrowLeft className="group-hover:-translate-x-1 transition-transform duration-200" />
+              <span>Back</span>
+            </button>
+            <div className="h-6 w-px bg-slate-300 hidden sm:block" />
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              JobSeeker Analytics
+            </h1>
+          </div>
+          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto justify-center"
+            >
+              <Download className="text-sm" />
+              <span>Export Data</span>
+            </button>
+            {selectedCard && (
+              <button
+                onClick={handleChartExport}
+                className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-4 py-2 rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 w-full sm:w-auto justify-center"
+              >
+                <Download className="text-sm" />
+                <span>Export Chart</span>
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto py-6 px-4">
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap justify-center gap-2 mb-6">
-          {[
-            { id: 'job', label: 'Filter by Job', icon: <FaChartBar /> },
-            { id: 'sex', label: 'Filter by Sex', icon: <FaUsers /> },
-            { id: 'municipality', label: 'Filter by Municipality', icon: <FaUniversity /> },
-            { id: 'education', label: 'Filter by Education', icon: <FaChalkboardTeacher /> },
-            { id: 'age', label: 'Filter by Age', icon: <FaUserGraduate /> },
-            { id: 'course', label: 'Filter by Course', icon: <FaFilter /> }
-          ].map(tab => (
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-6 sm:py-8">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-64 space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+            <p className="text-lg text-slate-600">Loading analytics data...</p>
+          </div>
+        ) : selectedCard ? (
+          <div className="space-y-6">
             <button
-              key={tab.id}
-              onClick={() => handleNavClick(tab.id)}
-              className={`flex items-center px-4 py-2 rounded-lg transition-colors ${activeSection === tab.id
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-blue-600 hover:bg-blue-50'
-                }`}
+              onClick={() => setSelectedCard(null)}
+              className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors duration-200 group mb-6"
             >
-              <span className="mr-2">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <ArrowLeft className="group-hover:-translate-x-1 transition-transform duration-200" />
+              <span>Back to Dashboard</span>
             </button>
-          ))}
-        </div>
-
-        {/* Date Filter */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6 flex flex-col md:flex-row items-center justify-center gap-4">
-          <div className="flex items-center">
-            <label htmlFor="start-date" className="mr-2 font-medium">From:</label>
-            <input
-              type="date"
-              id="start-date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1"
-            />
-          </div>
-          <div className="flex items-center">
-            <label htmlFor="end-date" className="mr-2 font-medium">To:</label>
-            <input
-              type="date"
-              id="end-date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1"
-            />
-          </div>
-          <button
-            onClick={handleApplyFilter}
-            className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition-colors flex items-center"
-          >
-            <FaRegCalendarAlt className="mr-1" />
-            Apply Filter
-          </button>
-        </div>
-
-        {/* Sections */}
-        <div className="space-y-6">
-          {/* Job Section */}
-          {activeSection === 'job' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Job Seekers Distribution */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Job Seeker Distribution by Job Title</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={jobSeekersByTitleData} />
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 overflow-hidden">
+              <div className={`bg-gradient-to-r ${selectedCard.gradient} p-4 sm:p-8`}>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-4">
+                  <div className="flex items-center space-x-4">
+                    <div className={`${selectedCard.iconBg} ${selectedCard.iconColor} p-3 sm:p-4 rounded-2xl backdrop-blur-sm`}>
+                      {selectedCard.icon}
+                    </div>
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-bold">{selectedCard.title}</h2>
+                      <p className="text-white/80 text-sm">{selectedCard.subtitle}</p>
+                    </div>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <div className="text-2xl sm:text-3xl font-bold">{selectedCard.total?.toLocaleString()}</div>
+                    <div className="text-white/80 text-sm">Total Records</div>
+                  </div>
                 </div>
               </div>
-
-              {/* Most In-Demand Jobs */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Most In-Demand Job Titles</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={inDemandJobsData} />
-                </div>
-              </div>
-
-              {/* Workers Trend */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden col-span-1 lg:col-span-2">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Workers Trend by Job Title</h2>
-                </div>
-                <div className="p-4">
-                  <Line options={{
-                    ...options,
-                    scales: {
-                      x: {
-                        title: {
-                          display: true,
-                          text: 'Date'
+              <div className="p-4 sm:p-8">
+                {renderChart()}
+                {selectedCard.hasDateFilter && (
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Filter by Registration Date</h4>
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                      <input
+                        type="date"
+                        value={dateFilter.from}
+                        onChange={(e) =>
+                          setDateFilter({
+                            ...dateFilter,
+                            from: e.target.value
+                          })
                         }
-                      },
-                      y: {
-                        beginAtZero: true,
-                        title: {
-                          display: true,
-                          text: 'Number of Workers'
+                        className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                      <span className="text-gray-500">to</span>
+                      <input
+                        type="date"
+                        value={dateFilter.to}
+                        onChange={(e) =>
+                          setDateFilter({
+                            ...dateFilter,
+                            to: e.target.value
+                          })
                         }
-                      }
-                    }
-                  }} data={workersTrendData} />
-                </div>
-              </div>
-
-              {/* Employment Dashboard - Custom Table-like View */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden col-span-1 lg:col-span-2">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Employment Dashboard</h2>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full table-auto">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-4 py-2 text-left">Metric</th>
-                        <th className="px-4 py-2 text-left">Value</th>
-                        <th className="px-4 py-2 text-left">Trend</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b">
-                        <td className="px-4 py-2 font-medium">Total Labor Force</td>
-                        <td className="px-4 py-2">{employmentStats.labor_force.toLocaleString()}</td>
-                        <td className="px-4 py-2">—</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2 font-medium">Employed</td>
-                        <td className="px-4 py-2">{employmentStats.employed.toLocaleString()}</td>
-                        <td className="px-4 py-2">—</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2 font-medium">Unemployed</td>
-                        <td className="px-4 py-2">{employmentStats.unemployed.toLocaleString()}</td>
-                        <td className="px-4 py-2">—</td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2 font-medium">Employment Rate</td>
-                        <td className="px-4 py-2">{employmentStats.employment_rate.toFixed(1)}%</td>
-                        <td className="px-4 py-2">
-                          <span className={`${employmentStats.employment_rate - employmentStats.previous_period.employment_rate >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {employmentStats.employment_rate - employmentStats.previous_period.employment_rate >= 0 ? '↑ ' : '↓ '}
-                            {Math.abs(employmentStats.employment_rate - employmentStats.previous_period.employment_rate).toFixed(1)}%
-                          </span>
-                        </td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2 font-medium">Unemployment Rate</td>
-                        <td className="px-4 py-2">{employmentStats.unemployment_rate.toFixed(1)}%</td>
-                        <td className="px-4 py-2">
-                          <span className={`${employmentStats.unemployment_rate - employmentStats.previous_period.unemployment_rate <= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {employmentStats.unemployment_rate - employmentStats.previous_period.unemployment_rate <= 0 ? '↓ ' : '↑ '}
-                            {Math.abs(employmentStats.unemployment_rate - employmentStats.previous_period.unemployment_rate).toFixed(1)}%
-                          </span>
-                        </td>
-                      </tr>
-                      <tr className="border-b">
-                        <td className="px-4 py-2 font-medium">Jobs Created</td>
-                        <td className="px-4 py-2">{employmentStats.jobs_created.toLocaleString()}</td>
-                        <td className="px-4 py-2">
-                          <span className={`${employmentStats.jobs_created - employmentStats.previous_period.jobs_created >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {employmentStats.jobs_created - employmentStats.previous_period.jobs_created >= 0 ? '↑ ' : '↓ '}
-                            {Math.abs(employmentStats.jobs_created - employmentStats.previous_period.jobs_created).toLocaleString()}
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-2 font-medium">Top Hiring Sectors</td>
-                        <td className="px-4 py-2">
-                          {employmentStats.top_sectors[0].Sector} ({employmentStats.top_sectors[0].HiringCount.toLocaleString()})
-                        </td>
-                        <td className="px-4 py-2">
-                          {employmentStats.top_sectors.slice(1, 3).map((sector, idx) => (
-                            <span key={idx}>
-                              {sector.Sector} ({sector.HiringCount.toLocaleString()})
-                              {idx < employmentStats.top_sectors.length - 2 && ', '}
-                            </span>
-                          ))}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                        className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                      <button
+                        onClick={applyDateFilter}
+                        disabled={!dateFilter.from || !dateFilter.to}
+                        className={`ml-2 px-4 py-2 rounded-md text-white text-sm ${dateFilter.from && dateFilter.to
+                            ? 'bg-blue-600 hover:bg-blue-700'
+                            : 'bg-blue-300 cursor-not-allowed'
+                          }`}
+                      >
+                        Apply Filter
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
-
-          {/* Sex Section */}
-          {activeSection === 'sex' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Overall Sex Distribution */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Overall Sex Distribution</h2>
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+              {[
+                { label: 'Total Records', value: selectedCard.total?.toLocaleString(), color: 'blue' },
+                { label: 'This Month', value: Math.floor(selectedCard.total * 0.15).toLocaleString(), color: 'emerald' },
+                { label: 'Growth Rate', value: selectedCard.change, color: 'purple' },
+              ].map((stat, i) => (
+                <div key={i} className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-4 sm:p-6 hover:shadow-xl transition-all duration-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-500">{stat.label}</p>
+                      <p className={`text-2xl font-bold text-${stat.color}-600 mt-1`}>{stat.value}</p>
+                    </div>
+                    <div className={`p-3 bg-${stat.color}-100 text-${stat.color}-600 rounded-xl`}>
+                      {stat.color === 'blue' && <BarChart2 />}
+                      {stat.color === 'emerald' && <TrendingUp />}
+                      {stat.color === 'purple' && <TrendingUp />}
+                      {stat.color === 'orange' && <Eye />}
+                    </div>
+                  </div>
                 </div>
-                <div className="p-4">
-                  <Doughnut options={options} data={sexDistributionData} />
-                </div>
-              </div>
-
-              {/* Job Preferences by Sex */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Job Preferences by Sex</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={{
-                    ...options,
-                    scales: {
-                      x: {
-                        stacked: true
-                      },
-                      y: {
-                        stacked: true
-                      }
-                    }
-                  }} data={jobPreferencesBySexData} />
-                </div>
-              </div>
-
-              {/* Gender Distribution by Municipality */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden col-span-1 lg:col-span-2">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Gender Distribution by Municipality</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={genderByMunicipalityData} />
-                </div>
-              </div>
+              ))}
             </div>
-          )}
-
-          {/* Municipality Section */}
-          {activeSection === 'municipality' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Hired Job Seekers by Municipality */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Hired Job Seekers by Municipality</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={hiredByMunicipalityData} />
-                </div>
-              </div>
-
-              {/* Hiring Status by Municipality */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Hiring Status by Municipality</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={{
-                    ...options,
-                    scales: {
-                      x: {
-                        stacked: true
-                      },
-                      y: {
-                        stacked: true
-                      }
-                    }
-                  }} data={hiringStatusData} />
-                </div>
-              </div>
-
-              {/* Job Seeker Concentration Heatmap (Simplified) */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden col-span-1 lg:col-span-2">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Job Seeker Concentration by Municipality</h2>
-                </div>
-                <div className="p-4 flex flex-wrap gap-4">
-                  {municipalityData.jobseeker_concentration.map((muni, index) => (
-                    <div key={index} className="w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5 p-2">
-                      <div className="relative pt-[100%] rounded-lg overflow-hidden">
-                        <div className="absolute inset-0 flex flex-col items-center justify-center p-2 bg-blue-100">
-                          <div className="text-sm font-medium text-center">{muni.Municipality}</div>
-                          <div className="mt-2 text-lg font-bold">{muni.NumJobSeekers}</div>
-                        </div>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+              {cardConfigs.map(card => (
+                <div
+                  key={card.id}
+                  onClick={() => setSelectedCard(card)}
+                  className="group relative bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg border border-white/20 p-6 sm:p-8 cursor-pointer transition-all duration-300 hover:shadow-2xl hover:scale-105 hover:bg-white/80"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-300`}></div>
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-4 sm:mb-6">
+                      <div className={`${card.iconBg} ${card.iconColor} p-3 sm:p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300`}>
+                        {card.icon}
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                          {card.change}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Education Section */}
-          {activeSection === 'education' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Educational Attainment Distribution */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Educational Attainment Distribution</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={educationDistributionData} />
-                </div>
-              </div>
-
-              {/* Job Preferences by Educational Attainment */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Job Preferences by Educational Attainment</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={jobByEducationData} />
-                </div>
-              </div>
-
-              {/* Educational Attainment by Municipality */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden col-span-1 lg:col-span-2">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Educational Attainment by Municipality</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={educationByMunicipalityData} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Age Section */}
-          {activeSection === 'age' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Age Distribution of Job Seekers */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Age Distribution of Job Seekers</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={ageDistributionData} />
-                </div>
-              </div>
-
-              {/* Job Preferences by Age Group */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Job Preferences by Age Group</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={jobByAgeData} />
-                </div>
-              </div>
-
-              {/* Age Distribution by Municipality */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden col-span-1 lg:col-span-2">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Age Distribution by Municipality</h2>
-                </div>
-                <div className="p-4 flex flex-wrap gap-4">
-                  {ageData.age_by_municipality.map((item, index) => (
-                    <div key={index} className="w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/6 p-2">
-                      <div className="relative pt-[100%] rounded-lg overflow-hidden">
-                        <div className="absolute inset-0 flex flex-col items-center justify-center p-2 bg-yellow-100">
-                          <div className="text-xs font-medium text-center">{item.Municipality}</div>
-                          <div className="text-xs text-center mt-1">{item.AgeBracket}</div>
-                          <div className="mt-2 text-lg font-bold">{item.NumJobSeekers}</div>
-                        </div>
+                    <div className="space-y-2">
+                      <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-slate-800 transition-colors duration-200">
+                        {card.title}
+                      </h3>
+                      <p className="text-slate-500 text-sm">{card.subtitle}</p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-slate-100 gap-2 sm:gap-0">
+                      <div>
+                        <div className="text-2xl sm:text-3xl font-bold text-slate-900">{card.total?.toLocaleString()}</div>
+                        <div className="text-xs text-slate-500">Total Records</div>
+                      </div>
+                      <div className="flex items-center text-slate-400 group-hover:text-slate-600 transition-colors duration-200">
+                        <span className="mr-2">View Details</span>
+                        <ArrowLeft className="rotate-180 group-hover:translate-x-1 transition-transform duration-200" />
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          )}
-          {/* Course Section */}
-          {activeSection === 'course' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Course Selector */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden col-span-1 lg:col-span-2">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Filter by Course</h2>
-                </div>
-                <div className="p-4">
-                  <select
-                    value={selectedCourse}
-                    onChange={handleCourseChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                  >
-                    <option value="">Select a course</option>
-                    {courses.map(course => (
-                      <option key={course} value={course}>{course}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Course Distribution */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Course Distribution</h2>
-                </div>
-                <div className="p-4">
-                  <Doughnut options={options} data={courseDistributionData} />
-                </div>
-              </div>
-
-              {/* Job Preferences by Course */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Job Preferences by Course</h2>
-                </div>
-                <div className="p-4">
-                  <Bar options={options} data={jobByCourseData} />
-                </div>
-              </div>
-
-              {/* Skills in Demand */}
-              <div className="bg-white rounded-lg shadow-md overflow-hidden col-span-1 lg:col-span-2">
-                <div className="bg-teal-600 text-white p-4">
-                  <h2 className="text-lg font-semibold">Top 10 Skills in Demand</h2>
-                </div>
-                <div className="p-4">
-                  {selectedCourse ? (
-                    <Bar options={{
-                      ...options,
-                      indexAxis: 'y',
-                      scales: {
-                        x: {
-                          beginAtZero: true,
-                          title: {
-                            display: true,
-                            text: 'Demand Score'
-                          }
-                        },
-                        y: {
-                          ticks: {
-                            padding: 10
-                          }
-                        }
-                      }
-                    }} data={skillsInDemandData} />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-                      <FaChartBar size={48} className="mb-4 opacity-50" />
-                      <p className="text-lg font-medium">Please select a course to view skills in demand</p>
-                      <p className="text-sm mt-2">Use the dropdown above to choose a course</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-4">
-        <div className="container mx-auto text-center">
-          <p>© {new Date().getFullYear()} Job Seeker Dashboard - All rights reserved</p>
+      <footer className="bg-slate-900/95 backdrop-blur-sm text-white py-8 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-center md:text-left">&copy; {new Date().getFullYear()} JobSeeker Analytics Dashboard — All rights reserved.</p>
+            <div className="flex items-center space-x-4 mt-2 md:mt-0 justify-center md:justify-end">
+              <span className="text-slate-400 text-xs">Powered by</span>
+              <span className="font-medium">Advanced Analytics</span>
+            </div>
+          </div>
         </div>
       </footer>
+
+      {/* Export Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xs sm:max-w-sm mx-4 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
+              <h3 className="text-xl font-bold text-white">Export Analytics Data</h3>
+              <p className="text-blue-100 text-sm mt-1">Choose your preferred format</p>
+            </div>
+            <div className="p-6 space-y-3">
+              <button
+                onClick={() => Data_Export_as_excel('xlsx')}
+                className="w-full flex items-center justify-between p-4 bg-emerald-50 text-emerald-800 rounded-2xl hover:bg-emerald-100 transition-colors duration-200 group"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-emerald-100 rounded-lg"><Download className="text-emerald-600" /></div>
+                  <div className="text-left">
+                    <div className="font-semibold">Excel Format</div>
+                    <div className="text-xs text-emerald-600">Spreadsheet (.xlsx)</div>
+                  </div>
+                </div>
+                <ArrowLeft className="rotate-180 group-hover:translate-x-1 transition-transform duration-200 text-emerald-600" />
+              </button>
+            </div>
+            <div className="px-6 pb-6">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="w-full px-4 py-3 bg-slate-100 text-slate-700 rounded-2xl hover:bg-slate-200 transition-colors duration-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Chart Export Modal */}
+      {exportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6">
+              <h3 className="text-xl font-bold text-white">Export Charts</h3>
+              <p className="text-indigo-100 text-sm mt-1">Select one or more charts to export as images</p>
+            </div>
+            <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
+              {/* Select All Checkbox */}
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedCharts.length === cardConfigs.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedCharts(cardConfigs.map(c => c.id));
+                    } else {
+                      setSelectedCharts([]);
+                    }
+                  }}
+                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                />
+                <span className="font-medium text-slate-700">Select All Charts</span>
+              </label>
+              {/* Individual Chart Checkboxes */}
+              {cardConfigs.map((chart) => (
+                <label key={chart.id} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedCharts.includes(chart.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedCharts([...selectedCharts, chart.id]);
+                      } else {
+                        setSelectedCharts(selectedCharts.filter(id => id !== chart.id));
+                      }
+                    }}
+                    className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                  />
+                  <span className="text-sm text-slate-700">{chart.title}</span>
+                </label>
+              ))}
+            </div>
+            <div className="px-6 pb-6 pt-2 flex justify-between gap-3">
+              <button
+                onClick={() => setExportModalOpen(false)}
+                className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleChartExport}
+                disabled={selectedCharts.length === 0}
+                className={`flex-1 px-4 py-2 rounded-xl text-white transition-all duration-200 ${selectedCharts.length > 0
+                    ? 'bg-indigo-600 hover:bg-indigo-700'
+                    : 'bg-indigo-300 cursor-not-allowed'
+                  }`}
+              >
+                Download Selected
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
